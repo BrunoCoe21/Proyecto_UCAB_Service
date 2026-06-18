@@ -1,38 +1,34 @@
-// backend/src/models/Estudiante.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Estudiante = sequelize.define('Estudiante', {
-  id: {
+  cedula_identidad: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
     primaryKey: true,
   },
-  nombre: {
-    type: DataTypes.STRING(100),
+  promedio: {
+    type: DataTypes.DECIMAL(5, 2),
     allowNull: false,
   },
-  apellido: {
-    type: DataTypes.STRING(100),
+  uc_aprobadas: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
-  correo: {
-    type: DataTypes.STRING(255),
+  semestre_actual: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true,
-    },
   },
-  fecha_registro: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW, // Equivalente a DEFAULT CURRENT_TIMESTAMP
+  escuela: {
+    type: DataTypes.STRING(80),
+    allowNull: false,
+  },
+  facultad: {
+    type: DataTypes.STRING(80),
+    allowNull: false,
   },
 }, {
-  tableName: 'estudiantes', // Nombre exacto de la tabla en la BD
-  timestamps: false,        // Importante: no usar createdAt/updatedAt
-  // Si quieres que Sequelize no intente modificar la tabla, puedes poner:
-  // freezeTableName: true,
+  tableName: 'estudiante', // En singular, tal cual como está en tu pgAdmin
+  timestamps: false,       // Evita que busque columnas automáticas como createdAt
 });
 
 module.exports = Estudiante;
