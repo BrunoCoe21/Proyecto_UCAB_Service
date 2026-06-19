@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar Espacio Físico</title>
+  <link rel="stylesheet" href="agregarEspacioFisico.css">
+</head>
+<body>
+  <h2>Nuevo Espacio Físico</h2>
+  <form id="formEspacioFisico">
+    <!-- Combo de edificación -->
+    <div>
+      <label for="edificacion">Edificación:</label>
+      <select id="edificacion" required>
+        <option value="">Seleccione una edificación...</option>
+      </select>
+    </div>
+
+    <!-- Campos del espacio -->
+    <div>
+      <label for="num_identificador">Número identificador:</label>
+      <input type="text" id="num_identificador" required placeholder="Ej: LAB-101">
+    </div>
+    <div>
+      <label for="cap_maxima_aforo">Capacidad máxima (aforo):</label>
+      <input type="number" id="cap_maxima_aforo" placeholder="Ej: 30">
+    </div>
+    <div>
+      <label for="tipo_mobiliario">Tipo de mobiliario:</label>
+      <input type="text" id="tipo_mobiliario" placeholder="Ej: Mesas, sillas">
+    </div>
+    <div>
+      <label for="tipo_espacio_fisico">Tipo de espacio:</label>
+      <input type="text" id="tipo_espacio_fisico" placeholder="Ej: Auditorio, Laboratorio">
+    </div>
+    <div>
+      <label for="estado_mantenimiento">Estado de mantenimiento:</label>
+      <select id="estado_mantenimiento">
+        <option value="operativo">Operativo</option>
+        <option value="en mantenimiento">En mantenimiento</option>
+        <option value="inhabilitado">Inhabilitado</option>
+      </select>
+    </div>
+
+    <button type="submit">Guardar Espacio</button>
+  </form>
+  <div id="mensaje"></div>
+
+  <script src="agregarEspacioFisico.js"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@ const sequelize = require('./src/config/database');
 
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ force: false }) // Cambia a true solo si quieres recrear tablas
+sequelize.sync({ force: false })
   .then(() => {
     console.log('BD sincronizada');
     app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
