@@ -1,63 +1,37 @@
-const API_URL = 'http://localhost:5000/api/estudiantes';
+// estudiante/estudiante.js
+document.addEventListener('DOMContentLoaded', async () => {
+  await cargarDatosPerfil();
+});
 
-const form = document.getElementById('formEstudiante');
-const mensaje = document.getElementById('mensaje');
-const lista = document.getElementById('listaEstudiantes');
-
-cargarEstudiantes();
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const nombre = document.getElementById('nombre').value.trim();
-  const apellido = document.getElementById('apellido').value.trim();
-  const correo = document.getElementById('correo').value.trim();
-
-  if (!nombre || !apellido || !correo) {
-    mostrarMensaje('Todos los campos son obligatorios', 'error');
+async function cargarDatosPerfil() {
+  const usuarioRaw = localStorage.getItem('ucab_usuario');
+  if (!usuarioRaw) {
+    window.location.href = '../login/login.html';
     return;
   }
 
+  const usuario = JSON.parse(usuarioRaw);
+
+  // Inyectar datos básicos
+  document.getElementById('perfil-nombre').textContent = usuario.nombre;
+  document.getElementById('perfil-cedula').textContent = `V-${usuario.cedula}`;
+  document.getElementById('perfil-correo').textContent = usuario.correo;
+  
+  const iniciales = usuario.nombre.split(' ').map(n => n[0]).join('').substring(0, 2);
+  document.getElementById('perfil-avatar').textContent = iniciales.toUpperCase();
+
+  // Llamada a la API real
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, apellido, correo }),
-    });
+    const infoAcademica = await API.request(`/estudiantes/${usuario.cedula}`);
+    
+    // Inyectar datos desde PostgreSQL
+    if (infoAcademica.escuela) document.getElementById('perfil-escuela').textContent = infoAcademica.escuela;
+    if (infoAcademica.promedio) document.getElementById('resumen-promedio').textContent = parseFloat(infoAcademica.promedio).toFixed(1);
+    if (infoAcademica.uc_aprobadas) document.getElementById('resumen-uc').textContent = infoAcademica.uc_aprobadas;
+    if (infoAcademica.semestre_actual) document.getElementById('resumen-semestre').textContent = `${infoAcademica.semestre_actual}°`;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error al agregar estudiante');
-    }
-
-    const data = await response.json();
-    mostrarMensaje(`Estudiante ${data.nombre} ${data.apellido} agregado con éxito`, 'success');
-    form.reset();
-    cargarEstudiantes();
   } catch (error) {
-    mostrarMensaje(error.message, 'error');
+    console.error("Error al cargar datos desde PostgreSQL:", error);
+    document.getElementById('perfil-escuela').textContent = "Error de conexión";
   }
-});
-
-async function cargarEstudiantes() {
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Error al cargar estudiantes');
-    const estudiantes = await response.json();
-    lista.innerHTML = estudiantes.map(e => {
-      const fecha = new Date(e.fecha_registro).toLocaleDateString();
-      return `<li>${e.nombre} ${e.apellido} - ${e.correo} (Registrado: ${fecha})</li>`;
-    }).join('');
-  } catch (error) {
-    lista.innerHTML = '<li>Error al cargar estudiantes</li>';
-  }
-}
-
-function mostrarMensaje(texto, tipo) {
-  mensaje.textContent = texto;
-  mensaje.className = tipo;
-  setTimeout(() => {
-    mensaje.textContent = '';
-    mensaje.className = '';
-  }, 4000);
 }

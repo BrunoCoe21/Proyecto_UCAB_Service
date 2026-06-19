@@ -1,34 +1,35 @@
+// src/models/estudiante.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Estudiante = sequelize.define('Estudiante', {
+const Estudiante = sequelize.define('estudiante', {
   cedula_identidad: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    // En PostgreSQL esta es tanto PK como FK hacia usuario
   },
   promedio: {
     type: DataTypes.DECIMAL(5, 2),
-    allowNull: false,
+    allowNull: true,
   },
   uc_aprobadas: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   semestre_actual: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   escuela: {
     type: DataTypes.STRING(80),
-    allowNull: false,
+    allowNull: true,
   },
   facultad: {
     type: DataTypes.STRING(80),
-    allowNull: false,
-  },
+    allowNull: true,
+  }
 }, {
-  tableName: 'estudiante', // En singular, tal cual como está en tu pgAdmin
-  timestamps: false,       // Evita que busque columnas automáticas como createdAt
+  tableName: 'estudiante'
 });
 
 module.exports = Estudiante;
