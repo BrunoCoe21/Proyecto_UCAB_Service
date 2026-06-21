@@ -7,6 +7,10 @@ const sedeRoutes = require('./routes/sedeRoutes');
 const edificacionRoutes = require('./routes/edificacionRoutes');
 // NUEVA ruta
 const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
+//Ruta de autenticacion
+const authRoutes = require('./routes/authRoutes');
+
+
 
 const app = express();
 app.use(cors());
@@ -17,6 +21,8 @@ app.use('/api/estudiantes', estudianteRoutes);
 app.use('/api/sedes', sedeRoutes);
 app.use('/api/edificaciones', edificacionRoutes);
 app.use('/api/espacios', espacioFisicoRoutes);  // <--- NUEVA
+app.use('/api/auth', authRoutes);
+
 
 // Middleware de errores
 app.use((err, req, res, next) => {
