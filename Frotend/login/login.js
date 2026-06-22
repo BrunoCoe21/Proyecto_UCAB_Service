@@ -23,13 +23,27 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
   btnIngresar.disabled = true;
   btnIngresar.textContent = 'Ingresando...';
 
+  // Capturar datos del dispositivo
+  //const dispositivo = navigator.userAgent || 'Desconocido';
+  // Geolocalización (por ahora la dejamos como "No disponible" para no pedir permisos)
+  
+  const userAgent = navigator.userAgent || 'Desconocido';
+  const dispositivo = userAgent.substring(0, 60);
+
+  const geolocalizacion = 'No disponible';
+
   try {
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ correo, contrasena })
+      body: JSON.stringify({
+        correo,
+        contrasena,
+        dispositivo,      // <--- NUEVO
+        geolocalizacion   // <--- NUEVO
+      })
     });
 
     const data = await response.json();
@@ -46,8 +60,8 @@ document.getElementById('formLogin').addEventListener('submit', async function(e
       roles: data.roles
     }));
 
-    // Redirigir al dashboard (o a la página principal)
-    window.location.href = '../dashboard.html'; // ajusta la ruta según tu estructura
+    // Redirigir al dashboard
+    window.location.href = '../dashboard.html';
 
   } catch (error) {
     mostrarError(error.message);

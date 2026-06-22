@@ -9,7 +9,8 @@ const edificacionRoutes = require('./routes/edificacionRoutes');
 const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
 //Ruta de autenticacion
 const authRoutes = require('./routes/authRoutes');
-
+//ruta de usuario
+const usuarioRoutes = require('./routes/usuarioRoutes');
 
 
 const app = express();
@@ -22,7 +23,7 @@ app.use('/api/sedes', sedeRoutes);
 app.use('/api/edificaciones', edificacionRoutes);
 app.use('/api/espacios', espacioFisicoRoutes);  // <--- NUEVA
 app.use('/api/auth', authRoutes);
-
+app.use('/api/usuarios', usuarioRoutes);
 
 // Middleware de errores
 app.use((err, req, res, next) => {

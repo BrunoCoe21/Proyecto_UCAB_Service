@@ -49,7 +49,9 @@ return roles;
 // ----------------------------------------------------------------------------
 exports.login = async (req, res) => {
 try {
-const { correo, contrasena } = req.body;
+//const { correo, contrasena } = req.body;
+const { correo, contrasena, dispositivo, geolocalizacion } = req.body;
+
 
 if (!correo || !contrasena) {
 return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
@@ -98,10 +100,17 @@ WHERE cedula_identidad = :cedula`,
 
 // 5. Registrar la sesión (entidad débil sesion)
 await sequelize.query(
-`INSERT INTO sesion (cedula_identidad, fecha_acceso, direccion_ip)
-VALUES (:cedula, CURRENT_TIMESTAMP, :ip)`,
-{ replacements: { cedula: usuario.cedula_identidad, ip: req.ip || null },
-type: QueryTypes.INSERT }
+  `INSERT INTO sesion (cedula_identidad, fecha_acceso, direccion_ip, identificador_dispositivo, geolocalizacion_aprox)
+   VALUES (:cedula, CURRENT_TIMESTAMP, :ip, :dispositivo, :geo)`,
+  { 
+    replacements: { 
+      cedula: usuario.cedula_identidad, 
+      ip: req.ip || req.headers['x-forwarded-for'] || null,
+      dispositivo: (dispositivo || 'Desconocido').substring(0, 60), // <--- TRUNCAR
+      geo: geolocalizacion || 'No disponible'
+    },
+    type: QueryTypes.INSERT 
+  }
 );
 
 // 6. Obtener roles y generar el token
