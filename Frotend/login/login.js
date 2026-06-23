@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/usuarios';
+const API_URL = 'http://localhost:5000/api/auth';
 
 const form = document.getElementById('formLogin');
 const emailInput = document.getElementById('email');
@@ -37,6 +37,15 @@ form.addEventListener('submit', async (e) => {
       throw new Error(data.error || 'Credenciales inválidas.');
     }
 
+    // --- NUEVA VALIDACIÓN ESTRICTA DE SEGURIDAD ---
+    if (!data.roles || data.roles.length === 0) {
+      throw new Error('Tu cuenta no tiene un rol asignado. Contacta a soporte técnico.');
+    }
+
+    const rolPrincipal = data.roles[0].toUpperCase();
+
+    // 1. Guardamos con los nombres nuevos
+    localStorage.setItem('ucab_rol', rolPrincipal);
     localStorage.setItem('ucab_token', data.token);
     localStorage.setItem('ucab_usuario', JSON.stringify({
       cedula: data.cedula,
@@ -45,13 +54,24 @@ form.addEventListener('submit', async (e) => {
       roles: data.roles
     }));
 
-    if (data.roles.includes('estudiante')) {
+    // 2. PARCHE: Guardamos también con los nombres viejos
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('usuario', JSON.stringify({
+      cedula: data.cedula,
+      nombre: data.nombre,
+      correo: correo,
+      roles: data.roles
+    }));
+    // -----------------------------------------
+
+    if (rolPrincipal === 'ESTUDIANTE') {
       window.location.href = '../estudiante/index.html';
     } else {
       window.location.href = '../estudiante/index.html'; 
     }
 
   } catch (error) {
+    console.error("Detalle del error en Login:", error);
     mostrarError(error.message);
   } finally {
     btnIngresar.disabled = false;

@@ -71,7 +71,7 @@ return res.status(401).json({ error: 'Credenciales inválidas.' });
 const usuario = usuarios[0];
 
 // 2. Validar que la cuenta no esté bloqueada/suspendida
-if (usuario.estado_cuenta !== 'activa') {
+if (usuario.estado_cuenta.toLowerCase() !== 'activa') {
 return res.status(403).json({ error: `La cuenta está ${usuario.estado_cuenta}.` });
 }
 

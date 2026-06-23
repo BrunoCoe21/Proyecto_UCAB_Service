@@ -20,7 +20,7 @@ app.use(express.json());
 
 // Registro formal de los Endpoints relacionales de la API
 // Nota: Dejé '/api/usuarios' para el login como lo configuró Bruno
-app.use('/api/usuarios', authRoutes);       
+app.use('/api/auth', authRoutes);       
 app.use('/api/estudiantes', estudianteRoutes); 
 app.use('/api/solicitudes', solicitudRoutes); 
 app.use('/api/servicios', servicioRoutes);     
