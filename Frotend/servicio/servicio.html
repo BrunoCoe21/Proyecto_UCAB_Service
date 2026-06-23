@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Catálogo de Servicios | UCAB Services</title>
+  <link rel="stylesheet" href="servicio.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-container">
+  
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text">
+        <strong>UCAB Services</strong>
+        <span>PORTAL DEL MIEMBRO</span>
+      </div>
+      <button class="toggle-btn">&lt;</button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item"><span class="icon">⊞</span> Inicio</a>
+      
+      <div class="menu-section">MI CUENTA</div>
+      <a href="#" class="menu-item"><span class="icon">👤</span> Mi Perfil</a>
+      <a href="#" class="menu-item"><span class="icon">🔗</span> Vínculos</a>
+
+      <div class="menu-section">SERVICIOS</div>
+      <a href="#" class="menu-item active"><span class="icon">📖</span> Catálogo de Servicios</a>
+      <a href="#" class="menu-item"><span class="icon">📄</span> Mis Solicitudes</a>
+
+      <div class="menu-section">FINANZAS</div>
+      <a href="#" class="menu-item"><span class="icon">💲</span> Estado de Cuenta</a>
+      <a href="#" class="menu-item"><span class="icon">💳</span> Pagos</a>
+
+      <div class="menu-section">OPORTUNIDADES</div>
+      <a href="#" class="menu-item"><span class="icon">💼</span> Bolsa de Trabajo</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">AM</div>
+        <div class="user-info">
+          <strong>Ana María Rodríguez</strong>
+          <span>Estudiante · Preparadora · Bec...</span>
+        </div>
+      </div>
+      <a href="#" class="logout-btn"><span class="icon">↪</span> Cerrar sesión</a>
+    </div>
+  </aside>
+
+  <main class="catalogo-main">
+    
+    <div class="page-header">
+      <span class="breadcrumb">PORTAL DEL MIEMBRO</span>
+      <h1>Catálogo de Servicios</h1>
+      <p class="subtitle">Sede Montalbán · Precios ajustados según tu rol y sede</p>
+    </div>
+
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Buscar servicio...">
+    </div>
+
+    <div class="filters-container">
+      <button class="filter-btn active"><span class="icon">📖</span> Todos</button>
+      <button class="filter-btn"><span class="icon">🎓</span> Documentos</button>
+      <button class="filter-btn"><span class="icon">🏢</span> Espacios</button>
+      <button class="filter-btn"><span class="icon">📚</span> Edu. Continua</button>
+      <button class="filter-btn"><span class="icon">♡</span> Salud</button>
+      <button class="filter-btn"><span class="icon">🎵</span> Cultura</button>
+      <button class="filter-btn"><span class="icon">⚽</span> Deporte</button>
+    </div>
+
+    <div class="catalogo-layout">
+      
+      <div class="servicios-grid">
+        
+        <div class="tarjeta-servicio">
+          <div class="tarjeta-header">
+            <div class="tag-grupo bg-azul">
+              <span class="icono-tag">🎓</span>
+              <span class="texto-tag">DOCUMENTOS ACADÉMICOS</span>
+            </div>
+            <div class="precio-grupo">
+              <span class="precio-actual">$5.00</span>
+              <span class="precio-anterior">$15.00</span>
+            </div>
+          </div>
+          <h3 class="servicio-titulo">Constancia de Estudios</h3>
+          <p class="servicio-desc">Documento oficial que certifica la condición de estudiante activo.</p>
+          <div class="tarjeta-footer">
+            <span class="pasos">3 pasos</span>
+            <span class="limite">Límite máx. $15</span>
+          </div>
+        </div>
+
+        <div class="tarjeta-servicio">
+          <div class="tarjeta-header">
+            <div class="tag-grupo bg-azul">
+              <span class="icono-tag">🎓</span>
+              <span class="texto-tag">DOCUMENTOS ACADÉMICOS</span>
+            </div>
+            <div class="precio-grupo">
+              <span class="precio-actual">$8.00</span>
+              <span class="precio-anterior">$25.00</span>
+            </div>
+          </div>
+          <h3 class="servicio-titulo">Certificado de Notas</h3>
+          <p class="servicio-desc">Historial académico completo con notas y créditos aprobados.</p>
+          <div class="tarjeta-footer">
+            <span class="pasos">4 pasos</span>
+            <span class="limite">Límite máx. $25</span>
+          </div>
+        </div>
+
+        <div class="tarjeta-servicio">
+          <div class="tarjeta-header">
+            <div class="tag-grupo bg-azul">
+              <span class="icono-tag">🎓</span>
+              <span class="texto-tag">DOCUMENTOS ACADÉMICOS</span>
+            </div>
+            <div class="precio-grupo">
+              <span class="precio-actual">$12.00</span>
+              <span class="precio-anterior">$40.00</span>
+            </div>
+          </div>
+          <h3 class="servicio-titulo">Equivalencia de Asignaturas</h3>
+          <p class="servicio-desc">Evaluación de equivalencias para materias cursadas en otras universidades.</p>
+          <div class="tarjeta-footer">
+            <span class="pasos">4 pasos</span>
+            <span class="limite">Límite máx. $40</span>
+          </div>
+        </div>
+
+        <div id="serviciosContainer" class="servicios-grid">
+        <!-- Las tarjetas se generarán dinámicamente -->
+        </div>
+
+        <div class="tarjeta-servicio">
+          <div class="tarjeta-header">
+            <div class="tag-grupo bg-dorado">
+              <span class="icono-tag">🏢</span>
+              <span class="texto-tag">ESPACIOS FÍSICOS</span>
+            </div>
+            <div class="precio-grupo">
+              <span class="precio-actual">$50.00</span>
+              <span class="precio-anterior">$200.00</span>
+            </div>
+          </div>
+          <h3 class="servicio-titulo">Alquiler de Auditorio</h3>
+          <p class="servicio-desc">Reserva de auditorios para eventos, conferencias y actividades.</p>
+          <div class="tarjeta-footer">
+            <span class="pasos">4 pasos</span>
+            <span class="limite verde">Límite máx. $200</span>
+          </div>
+        </div>
+
+      </div>
+
+      <aside class="detalle-sidebar">
+        <div class="tarjeta-blanca sticky-panel">
+          <h2 class="detalle-titulo">Seguro Estudiantil HCM</h2>
+          <span class="detalle-categoria">Salud</span>
+
+          <div class="calculo-caja">
+            <div class="calculo-header">
+              CÁLCULO DE PRECIO — SEDE MONTALBÁN
+            </div>
+            <div class="calculo-body">
+              <div class="fila-precio">
+                <span>Precio base</span>
+                <span>$38.79</span>
+              </div>
+              <div class="fila-precio">
+                <span>Ajuste sede Montalbán</span>
+                <span>$6.21</span>
+              </div>
+            </div>
+            <div class="calculo-total">
+              <span>Tu precio</span>
+              <span class="total-monto">$45.00</span>
+            </div>
+            <div class="calculo-footer">
+              <span>📈 Límite máx. categoría</span>
+              <span>$120.00</span>
+            </div>
+          </div>
+
+          <div class="pasos-tramite">
+            <h3 class="titulo-pasos">Pasos del trámite</h3>
+            <ul class="lista-pasos">
+              <li>
+                <span class="paso-numero">1</span>
+                <span class="paso-texto">Inscripción</span>
+              </li>
+              <li>
+                <span class="paso-numero">2</span>
+                <span class="paso-texto">Validación Datos</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+</div>
+    <script src="servicio.js"></script>
+</body>
+</html>

@@ -11,7 +11,8 @@ const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
 const authRoutes = require('./routes/authRoutes');
 //ruta de usuario
 const usuarioRoutes = require('./routes/usuarioRoutes');
-
+// de servicio
+const serviceRoutes = require('./routes/serviceRoutes');
 
 const app = express();
 app.use(cors());
@@ -24,6 +25,8 @@ app.use('/api/edificaciones', edificacionRoutes);
 app.use('/api/espacios', espacioFisicoRoutes);  // <--- NUEVA
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/servicios', serviceRoutes);
+
 
 // Middleware de errores
 app.use((err, req, res, next) => {
