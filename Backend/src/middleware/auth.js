@@ -1,25 +1,35 @@
 // src/middleware/auth.js
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'cambia_esta_clave_secreta';
 
 const verificarToken = (req, res, next) => {
-  // Extraemos el token que envía tu archivo api.js en las cabeceras HTTP
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Formato: "Bearer jwt-token-..."
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
     return res.status(403).json({ error: 'Acceso denegado. Se requiere un token de seguridad.' });
   }
 
-  // Validamos que coincida con el token generado por tu authController al hacer login
-  if (
-    token !== 'jwt-token-real-ucab' && 
-    token !== 'jwt-token-generado-para-el-front' && 
-    token !== 'jwt-autenticado-real-ucab'
-  ) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.usuario = decoded; 
+    next(); 
+  } catch (err) {
     return res.status(401).json({ error: 'Token inválido o expirado. Inicie sesión nuevamente.' });
   }
-
-  // Si el token es correcto, permitimos que la petición continúe hacia el controlador definitivo
-  next();
 };
 
-module.exports = verificarToken;
+// Nueva función añadida para proteger rutas según el rol
+const exigirRol = (...rolesPermitidos) => {
+  return (req, res, next) => {
+    const rolesUsuario = req.usuario?.roles || [];
+    const tienePermiso = rolesUsuario.some(r => rolesPermitidos.includes(r));
+    if (!tienePermiso) {
+      return res.status(403).json({ error: 'No tiene permisos para esta acción.' });
+    }
+    next();
+  };
+};
+
+module.exports = { verificarToken, exigirRol };

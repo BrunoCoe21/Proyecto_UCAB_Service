@@ -1,37 +1,155 @@
-// estudiante/estudiante.js
+// estudiante.js - Versión con depuración
 document.addEventListener('DOMContentLoaded', async () => {
-  await cargarDatosPerfil();
-});
+  console.log('🔍 Iniciando carga del perfil...');
 
-async function cargarDatosPerfil() {
-  const usuarioRaw = localStorage.getItem('ucab_usuario');
-  if (!usuarioRaw) {
+  // --- OBTENER SESIÓN ---
+  const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
+  const token = localStorage.getItem('ucab_token');
+
+  console.log('📦 usuario:', usuario);
+  console.log('🔑 token:', token ? '✅ presente' : '❌ ausente');
+
+  if (!usuario || !token) {
+    console.error('❌ No hay sesión activa. Redirigiendo al login...');
     window.location.href = '../login/login.html';
     return;
   }
 
-  const usuario = JSON.parse(usuarioRaw);
+  // --- ACTUALIZAR SIDEBAR (avatar y nombre) ---
+  const avatar = document.getElementById('perfil-avatar');
+  const nombreElem = document.getElementById('perfil-nombre');
+  if (usuario.nombre) {
+    const iniciales = usuario.nombre.substring(0, 1) + (usuario.apellido ? usuario.apellido.substring(0, 1) : '');
+    avatar.textContent = iniciales.toUpperCase() || '--';
+    nombreElem.textContent = usuario.nombre + (usuario.apellido ? ' ' + usuario.apellido : '');
+  }
 
-  // Inyectar datos básicos
-  document.getElementById('perfil-nombre').textContent = usuario.nombre;
-  document.getElementById('perfil-cedula').textContent = `V-${usuario.cedula}`;
-  document.getElementById('perfil-correo').textContent = usuario.correo;
-  
-  const iniciales = usuario.nombre.split(' ').map(n => n[0]).join('').substring(0, 2);
-  document.getElementById('perfil-avatar').textContent = iniciales.toUpperCase();
-
-  // Llamada a la API real
+  // --- OBTENER DATOS DEL ESTUDIANTE DESDE LA API ---
   try {
-    const infoAcademica = await API.request(`/estudiantes/${usuario.cedula}`);
-    
-    // Inyectar datos desde PostgreSQL
-    if (infoAcademica.escuela) document.getElementById('perfil-escuela').textContent = infoAcademica.escuela;
-    if (infoAcademica.promedio) document.getElementById('resumen-promedio').textContent = parseFloat(infoAcademica.promedio).toFixed(1);
-    if (infoAcademica.uc_aprobadas) document.getElementById('resumen-uc').textContent = infoAcademica.uc_aprobadas;
-    if (infoAcademica.semestre_actual) document.getElementById('resumen-semestre').textContent = `${infoAcademica.semestre_actual}°`;
+    const cedula = usuario.cedula || usuario.cedula_identidad;
+    if (!cedula) {
+      console.error('❌ No se encontró la cédula en usuario:', usuario);
+      return;
+    }
+
+    console.log(`🌐 Llamando a API: /api/estudiantes/${cedula}`);
+
+    // Usamos fetch directamente para más control
+    const response = await fetch(`http://localhost:5000/api/estudiantes/${cedula}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('📡 Respuesta HTTP:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error en la respuesta:', errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Datos recibidos de la API:', data);
+
+    // Llenar todos los campos del perfil
+    llenarPerfil(data, usuario);
 
   } catch (error) {
-    console.error("Error al cargar datos desde PostgreSQL:", error);
-    document.getElementById('perfil-escuela').textContent = "Error de conexión";
+    console.error('💥 Error al cargar el perfil:', error);
+    // Los campos ya tienen placeholders, no hacemos nada más
   }
+
+  // --- LÓGICA DE PESTAÑAS ---
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+});
+
+// --- FUNCIÓN QUE LLENA TODOS LOS CAMPOS DEL PERFIL ---
+function llenarPerfil(data, usuarioSesion) {
+  console.log('✏️ Llenando perfil con datos reales de la BD:', data);
+
+  // ----- COLUMNA IZQUIERDA (Identidad) -----
+  const nombreCompleto = (data.primer_nombre || '') + ' ' + (data.primer_apellido || '');
+  document.getElementById('perfil-nombre').textContent = nombreCompleto.trim() || '---';
+  document.getElementById('perfil-escuela-side').textContent = data.escuela || data.facultad || '---';
+
+  // Avatar (iniciales)
+  const avatar = document.getElementById('perfil-avatar');
+  if (data.primer_nombre && data.primer_apellido) {
+    avatar.textContent = (data.primer_nombre.charAt(0) + data.primer_apellido.charAt(0)).toUpperCase();
+  } else if (usuarioSesion.nombre) {
+    const partes = usuarioSesion.nombre.split(' ');
+    avatar.textContent = partes.map(p => p.charAt(0)).join('').toUpperCase().substring(0, 2);
+  }
+
+  // Estado de la cuenta
+  const estadoCuenta = data.estado_cuenta ? data.estado_cuenta.charAt(0).toUpperCase() + data.estado_cuenta.slice(1) : 'Activa';
+  const badgeEstado = document.getElementById('perfil-estado-cuenta');
+  badgeEstado.textContent = `✓ ${estadoCuenta}`;
+  badgeEstado.className = 'badge-estado';
+  
+  if (estadoCuenta === 'Activa') {
+    badgeEstado.style.background = '#d1fae5';
+    badgeEstado.style.color = '#065f46';
+  } else if (estadoCuenta === 'Suspendida') {
+    badgeEstado.style.background = '#fef3c7';
+    badgeEstado.style.color = '#92400e';
+  } else if (estadoCuenta === 'Bloqueada') {
+    badgeEstado.style.background = '#fee2e2';
+    badgeEstado.style.color = '#991b1b';
+  }
+
+  // ----- DATOS PERSONALES -----
+  // Corregimos los nombres para que coincidan con la BD (numero_telefono, direccion_habitacion_detallada)
+  document.getElementById('dato-cedula').textContent = data.cedula_identidad ? 'V-' + data.cedula_identidad : '---';
+  
+  // Formatear la fecha de nacimiento si existe
+  if (data.fecha_nacimiento) {
+    const fecha = new Date(data.fecha_nacimiento);
+    document.getElementById('dato-fecha-nac').textContent = fecha.toLocaleDateString('es-ES', { timeZone: 'UTC' });
+  } else {
+    document.getElementById('dato-fecha-nac').textContent = '--/--/----';
+  }
+
+  document.getElementById('dato-nombres').textContent = data.primer_nombre || '---';
+  document.getElementById('dato-apellidos').textContent = data.primer_apellido || '---';
+  
+  // Formatear sexo
+  let sexoDisplay = '---';
+  if (data.sexo === 'F') sexoDisplay = 'Femenino';
+  if (data.sexo === 'M') sexoDisplay = 'Masculino';
+  document.getElementById('dato-sexo').textContent = sexoDisplay;
+  
+  document.getElementById('dato-telefono').textContent = data.numero_telefono || '---';
+  document.getElementById('dato-correo').textContent = data.correo_institucional || '---';
+  document.getElementById('dato-sede').textContent = 'Montalbán'; // Dato estático por ahora según tu diseño
+  document.getElementById('dato-direccion').textContent = data.direccion_habitacion_detallada || '---';
+
+  // ----- ATRIBUTOS DEL ROL ACTIVO -----
+  document.getElementById('resumen-promedio').textContent = data.promedio || '--';
+  
+  // Nivel del promedio
+  const promedio = parseFloat(data.promedio);
+  let nivel = '---';
+  if (!isNaN(promedio)) {
+    if (promedio >= 16) nivel = 'Excelente';
+    else if (promedio >= 14) nivel = 'Bueno';
+    else if (promedio >= 12) nivel = 'Regular';
+    else nivel = 'Bajo';
+  }
+  document.getElementById('resumen-promedio-nivel').textContent = nivel;
+
+  document.getElementById('resumen-uc').textContent = data.uc_aprobadas || '--';
+  document.getElementById('resumen-uc-total').textContent = 'de requeridos'; 
+
+  document.getElementById('resumen-semestre').textContent = data.semestre_actual ? data.semestre_actual + '°' : '--';
+  document.getElementById('resumen-semestre-anio').textContent = 'Período Activo';
 }

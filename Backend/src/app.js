@@ -8,21 +8,28 @@ const estudianteRoutes = require('./routes/estudianteRoutes');
 const solicitudRoutes = require('./routes/solicitudRoutes');
 const servicioRoutes = require('./routes/servicioRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
+const sedeRoutes = require('./routes/sedeRoutes');
+const edificacionRoutes = require('./routes/edificacionRoutes');
+const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
 
 const app = express();
 
 // Configuración de Middlewares globales
-app.use(cors()); // Habilita el intercambio de recursos de origen cruzado para el desarrollo local
-app.use(express.json()); // Analiza las solicitudes HTTP entrantes con cargas JSON
+app.use(cors()); 
+app.use(express.json()); 
 
 // Registro formal de los Endpoints relacionales de la API
-app.use('/api/usuarios', authRoutes);       // Maneja /api/usuarios/login
-app.use('/api/estudiantes', estudianteRoutes); // Maneja /api/estudiantes/:cedula
-app.use('/api/solicitudes', solicitudRoutes); // Maneja /api/solicitudes/estudiante/:cedula
-app.use('/api/servicios', servicioRoutes);     // Maneja /api/servicios
-app.use('/api/facturas', pagoRoutes);         // Maneja /api/facturas/estudiante/:cedula
+// Nota: Dejé '/api/usuarios' para el login como lo configuró Bruno
+app.use('/api/usuarios', authRoutes);       
+app.use('/api/estudiantes', estudianteRoutes); 
+app.use('/api/solicitudes', solicitudRoutes); 
+app.use('/api/servicios', servicioRoutes);     
+app.use('/api/facturas', pagoRoutes);         
+app.use('/api/sedes', sedeRoutes);
+app.use('/api/edificaciones', edificacionRoutes);
+app.use('/api/espacios', espacioFisicoRoutes);  
 
-// Capturador global de errores del servidor
+// Middleware de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Error interno en el servidor de UCAB-Services.' });

@@ -1,9 +1,9 @@
-// src/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { verificarToken } = require('../middleware/auth');
 
-// Endpoint público para el inicio de sesión
 router.post('/login', authController.login);
+router.post('/cambiar-contrasena', verificarToken, authController.cambiarContrasena);
 
 module.exports = router;

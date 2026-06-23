@@ -1,40 +1,66 @@
-// login/login.js - Control de Acceso Transaccional Real
+const API_URL = 'http://localhost:5000/api/usuarios';
+
 const form = document.getElementById('formLogin');
 const emailInput = document.getElementById('email');
-const cedulaInput = document.getElementById('cedula');
+const passwordInput = document.getElementById('password');
 const alerta = document.getElementById('mensaje-alerta');
+const btnIngresar = document.querySelector('.btn-ingresar');
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const payload = {
-    correo_institucional: emailInput.value.trim(),
-    cedula_identidad: parseInt(cedulaInput.value)
-  };
+  const correo = emailInput.value.trim();
+  const contrasena = passwordInput.value.trim();
+
+  alerta.style.display = 'none';
+
+  if (!correo || !contrasena) {
+    mostrarError('Por favor, complete todos los campos.');
+    return;
+  }
+
+  btnIngresar.disabled = true;
+  btnIngresar.textContent = 'Ingresando...';
 
   try {
-    // Petición POST real al controlador de la BD
-    const data = await API.request('/usuarios/login', 'POST', payload);
-    
-    // Almacena los datos reales retornados por PostgreSQL
-    API.guardarSesion(data.usuario, data.rol, data.token);
-    
-    // Redirección por roles a las carpetas físicas correspondientes
-    redirigirPorRol(data.rol);
+    const response = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ correo, contrasena }) 
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Credenciales inválidas.');
+    }
+
+    localStorage.setItem('ucab_token', data.token);
+    localStorage.setItem('ucab_usuario', JSON.stringify({
+      cedula: data.cedula,
+      nombre: data.nombre,
+      correo: correo,
+      roles: data.roles
+    }));
+
+    if (data.roles.includes('estudiante')) {
+      window.location.href = '../estudiante/index.html';
+    } else {
+      window.location.href = '../estudiante/index.html'; 
+    }
 
   } catch (error) {
-    // Si la Cédula/Correo no coinciden en Postgres, se muestra el error en rojo
-    alerta.textContent = `⚠️ Error de Autenticación: ${error.message}`;
-    alerta.className = "alerta-banner error";
+    mostrarError(error.message);
+  } finally {
+    btnIngresar.disabled = false;
+    btnIngresar.textContent = 'Ingresar al Portal';
   }
 });
 
-function redirigirPorRol(rol) {
-  switch(rol) {
-    case 'ESTUDIANTE': window.location.href = '../estudiante/index.html'; break;
-    case 'CAJERO': window.location.href = '../cajero/facturas.html'; break;
-    case 'ADMINISTRATIVO': window.location.href = '../administrativo/solicitudes.html'; break;
-    case 'ADMIN': window.location.href = '../admin/usuarios.html'; break;
-    default: window.location.href = '../estudiante/index.html';
-  }
+function mostrarError(mensaje) {
+  alerta.textContent = `⚠️ ${mensaje}`;
+  alerta.className = "alerta-banner error";
+  alerta.style.display = 'block';
 }
