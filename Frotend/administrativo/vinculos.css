@@ -1,0 +1,71 @@
+/* ============================================================================
+   vinculos.css · Gestión de Vínculos Familiares
+   ============================================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #4a1d6e;
+  --fondo:   #f8f6f2;
+  --texto:   #1a1a2e;
+  --muted:   #8a9bb2;
+  --card:    #ffffff;
+  --borde:   #e6e2da;
+  --verde:   #1e7d4f;
+  --rojo:    #b3261e;
+}
+
+body { background-color: var(--fondo); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--texto); }
+.vinculos-main { max-width: 1200px; margin: 0 auto; padding: 20px 30px; }
+
+.page-header { margin-bottom: 20px; }
+.breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+.page-header h1 { font-size: 30px; margin-top: 4px; font-weight: 700; }
+.subtitulo { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+.barra-acciones { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+.btn-nuevo {
+  background: var(--primary); color: white; border: none; border-radius: 8px;
+  padding: 11px 20px; font-weight: 600; font-size: 14px; cursor: pointer;
+}
+.btn-nuevo:hover { opacity: 0.9; }
+
+/* --- Tabla --- */
+.tabla-vinculos { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; border: 1.5px solid var(--borde); }
+.tabla-vinculos th { text-align: left; font-size: 12px; text-transform: uppercase; color: var(--muted); padding: 14px; border-bottom: 2px solid var(--borde); background: var(--fondo); }
+.tabla-vinculos td { padding: 14px; font-size: 14px; border-bottom: 1px solid var(--borde); }
+.celda-acciones { display: flex; gap: 8px; }
+
+.badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.estado-activo { background: #e3f5ec; color: var(--verde); }
+.estado-inactivo { background: #eceff3; color: var(--muted); }
+
+.btn-accion { border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-editar { background: #eef0f7; color: var(--primary); }
+.btn-baja { background: #fdeceb; color: var(--rojo); }
+.btn-accion:hover { opacity: 0.85; }
+
+.texto-vacio { text-align: center; color: var(--muted); padding: 24px !important; }
+.texto-error { text-align: center; color: var(--rojo); padding: 24px !important; }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,26,46,.5);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-caja { background: var(--card); border-radius: 14px; padding: 28px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+.modal-caja h2 { font-size: 20px; margin-bottom: 18px; }
+
+.campo { margin-bottom: 14px; }
+.campo label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.campo input, .campo select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: #fcfbf9;
+}
+.campo input:focus, .campo select:focus { outline: none; border-color: var(--primary); }
+
+.campos-subtipo { background: var(--fondo); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+
+.modal-acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.btn-cancelar { background: none; border: 1px solid var(--borde); border-radius: 8px; padding: 10px 18px; font-weight: 600; cursor: pointer; }
+.btn-guardar { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+.btn-guardar:hover { opacity: 0.9; }

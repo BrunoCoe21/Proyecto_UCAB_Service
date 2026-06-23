@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Estado de Cuenta | UCAB Service</title>
+  <link rel="stylesheet" href="finanzas.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="finanzas-main">
+
+  <!-- ENCABEZADO -->
+  <div class="page-header">
+    <span class="breadcrumb">FINANZAS</span>
+    <h1>Estado de Cuenta</h1>
+  </div>
+
+  <!-- BANNER DE SALDO PENDIENTE TOTAL -->
+  <div class="banner-saldo" id="banner-saldo">
+    <div>
+      <p class="banner-label">Saldo pendiente total</p>
+      <div class="banner-monto" id="saldo-total">$0.00 <span>USD</span></div>
+      <p class="banner-bs" id="saldo-bs">Bs. 0,00 · Tasa BCV --</p>
+    </div>
+    <button class="btn-pagar-banner" id="btn-ir-pagar" style="display:none;">
+      Pagar ahora
+    </button>
+  </div>
+
+  <!-- LAYOUT: lista de facturas + detalle -->
+  <div class="finanzas-layout">
+
+    <!-- IZQUIERDA: lista de facturas -->
+    <aside class="columna-facturas">
+      <h3 class="titulo-seccion">Mis Facturas</h3>
+      <div id="lista-facturas" class="lista-facturas">
+        <p class="texto-vacio">Cargando facturas...</p>
+      </div>
+    </aside>
+
+    <!-- DERECHA: detalle de la factura seleccionada -->
+    <section class="columna-detalle">
+      <div id="detalle-factura" class="tarjeta-detalle">
+        <p class="texto-vacio">Seleccione una factura para ver su detalle.</p>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="facturas.js"></script>
+</body>
+</html>

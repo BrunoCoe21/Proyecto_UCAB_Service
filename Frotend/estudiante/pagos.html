@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Pagos | UCAB Service</title>
+  <link rel="stylesheet" href="finanzas.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="finanzas-main">
+
+  <div class="page-header">
+    <span class="breadcrumb">FINANZAS</span>
+    <h1>Pasarela de Pago</h1>
+  </div>
+
+  <!-- PASO 0: elegir factura a pagar -->
+  <section id="paso-factura" class="paso">
+    <h3 class="titulo-seccion">Seleccione la factura a pagar</h3>
+    <div id="lista-facturas-pago" class="lista-facturas-pago">
+      <p class="texto-vacio">Cargando facturas pendientes...</p>
+    </div>
+  </section>
+
+  <!-- PASO 1: elegir método -->
+  <section id="paso-metodo" class="paso" style="display:none;">
+    <button class="btn-volver" onclick="volverAFacturas()">← Cambiar factura</button>
+    <div class="resumen-factura" id="resumen-factura"></div>
+    <h3 class="titulo-seccion">Seleccione el método de pago</h3>
+    <div class="grid-metodos" id="grid-metodos"></div>
+  </section>
+
+  <!-- PASO 2: llenar datos del método -->
+  <section id="paso-datos" class="paso" style="display:none;">
+    <button class="btn-volver" onclick="volverAMetodos()">← Cambiar método</button>
+    <div class="tarjeta-formulario">
+      <h3 class="titulo-metodo" id="titulo-metodo"></h3>
+      <form id="form-pago">
+        <div id="campos-metodo"></div>
+        <div class="resumen-monto" id="resumen-monto"></div>
+        <button type="submit" class="btn-confirmar-pago" id="btn-confirmar">Confirmar pago</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- PASO 3: confirmación -->
+  <section id="paso-confirmado" class="paso" style="display:none;">
+    <div class="tarjeta-confirmado">
+      <div class="icono-check">✓</div>
+      <h2>Pago registrado</h2>
+      <p id="mensaje-confirmado"></p>
+      <button class="btn-pagar" onclick="window.location.href='facturas.html'">Volver al estado de cuenta</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="pagos.js"></script>
+</body>
+</html>

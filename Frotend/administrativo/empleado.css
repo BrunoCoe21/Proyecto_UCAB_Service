@@ -1,0 +1,62 @@
+/* ============================================================================
+   empleado.css · Perfil de Docente / Personal Administrativo
+   ============================================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #4a1d6e;
+  --fondo:   #f8f6f2;
+  --texto:   #1a1a2e;
+  --muted:   #8a9bb2;
+  --card:    #ffffff;
+  --borde:   #e6e2da;
+  --verde:   #1e7d4f;
+}
+
+body { background-color: var(--fondo); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--texto); }
+.empleado-main { max-width: 1200px; margin: 0 auto; padding: 20px 30px; }
+
+.page-header { margin-bottom: 24px; }
+.breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+.page-header h1 { font-size: 32px; margin-top: 4px; font-weight: 700; }
+
+.empleado-layout { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .empleado-layout { grid-template-columns: 1fr; } }
+
+.columna-izquierda { display: flex; flex-direction: column; gap: 18px; }
+.columna-derecha { display: flex; flex-direction: column; gap: 18px; }
+
+.tarjeta-blanca { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 22px; }
+.tarjeta-identidad { display: flex; flex-direction: column; align-items: center; }
+
+.avatar-gigante {
+  width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin-bottom: 14px;
+}
+.tarjeta-identidad h2 { font-size: 18px; margin-bottom: 4px; }
+.rol-texto { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+
+.badge-estado { font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
+.badge-activa { background: #e3f5ec; color: var(--verde); }
+.badge-inactiva { background: #fdeceb; color: #b3261e; }
+
+.titulo-pequeno { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+.titulo-seccion { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+.dato-fila { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.dato-fila:last-child { border-bottom: none; }
+.dato-fila span { color: var(--muted); }
+
+.grid-info { display: flex; flex-direction: column; }
+
+.grid-accesos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.card-acceso {
+  display: block; background: var(--fondo); border: 1.5px solid var(--borde); border-radius: 10px;
+  padding: 16px; text-decoration: none; color: var(--texto); transition: all .15s;
+}
+.card-acceso:hover { border-color: var(--primary); }
+.card-acceso-titulo { display: block; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.card-acceso-desc { display: block; font-size: 12px; color: var(--muted); }
+
+.texto-vacio { color: var(--muted); font-size: 14px; }
+.texto-error { color: #b3261e; font-size: 14px; }

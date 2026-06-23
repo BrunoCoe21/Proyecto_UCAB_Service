@@ -28,7 +28,7 @@ form.addEventListener('submit', async (e) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ correo, contrasena }) 
+      body: JSON.stringify({ correo, contrasena })
     });
 
     const data = await response.json();
@@ -64,10 +64,18 @@ form.addEventListener('submit', async (e) => {
     }));
     // -----------------------------------------
 
-    if (rolPrincipal === 'ESTUDIANTE') {
+    // --------------------------------------------------------------------
+    // CORRECCIÓN: antes esto mandaba a TODOS los roles a estudiante/index.html.
+    // Ahora cada rol va a su propia carpeta. Si en el futuro se agregan más
+    // roles (cajero, admin), solo hay que sumar un 'else if' aquí.
+    // --------------------------------------------------------------------
+    if (rolPrincipal === 'ESTUDIANTE' || rolPrincipal === 'EGRESADO') {
       window.location.href = '../estudiante/index.html';
+    } else if (rolPrincipal === 'DOCENTE' || rolPrincipal === 'ADMINISTRATIVO') {
+      window.location.href = '../administrativo/index.html';
     } else {
-      window.location.href = '../estudiante/index.html'; 
+      // Rol reconocido por el backend pero sin pantalla propia todavía.
+      window.location.href = '../estudiante/index.html';
     }
 
   } catch (error) {

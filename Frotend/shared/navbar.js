@@ -13,9 +13,11 @@ function verificarSeguridadRuta() {
     return;
   }
 
-  if (rutaActual.includes('/estudiante/') && rolActivo !== 'ESTUDIANTE') elAccesoEsInvalido();
+  if (rutaActual.includes('/estudiante/') && rolActivo !== 'ESTUDIANTE' && rolActivo !== 'EGRESADO') elAccesoEsInvalido();
   if (rutaActual.includes('/cajero/') && rolActivo !== 'CAJERO') elAccesoEsInvalido();
-  if (rutaActual.includes('/administrativo/') && rolActivo !== 'ADMINISTRATIVO') elAccesoEsInvalido();
+  // CORRECCIÓN: antes solo dejaba pasar a 'ADMINISTRATIVO'; un DOCENTE también
+  // usa la carpeta /administrativo/ (comparten el mismo perfil de empleado).
+  if (rutaActual.includes('/administrativo/') && rolActivo !== 'ADMINISTRATIVO' && rolActivo !== 'DOCENTE') elAccesoEsInvalido();
   if (rutaActual.includes('/admin/') && rolActivo !== 'ADMIN') elAccesoEsInvalido();
 }
 
@@ -30,14 +32,14 @@ function inyectarSidebar() {
   const rol = localStorage.getItem('ucab_rol');
   const usuarioRaw = localStorage.getItem('ucab_usuario');
   const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : { nombre: 'Estudiante', apellidos: '' };
-  
+
   if (!rol || window.location.pathname.includes('login.html')) return;
 
   const sidebarContainer = document.createElement('aside');
   sidebarContainer.className = 'ucab-sidebar';
 
  let enlacesHtml = '';
-  
+
   if (rol === 'ESTUDIANTE') {
     // Se eliminó "Inicio" y ahora index.html es "Mi Perfil"
     enlacesHtml = `
@@ -51,12 +53,26 @@ function inyectarSidebar() {
       <a href="facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
       <a href="pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
     `;
-  } else if (rol === 'EGRESADO') { // Ejemplo de lógica para egresados en el futuro
+  } else if (rol === 'EGRESADO') {
     enlacesHtml = `
+      <a href="../estudiante/index.html" class="${marcarActivo('index.html')}">Mi Perfil</a>
+
       <div class="nav-section">OPORTUNIDADES</div>
-      <a href="vacantes.html" class="${marcarActivo('vacantes.html')}">💼 Bolsa de Trabajo</a>
+      <a href="../egresado/bolsa.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
     `;
-  } // ... Agregar lógica para CAJERO, ADMINISTRATIVO, ADMIN
+  } else if (rol === 'DOCENTE' || rol === 'ADMINISTRATIVO') {
+    // Docente y Personal Administrativo comparten el mismo perfil (son EMPLEADOS),
+    // por eso usan la misma carpeta /administrativo/ y el mismo menú.
+    enlacesHtml = `
+      <a href="index.html" class="${marcarActivo('index.html')}">Mi Perfil</a>
+
+      <div class="nav-section">GESTIÓN DE PERSONAL</div>
+      <a href="vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+
+      <div class="nav-section">SOLICITUDES</div>
+      <a href="gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
+    `;
+  } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
 
   sidebarContainer.innerHTML = `
     <div class="sidebar-header">
@@ -66,11 +82,11 @@ function inyectarSidebar() {
         <span>PORTAL DEL MIEMBRO</span>
       </div>
     </div>
-    
+
     <nav class="sidebar-nav">
       ${enlacesHtml}
     </nav>
-    
+
     <div class="sidebar-footer">
       <div class="user-info-box">
         <div class="user-avatar">${usuario.nombre.charAt(0)}</div>

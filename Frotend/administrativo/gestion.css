@@ -1,0 +1,82 @@
+/* ============================================================================
+   gestion.css · Gestión de Solicitudes y Pasos
+   ============================================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #4a1d6e;
+  --fondo:   #f8f6f2;
+  --texto:   #1a1a2e;
+  --muted:   #8a9bb2;
+  --card:    #ffffff;
+  --borde:   #e6e2da;
+  --verde:   #1e7d4f;
+  --amarillo:#b8860b;
+  --rojo:    #b3261e;
+}
+
+body { background-color: var(--fondo); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--texto); }
+.gestion-main { max-width: 1100px; margin: 0 auto; padding: 20px 30px; }
+
+.page-header { margin-bottom: 20px; }
+.breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+.page-header h1 { font-size: 30px; margin-top: 4px; font-weight: 700; }
+
+.selector-oficina { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.selector-oficina label { font-size: 14px; font-weight: 600; }
+.selector-oficina select {
+  padding: 10px 14px; border: 1.5px solid var(--borde); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: var(--card); min-width: 240px;
+}
+
+.lista-pasos { display: flex; flex-direction: column; gap: 14px; }
+
+.tarjeta-paso {
+  background: var(--card); border: 1.5px solid var(--borde); border-radius: 12px;
+  padding: 18px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+}
+.paso-bloqueado { opacity: 0.75; background: #fafafa; }
+.paso-info { flex: 1; cursor: pointer; }
+.paso-info:hover .paso-nombre { color: var(--primary); }
+
+.paso-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.paso-solicitud { font-size: 13px; font-weight: 700; color: var(--primary); }
+.paso-nombre { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.paso-servicio { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.paso-solicitante { font-size: 13px; color: var(--texto); }
+
+.badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.estado-pendiente { background: #fdeceb; color: var(--rojo); }
+.estado-proceso { background: #fdf3e0; color: var(--amarillo); }
+.estado-completado { background: #e3f5ec; color: var(--verde); }
+.badge-bloqueado { font-size: 11px; font-weight: 600; background: #eceff3; color: var(--muted); padding: 3px 10px; border-radius: 20px; }
+
+.paso-acciones { display: flex; flex-direction: column; gap: 8px; }
+.btn-accion { border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-iniciar { background: #eef0f7; color: var(--primary); }
+.btn-completar { background: var(--primary); color: white; }
+.btn-completar:disabled { background: var(--muted); cursor: not-allowed; opacity: 0.6; }
+.btn-accion:hover:not(:disabled) { opacity: 0.88; }
+
+.texto-vacio { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; }
+.texto-error { color: var(--rojo); font-size: 14px; padding: 16px; }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,26,46,.5);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-caja { background: var(--card); border-radius: 14px; padding: 0; width: 90%; max-width: 540px; max-height: 85vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--borde); }
+.modal-header h2 { font-size: 18px; }
+.btn-cerrar { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
+
+#modal-contenido { padding: 20px 24px; }
+.resumen-modal p { font-size: 14px; margin-bottom: 8px; }
+.titulo-pasos-modal { font-size: 14px; font-weight: 700; margin: 18px 0 10px; }
+
+.fila-paso-modal { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--borde); }
+.num-paso { width: 24px; height: 24px; background: var(--fondo); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.info-paso-modal { flex: 1; display: flex; flex-direction: column; }
+.info-paso-modal strong { font-size: 14px; }
+.oficina-paso { font-size: 12px; color: var(--muted); }

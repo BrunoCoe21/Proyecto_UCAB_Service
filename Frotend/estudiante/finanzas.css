@@ -1,0 +1,170 @@
+/* ============================================================================
+   finanzas.css · Módulo de Finanzas (Estado de Cuenta + Pasarela de Pago)
+   Reusa la paleta del resto del portal: fondo crema, morado UCAB, acentos.
+   ============================================================================ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #4a1d6e;        /* morado UCAB */
+  --accent:  #b8860b;        /* dorado acento */
+  --fondo:   #f8f6f2;
+  --texto:   #1a1a2e;
+  --muted:   #8a9bb2;
+  --card:    #ffffff;
+  --borde:   #e6e2da;
+  --verde:   #1e7d4f;
+  --amarillo:#b8860b;
+  --rojo:    #b3261e;
+}
+
+body {
+  background-color: var(--fondo);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--texto);
+}
+
+.finanzas-main { max-width: 1300px; margin: 0 auto; padding: 20px 30px; flex: 1; }
+
+/* --- Encabezado --- */
+.page-header { margin-bottom: 24px; }
+.breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+.page-header h1 { font-size: 32px; color: var(--texto); margin-top: 4px; font-weight: 700; }
+
+/* --- Banner de saldo total --- */
+.banner-saldo {
+  background: var(--primary); color: white; border-radius: 14px;
+  padding: 24px 28px; margin-bottom: 28px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.banner-label { font-size: 13px; opacity: 0.75; margin-bottom: 4px; }
+.banner-monto { font-size: 38px; font-weight: 700; line-height: 1; }
+.banner-monto span { font-size: 16px; font-weight: 400; opacity: 0.7; }
+.banner-bs { font-size: 13px; opacity: 0.65; margin-top: 6px; }
+.btn-pagar-banner {
+  background: var(--accent); color: white; border: none; border-radius: 8px;
+  padding: 12px 22px; font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity .2s;
+}
+.btn-pagar-banner:hover { opacity: 0.9; }
+
+/* --- Layout dos columnas --- */
+.finanzas-layout { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+@media (max-width: 900px) { .finanzas-layout { grid-template-columns: 1fr; } }
+
+.titulo-seccion { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--texto); }
+
+/* --- Lista de facturas --- */
+.lista-facturas { display: flex; flex-direction: column; gap: 12px; }
+.item-factura {
+  background: var(--card); border: 1.5px solid var(--borde); border-radius: 12px;
+  padding: 16px; cursor: pointer; transition: all .15s;
+}
+.item-factura:hover { border-color: var(--primary); }
+.item-factura.seleccionada { border-color: var(--primary); box-shadow: 0 2px 10px rgba(74,29,110,.12); }
+.item-factura-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.item-control { font-size: 13px; font-weight: 700; color: var(--primary); }
+.item-concepto { font-size: 14px; color: var(--texto); margin-bottom: 10px; }
+.item-factura-bottom { display: flex; justify-content: space-between; align-items: center; }
+.item-fecha { font-size: 12px; color: var(--muted); }
+.item-saldo { font-size: 16px; font-weight: 700; color: var(--texto); }
+
+/* --- Badges de estado --- */
+.badge-estado { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
+.estado-pagada { background: #e3f5ec; color: var(--verde); }
+.estado-parcial { background: #fdf3e0; color: var(--amarillo); }
+.estado-pendiente { background: #fdeceb; color: var(--rojo); }
+.estado-anulada { background: #eceff3; color: var(--muted); }
+
+/* --- Tarjeta de detalle --- */
+.tarjeta-detalle { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 24px; }
+.detalle-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.detalle-control { font-size: 18px; font-weight: 700; color: var(--primary); }
+.detalle-fecha { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+.tabla-cargos { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.tabla-cargos th { text-align: left; font-size: 12px; color: var(--muted); text-transform: uppercase; padding: 8px; border-bottom: 2px solid var(--borde); }
+.tabla-cargos td { padding: 10px 8px; font-size: 14px; border-bottom: 1px solid var(--borde); }
+.tabla-cargos .num { text-align: right; }
+
+.totales { background: var(--fondo); border-radius: 10px; padding: 16px; margin-bottom: 18px; }
+.fila-total { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; color: var(--texto); }
+.fila-total-grande { font-weight: 700; font-size: 16px; border-top: 1px solid var(--borde); margin-top: 6px; padding-top: 10px; }
+.fila-saldo { font-weight: 700; color: var(--primary); font-size: 17px; border-top: 2px solid var(--borde); margin-top: 6px; padding-top: 10px; }
+
+.seccion-abonos { margin-bottom: 20px; }
+.seccion-abonos h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.fila-abono { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--borde); }
+.abono-monto { font-weight: 600; color: var(--verde); }
+
+.btn-pagar {
+  width: 100%; background: var(--primary); color: white; border: none; border-radius: 8px;
+  padding: 14px; font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity .2s;
+}
+.btn-pagar:hover { opacity: 0.92; }
+.sello-pagada { text-align: center; color: var(--verde); font-weight: 700; padding: 14px; background: #e3f5ec; border-radius: 8px; }
+
+/* --- Pasarela de pago --- */
+.paso { animation: aparecer .25s ease; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.btn-volver { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; margin-bottom: 14px; }
+.btn-volver:hover { color: var(--primary); }
+
+.lista-facturas-pago { display: flex; flex-direction: column; gap: 12px; max-width: 620px; }
+.item-factura-pago {
+  background: var(--card); border: 1.5px solid var(--borde); border-radius: 12px;
+  padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all .15s;
+}
+.item-factura-pago:hover { border-color: var(--primary); box-shadow: 0 2px 10px rgba(74,29,110,.1); }
+
+.resumen-factura {
+  background: var(--fondo); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+  display: flex; justify-content: space-between; align-items: center; font-size: 14px;
+}
+.resumen-saldo { font-weight: 700; color: var(--primary); font-size: 18px; }
+
+.grid-metodos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; max-width: 720px; }
+.card-metodo {
+  background: var(--card); border: 1.5px solid var(--borde); border-radius: 12px;
+  padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  text-align: left; transition: all .15s;
+}
+.card-metodo:hover { border-color: var(--primary); }
+.card-recomendado { border-color: var(--accent); }
+.card-metodo-label { display: block; font-weight: 700; font-size: 15px; color: var(--texto); }
+.card-metodo-desc { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.badge-recomendado { font-size: 10px; font-weight: 700; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; }
+
+.tarjeta-formulario { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 24px; max-width: 560px; }
+.titulo-metodo { font-size: 18px; font-weight: 700; margin-bottom: 18px; color: var(--primary); }
+.campo { margin-bottom: 14px; }
+.campo label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.campo input, .campo select {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--borde); border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: #fcfbf9; color: var(--texto);
+}
+.campo input:focus, .campo select:focus { outline: none; border-color: var(--primary); }
+
+.resumen-monto {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--fondo); border-radius: 10px; padding: 14px 18px; margin: 18px 0;
+}
+.resumen-monto strong { font-size: 20px; color: var(--primary); }
+.resumen-monto small { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+.btn-confirmar-pago {
+  width: 100%; background: var(--primary); color: white; border: none; border-radius: 8px;
+  padding: 14px; font-weight: 600; font-size: 15px; cursor: pointer; transition: opacity .2s;
+}
+.btn-confirmar-pago:hover { opacity: 0.92; }
+.btn-confirmar-pago:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.tarjeta-confirmado { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 40px; text-align: center; max-width: 480px; margin: 0 auto; }
+.icono-check { width: 64px; height: 64px; background: #e3f5ec; color: var(--verde); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 18px; }
+.tarjeta-confirmado h2 { font-size: 24px; margin-bottom: 10px; }
+.tarjeta-confirmado p { color: var(--muted); margin-bottom: 22px; font-size: 14px; }
+
+/* --- Estados de texto --- */
+.texto-vacio { color: var(--muted); font-size: 14px; padding: 20px; text-align: center; }
+.texto-vacio-sm { color: var(--muted); font-size: 13px; }
+.texto-error { color: var(--rojo); font-size: 14px; padding: 12px; }

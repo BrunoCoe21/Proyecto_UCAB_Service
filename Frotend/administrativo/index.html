@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Mi Perfil | UCAB Service</title>
+  <link rel="stylesheet" href="empleado.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="empleado-main">
+
+  <div class="page-header">
+    <span class="breadcrumb">MI CUENTA</span>
+    <h1>Mi Perfil</h1>
+  </div>
+
+  <div class="empleado-layout">
+
+    <!-- COLUMNA IZQUIERDA: identidad -->
+    <aside class="columna-izquierda">
+      <div class="tarjeta-blanca tarjeta-identidad text-center">
+        <div class="avatar-gigante" id="perfil-avatar">--</div>
+        <h2 id="perfil-nombre">Cargando...</h2>
+        <p class="rol-texto" id="perfil-rol">---</p>
+        <div class="badge-estado" id="perfil-estado-cuenta">✓ Cuenta Activa</div>
+      </div>
+
+      <div class="tarjeta-blanca">
+        <h3 class="titulo-pequeno">Contacto</h3>
+        <p class="dato-fila"><span>Correo</span><strong id="perfil-correo">--</strong></p>
+        <p class="dato-fila"><span>Teléfono</span><strong id="perfil-telefono">--</strong></p>
+      </div>
+    </aside>
+
+    <!-- COLUMNA DERECHA: datos laborales + accesos -->
+    <section class="columna-derecha">
+
+      <div class="tarjeta-blanca">
+        <h3 class="titulo-seccion">Información laboral</h3>
+        <div id="info-laboral" class="grid-info">
+          <p class="texto-vacio">Cargando...</p>
+        </div>
+      </div>
+
+      <div class="tarjeta-blanca">
+        <h3 class="titulo-seccion">Vinculación con la institución</h3>
+        <p id="info-vinculacion" class="texto-vacio">Cargando...</p>
+      </div>
+
+      <div class="tarjeta-blanca">
+        <h3 class="titulo-seccion">Accesos rápidos</h3>
+        <div class="grid-accesos">
+          <a href="vinculos.html" class="card-acceso">
+            <span class="card-acceso-titulo">Vínculos Familiares</span>
+            <span class="card-acceso-desc">Registrar y gestionar familiares del personal</span>
+          </a>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+</main>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="empleado.js"></script>
+</body>
+</html>

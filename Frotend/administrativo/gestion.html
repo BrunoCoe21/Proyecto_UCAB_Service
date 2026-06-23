@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Gestión de Solicitudes | UCAB Service</title>
+  <link rel="stylesheet" href="gestion.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="gestion-main">
+
+  <div class="page-header">
+    <span class="breadcrumb">GESTIÓN DE SOLICITUDES</span>
+    <h1>Pasos por Atender</h1>
+  </div>
+
+  <!-- Selector de oficina -->
+  <div class="selector-oficina">
+    <label for="select-oficina">Oficina de trabajo:</label>
+    <select id="select-oficina" onchange="cambiarOficina()">
+      <option value="">Selecciona una oficina...</option>
+    </select>
+  </div>
+
+  <div id="lista-pasos" class="lista-pasos">
+    <p class="texto-vacio">Selecciona una oficina para ver sus pasos pendientes.</p>
+  </div>
+
+</main>
+
+<!-- MODAL: detalle de la solicitud completa -->
+<div id="modal-solicitud" class="modal-overlay" style="display:none;">
+  <div class="modal-caja">
+    <div class="modal-header">
+      <h2 id="modal-titulo">Detalle de solicitud</h2>
+      <button class="btn-cerrar" onclick="cerrarModal()">✕</button>
+    </div>
+    <div id="modal-contenido">
+      <p class="texto-vacio">Cargando...</p>
+    </div>
+  </div>
+</div>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="gestion.js"></script>
+</body>
+</html>
