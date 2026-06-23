@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Llenar todos los campos del perfil
     llenarPerfil(data, usuario);
+    llenarTrayectoria(data.trayectoria);
 
   } catch (error) {
     console.error('💥 Error al cargar el perfil:', error);
@@ -153,3 +154,43 @@ function llenarPerfil(data, usuarioSesion) {
   document.getElementById('resumen-semestre').textContent = data.semestre_actual ? data.semestre_actual + '°' : '--';
   document.getElementById('resumen-semestre-anio').textContent = 'Período Activo';
 }
+
+
+
+function llenarTrayectoria(trayectoria) {
+  const tbody = document.getElementById('tbody-trayectoria');
+  tbody.innerHTML = ''; 
+
+  if (!trayectoria || trayectoria.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay historial registrado.</td></tr>';
+    return;
+  }
+
+  trayectoria.forEach(p => {
+    const tr = document.createElement('tr');
+    
+    const anioInicio = p.fecha_inicio ? new Date(p.fecha_inicio).getFullYear() : '---';
+    const finTexto = p.fecha_finalizacion ? new Date(p.fecha_finalizacion).toLocaleDateString() : 'Vigente';
+    
+    // Lógica de Beca: Si es 'Regular', mostrar "No posee"[cite: 49]
+    const esBecado = p.condicion_beca !== 'Regular';
+    const textoBeca = esBecado ? p.condicion_beca : 'No posee';
+    const badgeBecaClass = esBecado ? 'badge-azul' : 'badge-cerrado'; 
+    
+    const badgeEstado = p.fecha_finalizacion 
+      ? '<span class="badge-cerrado">Cerrado</span>' 
+      : '<span class="badge-activo">Activo</span>';
+
+    tr.innerHTML = `
+      <td class="fw-bold">${anioInicio}</td>
+      <td>${p.rol_activo.toUpperCase()}</td>
+      <td>${p.fecha_inicio}</td>
+      <td>${finTexto}</td>
+      <td class="fw-bold">${p.indice_nota || '--'}</td>
+      <td><span class="${badgeBecaClass}">${textoBeca}</span></td>
+      <td>${badgeEstado}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
