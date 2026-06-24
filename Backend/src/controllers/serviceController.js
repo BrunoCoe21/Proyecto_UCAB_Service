@@ -61,3 +61,83 @@ exports.getServiciosEspacios = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+exports.getAllServicios = async (req, res) => {
+  try {
+    const servicios = await sequelize.query(
+      `SELECT 
+         codigo_servicio,
+         nombre_sede,
+         precio,
+         descripcion_detallada,
+         requisitos_de_acceso,
+         tipo_categoria
+       FROM servicio
+       ORDER BY tipo_categoria, descripcion_detallada`,
+      { type: QueryTypes.SELECT }
+    );
+
+    res.json(servicios);
+  } catch (error) {
+    console.error('Error al obtener todos los servicios:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
+
+
+
+// ... (mantén las funciones existentes)
+
+// Obtener detalle de un servicio con sus pasos de una solicitud ejemplo
+exports.getDetalleServicio = async (req, res) => {
+  try {
+    const { codigo } = req.params;
+
+    // 1. Obtener el servicio
+    const servicio = await sequelize.query(
+      `SELECT codigo_servicio, nombre_sede, precio, descripcion_detallada, requisitos_de_acceso, tipo_categoria
+       FROM servicio
+       WHERE codigo_servicio = :codigo`,
+      { replacements: { codigo }, type: QueryTypes.SELECT }
+    );
+
+    if (!servicio || servicio.length === 0) {
+      return res.status(404).json({ error: 'Servicio no encontrado' });
+    }
+
+    const serv = servicio[0];
+
+    // 2. Obtener una solicitud asociada a este servicio (la más reciente)
+    const solicitud = await sequelize.query(
+      `SELECT id_solicitud
+       FROM solicitud
+       WHERE codigo_servicio = :codigo
+       ORDER BY fecha_creacion DESC
+       LIMIT 1`,
+      { replacements: { codigo }, type: QueryTypes.SELECT }
+    );
+
+    let pasos = [];
+    if (solicitud && solicitud.length > 0) {
+      const idSolicitud = solicitud[0].id_solicitud;
+      // 3. Obtener pasos de esa solicitud
+      pasos = await sequelize.query(
+        `SELECT num_paso, nombre_paso, estado_paso
+         FROM paso_actividad
+         WHERE id_solicitud = :idSolicitud
+         ORDER BY num_paso`,
+        { replacements: { idSolicitud }, type: QueryTypes.SELECT }
+      );
+    }
+
+    // 4. Enviar respuesta
+    res.json({
+      servicio: serv,
+      pasos: pasos
+    });
+
+  } catch (error) {
+    console.error('Error al obtener detalle del servicio:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};
