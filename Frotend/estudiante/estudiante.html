@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Mi Perfil | UCAB Service</title>
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link rel="stylesheet" href="estudiante.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-crema">
+
+  <main class="perfil-main">
+    <div class="page-header">
+      <span class="breadcrumb">MI CUENTA</span>
+      <h1>Mi Perfil</h1>
+    </div>
+
+    <div class="perfil-layout">
+      <aside class="columna-izquierda">
+        <div class="tarjeta-blanca tarjeta-identidad text-center">
+          <div class="avatar-gigante" id="perfil-avatar">--</div>
+          <h2 id="perfil-nombre">Cargando...</h2>
+          <p class="carrera-texto" id="perfil-escuela">Cargando escuela...</p>
+
+          <div class="lista-detalles">
+            <div class="detalle-item">
+              <span id="perfil-cedula">V-........</span>
+            </div>
+            <div class="detalle-item">
+              <span id="perfil-correo">correo@ucab.edu.ve</span>
+            </div>
+            <div class="detalle-item">
+              <span id="perfil-sede">Sede Montalbán</span>
+            </div>
+            <div class="detalle-item">
+              <span id="perfil-ingreso">Ingreso: ---</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="columna-derecha">
+        <div class="tarjeta-blanca">
+          <h3 class="titulo-seccion color-azul-oscuro">Resumen Académico</h3>
+          <div class="resumen-grid">
+            <div class="caja-resumen">
+              <div class="valor text-verde" id="resumen-promedio">--.-</div>
+              <div class="etiqueta">Índice Acumulado</div>
+            </div>
+            <div class="caja-resumen">
+              <div class="valor text-naranja" id="resumen-uc">--</div>
+              <div class="etiqueta">Créditos Aprobados</div>
+            </div>
+            <div class="caja-resumen">
+              <div class="valor text-azul" id="resumen-semestre">--°</div>
+              <div class="etiqueta">Semestre Actual</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../shared/api.js"></script>
+  <script src="../shared/navbar.js"></script>
+  <script src="estudiante.js"></script> </body>
+</html>

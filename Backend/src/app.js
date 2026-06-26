@@ -15,7 +15,17 @@ const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
 const vacanteRoutes = require('./routes/vacanteRoutes');
 const vinculoFamiliarRoutes = require('./routes/vinculoFamiliarRoutes');
 const empleadoRoutes = require('./routes/empleadoRoutes');
-const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');
+const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');const sedeRoutes = require('./routes/sedeRoutes');
+const edificacionRoutes = require('./routes/edificacionRoutes');
+// NUEVA ruta
+const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
+//Ruta de autenticacion
+const authRoutes = require('./routes/authRoutes');
+//ruta de usuario
+const usuarioRoutes = require('./routes/usuarioRoutes');
+// de servicio
+const serviceRoutes = require('./routes/serviceRoutes');
+
 const app = express();
 
 // Configuración de Middlewares globales
@@ -25,7 +35,16 @@ app.use(express.json());
 // Registro formal de los Endpoints relacionales de la API
 // Nota: Dejé '/api/usuarios' para el login como lo configuró Bruno
 app.use('/api/auth', authRoutes);
+
+// Rutas
 app.use('/api/estudiantes', estudianteRoutes);
+app.use('/api/sedes', sedeRoutes);
+app.use('/api/edificaciones', edificacionRoutes);
+app.use('/api/espacios', espacioFisicoRoutes);  // <--- NUEVA
+app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/servicios', serviceRoutes);
+
 app.use('/api/solicitudes', solicitudRoutes);
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/facturas', pagoRoutes);
