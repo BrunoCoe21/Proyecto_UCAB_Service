@@ -4,27 +4,18 @@ const cors = require('cors');
 
 // Importación de enrutadores modulares
 const authRoutes = require('./routes/authRoutes');
+const usuarioRoutes = require('./routes/usuarioRoutes');
 const estudianteRoutes = require('./routes/estudianteRoutes');
 const solicitudRoutes = require('./routes/solicitudRoutes');
-const servicioRoutes = require('./routes/servicioRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const sedeRoutes = require('./routes/sedeRoutes');
 const edificacionRoutes = require('./routes/edificacionRoutes');
 const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
-// --- NUEVO: módulos de bolsa de trabajo, vínculo familiar y perfil de empleado ---
 const vacanteRoutes = require('./routes/vacanteRoutes');
 const vinculoFamiliarRoutes = require('./routes/vinculoFamiliarRoutes');
 const empleadoRoutes = require('./routes/empleadoRoutes');
-const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');const sedeRoutes = require('./routes/sedeRoutes');
-const edificacionRoutes = require('./routes/edificacionRoutes');
-// NUEVA ruta
-const espacioFisicoRoutes = require('./routes/espacioFisicoRoutes');
-//Ruta de autenticacion
-const authRoutes = require('./routes/authRoutes');
-//ruta de usuario
-const usuarioRoutes = require('./routes/usuarioRoutes');
-// de servicio
-const serviceRoutes = require('./routes/serviceRoutes');
+const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');
 
 const app = express();
 
@@ -32,26 +23,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Registro formal de los Endpoints relacionales de la API
-// Nota: Dejé '/api/usuarios' para el login como lo configuró Bruno
-app.use('/api/auth', authRoutes);
-
-// Rutas
-app.use('/api/estudiantes', estudianteRoutes);
-app.use('/api/sedes', sedeRoutes);
-app.use('/api/edificaciones', edificacionRoutes);
-app.use('/api/espacios', espacioFisicoRoutes);  // <--- NUEVA
+// Registro de los Endpoints de la API
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/servicios', serviceRoutes);
-
+app.use('/api/estudiantes', estudianteRoutes);
 app.use('/api/solicitudes', solicitudRoutes);
-app.use('/api/servicios', servicioRoutes);
+app.use('/api/service', serviceRoutes); 
 app.use('/api/facturas', pagoRoutes);
 app.use('/api/sedes', sedeRoutes);
 app.use('/api/edificaciones', edificacionRoutes);
 app.use('/api/espacios', espacioFisicoRoutes);
-// --- NUEVO ---
 app.use('/api/vacantes', vacanteRoutes);
 app.use('/api/vinculos', vinculoFamiliarRoutes);
 app.use('/api/empleados', empleadoRoutes);

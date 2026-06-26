@@ -1,4 +1,6 @@
-/* catalogo.css - Diseño Catálogo de Servicios */
+/* ============================================================================
+   servicio.css - Catálogo de Servicios UCAB
+   ============================================================================ */
 
 * {
   margin: 0;
@@ -12,170 +14,15 @@ body {
   color: #1a1a2e;
 }
 
-/* --- CONTENEDOR PRINCIPAL --- */
-.app-container {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* --- BARRA LATERAL (SIDEBAR MOCKUP) --- */
-.sidebar {
-  width: 260px;
-  background-color: #12192b;
-  color: #8a9bb2;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.logo-icon {
-  background: #c49a6c;
-  color: white;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 16px;
-}
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  color: white;
-  font-size: 15px;
-}
-
-.logo-text span {
-  font-size: 10px;
-  color: #8a9bb2;
-  letter-spacing: 0.5px;
-}
-
-.toggle-btn {
-  margin-left: auto;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.sidebar-menu {
-  padding: 20px 0;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.menu-section {
-  font-size: 11px;
-  letter-spacing: 1px;
-  margin: 16px 24px 8px;
-  font-weight: 600;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  text-decoration: none;
-  color: #8a9bb2;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-  border-left: 3px solid transparent;
-}
-
-.menu-item:hover, .menu-item.active {
-  background: rgba(255,255,255,0.05);
-  color: white;
-}
-
-.menu-item.active {
-  border-left-color: #c49a6c;
-  color: #c49a6c;
-}
-
-.sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-
-.user-profile {
-  background: rgba(255,255,255,0.05);
-  padding: 12px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.user-avatar {
-  background: #c49a6c;
-  color: #12192b;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.user-info strong {
-  color: white;
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-info span {
-  font-size: 11px;
-  color: #8a9bb2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #8a9bb2;
-  text-decoration: none;
-  font-size: 13px;
-  padding: 8px;
-  font-weight: 500;
-}
-
 /* --- CONTENIDO PRINCIPAL --- */
 .catalogo-main {
   flex: 1;
-  max-width: 1200px;
-  padding: 32px 40px;
-  overflow-y: auto;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 30px;
 }
 
+/* --- ENCABEZADO --- */
 .page-header {
   margin-bottom: 24px;
 }
@@ -201,17 +48,6 @@ body {
   margin-top: 6px;
 }
 
-/* --- BUSCADOR --- */
-.search-container {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #ede9e0;
-  border-radius: 8px;
-  padding: 12px 16px;
-  max-width: 360px;
-  margin-bottom: 24px;
-}
 
 .search-container input {
   border: none;
@@ -221,6 +57,7 @@ body {
   font-family: inherit;
   color: #1a1a2e;
   margin-left: 10px;
+  background: transparent;
 }
 
 .search-container input::placeholder {
@@ -231,95 +68,92 @@ body {
   color: #8a9bb2;
 }
 
-/* --- FILTROS --- */
-.filters-container {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  background: #ffffff;
-  border: 1px solid #ede9e0;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4b5563;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  background: #f5f3ec;
-}
-
-.filter-btn.active {
-  background: #1a1a2e;
-  color: #ffffff;
-  border-color: #1a1a2e;
-}
-
-/* --- LAYOUT CATÁLOGO --- */
+/* ============================================================
+   LAYOUT PRINCIPAL - DOS COLUMNAS
+   ============================================================ */
 .catalogo-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 380px;
   gap: 24px;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (max-width: 1024px) {
   .catalogo-layout {
     grid-template-columns: 1fr;
   }
+  
+  .detalle-sidebar {
+    display: none;
+  }
 }
 
-/* --- GRILLA DE SERVICIOS --- */
+/* ============================================================
+   GRID DE SERVICIOS - 2 COLUMNAS
+   ============================================================ */
+#catalogo-dinamico {
+  width: 100%;
+}
+
 .servicios-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
 }
 
+@media (max-width: 768px) {
+  .servicios-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   TARJETA DE SERVICIO - VERSIÓN SIMPLIFICADA
+   ============================================================ */
 .tarjeta-servicio {
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 24px;
-  border: 1px solid #ede9e0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  border: 2px solid #e8e3d7;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+  height: 100%;
+  cursor: pointer;
+}
+
+.tarjeta-servicio:hover {
+  border-color: #4a1d6e;
+  box-shadow: 0 8px 32px rgba(74, 29, 110, 0.10);
+  transform: translateY(-4px);
 }
 
 .tarjeta-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
+/* --- ETIQUETA DE CATEGORÍA --- */
 .tag-grupo {
   display: flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 4px 12px 4px 4px;
   border-radius: 6px;
-  gap: 8px;
+  gap: 6px;
 }
 
-.bg-azul {
-  background-color: #eef2f6;
-  color: #1a1a2e;
-}
-
-.bg-dorado {
-  background-color: #fcf6eb;
-  color: #a57c00;
-}
+.bg-azul { background-color: #eef2f6; color: #1a1a2e; }
+.bg-dorado { background-color: #fcf6eb; color: #a57c00; }
+.bg-verde { background-color: #e6f5ec; color: #0a7e3d; }
+.bg-rojo { background-color: #fde8e8; color: #b3261e; }
+.bg-morado { background-color: #f0e8f5; color: #6b2b8a; }
+.bg-naranja { background-color: #fdf0e6; color: #c97d0e; }
 
 .icono-tag {
   background: white;
@@ -329,295 +163,452 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .texto-tag {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
+/* --- PRECIOS --- */
 .precio-grupo {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  flex-shrink: 0;
 }
 
 .precio-actual {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1a2e;
-  font-family: monospace;
-}
-
-.precio-anterior {
-  font-size: 12px;
-  color: #8a9bb2;
-  text-decoration: line-through;
-  font-family: monospace;
-}
-
-.servicio-titulo {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin-bottom: 8px;
-}
-
-.servicio-desc {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.5;
-  margin-bottom: 24px;
-  flex: 1; /* Empuja el footer hacia abajo */
-}
-
-.tarjeta-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.pasos {
-  color: #8a9bb2;
-}
-
-.limite {
-  color: #059669;
-}
-.limite.verde {
-  color: #059669; /* Se puede ajustar si otros tienen color distinto */
-}
-
-/* --- PANEL DETALLE DERECHO --- */
-.tarjeta-blanca {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #ede9e0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
-
-.sticky-panel {
-  position: sticky;
-  top: 32px;
-}
-
-.detalle-titulo {
   font-size: 22px;
   font-weight: 700;
   color: #1a1a2e;
-  padding: 24px 24px 8px;
 }
 
-.detalle-categoria {
-  display: block;
-  font-size: 14px;
-  color: #dc2626; /* Rojo salud */
-  font-weight: 600;
-  padding: 0 24px 20px;
-  border-bottom: 1px solid #ede9e0;
-}
-
-.calculo-caja {
-  margin: 24px;
-  background: #f5f3ec;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.calculo-header {
-  padding: 12px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #ede9e0;
-}
-
-.calculo-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.fila-precio {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.calculo-total {
-  background: #1a1a2e;
-  color: white;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.total-monto {
-  font-size: 18px;
-  font-weight: 700;
-  font-family: monospace;
-}
-
-.calculo-footer {
-  background: #e6e3d8; /* Color similar al fondo del limitante */
-  padding: 10px 16px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.pasos-tramite {
-  padding: 0 24px 24px;
-}
-
-.titulo-pasos {
-  font-size: 15px;
+/* --- TÍTULO --- */
+.servicio-titulo {
+  font-size: 17px;
   font-weight: 700;
   color: #1a1a2e;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
+  line-height: 1.3;
 }
 
-.lista-pasos {
-  list-style: none;
+/* --- DESCRIPCIÓN - SOLO SEDE --- */
+.servicio-desc {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.servicio-desc strong {
+  color: #1a1a2e;
+}
+
+/* --- FOOTER DE LA TARJETA - SOLO LÍMITE --- */
+.tarjeta-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid #f0ede6;
+  margin-bottom: 14px;
+}
+
+.limite {
+  color: #b8860b;
+  font-weight: 600;
+  font-size: 13px;
+  background: #fcf6eb;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* --- BOTÓN DE RESERVAR --- */
+.btn-reservar {
+  width: 100%;
+  padding: 12px;
+  background-color: #4a1d6e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+
+.btn-reservar:hover {
+  background-color: #361552;
+  transform: scale(1.01);
+}
+
+/* ============================================================
+   PANEL LATERAL - ESTADO VACÍO
+   ============================================================ */
+.detalle-sidebar .tarjeta-blanca {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 2px solid #e8e3d7;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 0;
+  overflow: hidden;
+  position: sticky;
+  top: 32px;
+  min-height: 400px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
-.lista-pasos li {
+.detalle-vacio {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  padding: 40px 30px;
+  text-align: center;
+  flex: 1;
+  min-height: 350px;
 }
 
-.paso-numero {
-  background: #e5e7eb;
-  color: #4b5563;
-  width: 28px;
-  height: 28px;
+.detalle-vacio .icono-fondo {
+  width: 80px;
+  height: 80px;
+  background: #f5f3ec;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 20px;
+}
+
+.detalle-vacio .icono-fondo span {
+  font-size: 36px;
+}
+
+.detalle-vacio h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.detalle-vacio p {
+  font-size: 14px;
+  color: #8a9bb2;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   PANEL LATERAL - DETALLE DEL SERVICIO
+   ============================================================ */
+.detalle-servicio {
+  padding: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detalle-categoria-tag {
+  padding: 20px 24px 0;
+}
+
+.tag-categoria {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tag-categoria.morado { background: #f0e8f5; color: #6b2b8a; }
+.tag-categoria.naranja { background: #fdf0e6; color: #c97d0e; }
+.tag-categoria.rojo { background: #fde8e8; color: #b3261e; }
+.tag-categoria.verde { background: #e6f5ec; color: #0a7e3d; }
+.tag-categoria.azul { background: #eef2f6; color: #1a1a2e; }
+.tag-categoria.dorado { background: #fcf6eb; color: #a57c00; }
+
+.detalle-servicio-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  padding: 8px 24px 4px;
+  line-height: 1.3;
+}
+
+.detalle-precios {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid #ede9e0;
+}
+
+.detalle-precio-actual {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.detalle-cargos {
+  padding: 16px 24px;
+  background: #f8f6f2;
+  margin: 0 16px 16px;
+  border-radius: 8px;
+}
+
+.detalle-cargos h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a9bb2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.cargo-fila {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4b5563;
+  padding: 4px 0;
+}
+
+.cargo-fila.total {
+  font-size: 15px;
+  border-top: 1px solid #e0dbd0;
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.cargo-fila.total strong {
+  color: #1a1a2e;
+}
+
+.detalle-requisitos {
+  padding: 0 24px 16px;
+}
+
+.detalle-requisitos h4 {
   font-size: 12px;
   font-weight: 700;
-}
-
-.paso-texto {
-  font-size: 14px;
   color: #4b5563;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
 }
 
-
-/*
-opcional para las tarjetas esas del carrizo
-*/
-
-.servicios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 20px;
+.detalle-requisitos p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  background: #f8f6f2;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 0;
 }
 
-.service-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  padding: 16px;
-  transition: transform 0.2s;
+.detalle-advertencia {
+  padding: 12px 24px;
+  background: #fef3e8;
+  margin: 0 16px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #c97d0e;
 }
 
-.service-card:hover {
-  transform: translateY(-4px);
+.detalle-advertencia p {
+  font-size: 12px;
+  color: #8a6b3a;
+  margin: 0;
 }
 
-.service-card h3 {
-  font-size: 1.1rem;
-  margin-bottom: 8px;
-  color: #002d56;
-}
-
-.service-card .price {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #0a7e3d;
-  margin: 8px 0;
-}
-
-.service-card .details span {
+.btn-iniciar-solicitud {
   display: block;
-  font-size: 0.9rem;
-  color: #555;
-  margin: 4px 0;
-}
-
-.service-card .pasos {
-  margin-top: 10px;
-  font-size: 0.85rem;
-  color: #888;
-}
-
-.service-card .btn-reservar {
-  margin-top: 14px;
-  width: 100%;
-  padding: 8px;
-  background-color: #002d56;
+  width: calc(100% - 32px);
+  margin: 0 16px 20px;
+  padding: 14px;
+  background: #4a1d6e;
   color: white;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
 }
 
-.service-card .btn-reservar:hover {
-  background-color: #001c39;
+.btn-iniciar-solicitud:hover {
+  background: #361552;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 29, 110, 0.25);
 }
 
-
-
-
-
-
-/* Contenedor dinámico de espacios */
-#serviciosContainer {
-  margin-top: 30px;
-}
-
+/* ============================================================
+   MENSAJES DE ESTADO
+   ============================================================ */
 .sin-servicios {
   text-align: center;
   color: #6b7280;
   font-size: 16px;
-  padding: 40px 0;
+  padding: 60px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #ede9e0;
 }
 
-.btn-reservar {
-  margin-top: 14px;
-  width: 100%;
-  padding: 10px;
-  background-color: #002d56;
+.error-message {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff5f5;
+  border-radius: 12px;
+  border: 1px solid #fde8e8;
+  color: #b3261e;
+}
+
+.error-message button {
+  margin-top: 12px;
+  padding: 10px 24px;
+  background: #4a1d6e;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   font-family: inherit;
-  transition: background 0.2s;
 }
 
-.btn-reservar:hover {
-  background-color: #001c39;
+.error-message button:hover {
+  background: #361552;
+}
+
+/* ============================================================
+   TARIFAS DIFERENCIADAS
+   ============================================================ */
+.detalle-tarifas {
+  padding: 16px 24px;
+  background: #f8f6f2;
+  margin: 0 16px 16px;
+  border-radius: 8px;
+}
+
+.detalle-tarifas h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a9bb2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.tarifa-fila {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4b5563;
+  padding: 4px 0;
+}
+
+.tarifa-fila.destacada {
+  background: #eef2f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.tarifa-fila.tu-precio {
+  border-top: 2px solid #4a1d6e;
+  padding-top: 10px;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.tarifa-fila.tu-precio strong {
+  color: #4a1d6e;
+}
+
+/* --- Etiqueta de perfil en la tarjeta --- */
+.etiqueta-perfil {
+  font-size: 9px;
+  font-weight: 600;
+  color: #8a9bb2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #f5f3ec;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 2px;
+}
+
+.precio-anterior {
+  font-size: 12px;
+  color: #8a9bb2;
+  text-decoration: line-through;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .catalogo-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .detalle-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .catalogo-main {
+    padding: 16px;
+  }
+
+  .servicios-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .search-container {
+    max-width: 100%;
+  }
+}
+/* ============================================================
+   ENTIDAD PRESTADORA
+   ============================================================ */
+.detalle-entidad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px 16px;
+  border-bottom: 1px solid #ede9e0;
+}
+
+.detalle-entidad .entidad-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a9bb2;
+}
+
+.detalle-entidad .entidad-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a1d6e;
+  background: #f0e8f5;
+  padding: 4px 14px;
+  border-radius: 20px;
 }

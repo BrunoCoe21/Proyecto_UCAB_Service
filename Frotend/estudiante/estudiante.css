@@ -10,13 +10,13 @@ body {
   background-color: #f8f6f2;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #1a1a2e;
-  /* padding eliminado para que el sidebar se integre correctamente */
 }
 
+/* --- LAYOUT PRINCIPAL --- */
 .perfil-main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 20px 30px; /* ahora el padding está aquí */
+  padding: 20px 30px;
   flex: 1;
 }
 
@@ -98,7 +98,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- LAYOUT PRINCIPAL --- */
+/* --- LAYOUT PERFIL --- */
 .perfil-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -118,6 +118,7 @@ body {
   gap: 24px;
 }
 
+/* --- TARJETAS --- */
 .tarjeta-blanca {
   background: #ffffff;
   border-radius: 16px;
@@ -126,10 +127,15 @@ body {
   border: 1px solid #ede9e0;
 }
 
+/* --- UTILIDADES --- */
 .text-center { text-align: center; }
 .mt-3 { margin-top: 20px; }
 .mb-0 { margin-bottom: 0 !important; }
+.text-gris { color: #8a9bb2; }
+.fw-bold { font-weight: 700; }
+.padding-reducido { padding: 24px; }
 
+/* --- AVATAR --- */
 .avatar-gigante {
   width: 96px;
   height: 96px;
@@ -139,15 +145,15 @@ body {
   font-weight: 700;
   display: flex;
   align-items: center;
-  align-items: center;
   justify-content: center;
   border-radius: 50%;
   margin: 0 auto 16px;
 }
 
+/* --- TARJETA IDENTIDAD --- */
 .tarjeta-identidad h2 {
   font-size: 22px;
-  color: #0b1a2e;
+  color: #1a1a2e;
   margin-bottom: 4px;
 }
 
@@ -157,6 +163,7 @@ body {
   margin-bottom: 24px;
 }
 
+/* --- LISTA DETALLES --- */
 .lista-detalles {
   display: flex;
   flex-direction: column;
@@ -177,48 +184,7 @@ body {
 
 .detalle-item .icono { color: #d2a65a; }
 
-.titulo-seccion {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-.color-azul-oscuro { color: #0b1a2e; }
-
-.rol-box {
-  background-color: #f5f3ec;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0b1a2e;
-  display: flex;
-  border-radius: 50%;
-  margin: 0 auto 14px;
-}
-
-.tarjeta-identidad h2 {
-  font-size: 22px;
-  color: #1a1a2e;
-  margin-bottom: 2px;
-}
-
-.carrera-texto {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 14px;
-}
-
-.badge-estado {
-  display: inline-block;
-  background: #d1fae5;
-  color: #065f46;
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 0;
-}
-
+/* --- ROLES Y BADGES --- */
 .roles-box {
   text-align: left;
   border-top: 1px solid #ede9e0;
@@ -249,6 +215,46 @@ body {
 
 .rol-item:last-child { margin-bottom: 0; }
 
+.badge-estado {
+  display: inline-block;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.badge-activo {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.badge-cerrado {
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.badge-azul {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .punto-azul {
   width: 8px;
   height: 8px;
@@ -257,7 +263,7 @@ body {
   flex-shrink: 0;
 }
 
-/* --- COLUMNA DERECHA --- */
+/* --- SECCIÓN TÍTULOS --- */
 .titulo-seccion {
   font-size: 18px;
   font-weight: 700;
@@ -265,13 +271,9 @@ body {
   margin-bottom: 22px;
 }
 
-.punto-azul {
-  width: 10px; height: 10px;
-  background-color: #0b1a2e;
-  border-radius: 50%;
-}
+.titulo-seccion.color-azul-oscuro { color: #0b1a2e; }
 
-/* --- Columna Derecha (Resumen) --- */
+/* --- COLUMNA DERECHA (RESUMEN) --- */
 .resumen-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -289,6 +291,25 @@ body {
   font-size: 32px;
   font-weight: 400;
   margin-bottom: 4px;
+}
+
+.caja-resumen .etiqueta {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0b1a2e;
+}
+
+.caja-resumen .sub-etiqueta {
+  font-size: 11px;
+  color: #8a9bb2;
+  margin-top: 4px;
+}
+
+.text-verde { color: #2e8b57; }
+.text-naranja { color: #d97706; }
+.text-azul { color: #0b1a2e; }
+
+/* --- GRID DE DATOS --- */
 .grid-datos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -320,20 +341,6 @@ body {
   flex-shrink: 0;
 }
 
-.text-verde { color: #2e8b57; }
-.text-naranja { color: #d97706; }
-.text-azul { color: #0b1a2e; }
-
-.caja-resumen .etiqueta {
-  font-size: 12px;
-  font-weight: 700;
-  color: #0b1a2e;
-}
-
-.caja-resumen .sub-etiqueta {
-  font-size: 11px;
-  color: #8a9bb2;
-  margin-top: 4px;
 .dato-info {
   display: flex;
   flex-direction: column;
@@ -355,8 +362,6 @@ body {
   word-break: break-word;
 }
 
-.text-gris { color: #8a9bb2; }
-
 /* --- TRAYECTORIA (TABLA) --- */
 .header-con-icono {
   display: flex;
@@ -373,12 +378,7 @@ body {
   margin-top: 2px;
 }
 
-/* --- Tabla de Historial --- */
-.tabla-contenedor {
-  overflow-x: auto;
-}
-
-.tabla-historial {
+/* --- TABLA DE HISTORIAL --- */
 .tabla-contenedor {
   overflow-x: auto;
 }
@@ -406,52 +406,6 @@ body {
   border-bottom: 1px solid #ede9e0;
   color: #1a1a2e;
   vertical-align: middle;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.tabla-historial th {
-  background-color: #efece5;
-  color: #8a9bb2;
-  font-weight: 600;
-  text-align: left;
-  padding: 12px 16px;
-  letter-spacing: 0.5px;
-}
-
-.tabla-historial td {
-  padding: 16px;
-  border-bottom: 1px solid #f0ebe1;
-  color: #374151;
-.fw-bold { font-weight: 700; }
-
-.badge-activo {
-  background: #d1fae5;
-  color: #065f46;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  display: inline-block;
-}
-
-.badge-cerrado {
-  background: #e5e7eb;
-  color: #4b5563;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  display: inline-block;
-}
-
-.badge-azul {
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
 }
 
 /* --- SEGURIDAD --- */
@@ -461,36 +415,19 @@ body {
   gap: 24px;
 }
 
-.text-gris { color: #8a9bb2; }
-
-.badge-activo {
-  background-color: #d1fae5;
-  color: #065f46;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
 @media (max-width: 768px) {
   .seguridad-grid { grid-template-columns: 1fr; }
 }
 
-.padding-reducido { padding: 24px; }
-
 .icono-dorado { font-size: 22px; }
 
-.lista-seguridad, .lista-auditoria {
+.lista-seguridad,
+.lista-auditoria {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.badge-cerrado {
-  background-color: #e5e7eb;
-  color: #4b5563;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
 .lista-seguridad li {
   display: flex;
   justify-content: space-between;

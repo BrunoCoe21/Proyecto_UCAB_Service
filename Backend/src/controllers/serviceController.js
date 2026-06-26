@@ -1,9 +1,15 @@
+// src/controllers/serviceController.js
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
+// ============================================================
+// GET /api/service/espacios
+// ============================================================
 exports.getServiciosEspacios = async (req, res) => {
   try {
-    // 1. Obtener servicios de la categoría 'Espacios'
+    console.log('🔍 Ejecutando getServiciosEspacios...');
+
+    // 1. Obtener TODOS los servicios con su entidad prestadora
     const servicios = await sequelize.query(
       `SELECT 
          s.codigo_servicio,
@@ -11,21 +17,113 @@ exports.getServiciosEspacios = async (req, res) => {
          s.precio,
          s.descripcion_detallada,
          s.requisitos_de_acceso,
-         s.tipo_categoria
+         s.tipo_categoria,
+         s.id_entidad,
+         e.nombre AS entidad_nombre
        FROM servicio s
-       WHERE s.tipo_categoria = 'Espacios'
-       ORDER BY s.codigo_servicio`,
+       LEFT JOIN entidad_prestadora e ON e.id_entidad = s.id_entidad
+       ORDER BY s.tipo_categoria, s.codigo_servicio`,
       { type: QueryTypes.SELECT }
     );
 
-    console.log('Servicios encontrados:', servicios); // Para depuración
+    console.log('📦 Servicios encontrados:', servicios.length);
 
-    // Si no hay servicios, devolver array vacío
     if (!servicios || servicios.length === 0) {
       return res.json([]);
     }
 
-    // 2. Para cada servicio, obtener los espacios físicos de su sede
+    // 2. Obtener los límites por categoría y sede
+    const limites = await sequelize.query(
+      `SELECT tipo_categoria, nombre_sede, monto_limt_max
+       FROM limite_categoria_sede`,
+      { type: QueryTypes.SELECT }
+    );
+
+    const limitesMap = {};
+    limites.forEach(l => {
+      const key = `${l.tipo_categoria}|${l.nombre_sede}`;
+      limitesMap[key] = parseFloat(l.monto_limt_max);
+    });
+
+    // 3. Obtener cargos adicionales
+    const cargos = await sequelize.query(
+      `SELECT codigo_servicio, nombre_concepto, monto, tipo_suplemento
+       FROM cargo_adicional`,
+      { type: QueryTypes.SELECT }
+    );
+
+    const cargosMap = {};
+    cargos.forEach(c => {
+      if (!cargosMap[c.codigo_servicio]) {
+        cargosMap[c.codigo_servicio] = [];
+      }
+      cargosMap[c.codigo_servicio].push({
+        nombre_concepto: c.nombre_concepto,
+        monto: parseFloat(c.monto),
+        tipo_suplemento: c.tipo_suplemento
+      });
+    });
+
+    // 4. Obtener historial de tarifas
+    const historialTarifas = await sequelize.query(
+      `SELECT codigo_servicio, 
+              tarifa_miembro_activo, 
+              tarifa_egresado, 
+              tarifa_publico_externo
+       FROM historial_tarifas
+       WHERE fecha_vigencia_inicio <= CURRENT_DATE
+         AND (fecha_vigencia_fin IS NULL OR fecha_vigencia_fin >= CURRENT_DATE)`,
+      { type: QueryTypes.SELECT }
+    );
+
+    const tarifasMap = {};
+    historialTarifas.forEach(t => {
+      tarifasMap[t.codigo_servicio] = {
+        miembro_activo: parseFloat(t.tarifa_miembro_activo),
+        egresado: parseFloat(t.tarifa_egresado),
+        publico_externo: parseFloat(t.tarifa_publico_externo)
+      };
+    });
+
+    // 5. Obtener pasos de actividad
+    const pasosActividad = await sequelize.query(
+      `SELECT 
+         p.id_solicitud,
+         p.num_paso,
+         p.nombre_paso,
+         p.nombre_oficina,
+         p.estado_paso,
+         s.codigo_servicio
+       FROM paso_actividad p
+       JOIN solicitud s ON s.id_solicitud = p.id_solicitud
+       ORDER BY s.codigo_servicio, p.id_solicitud, p.num_paso`,
+      { type: QueryTypes.SELECT }
+    );
+
+    const pasosMap = {};
+    const solicitudesPorServicio = {};
+    pasosActividad.forEach(p => {
+      if (!solicitudesPorServicio[p.codigo_servicio]) {
+        solicitudesPorServicio[p.codigo_servicio] = new Set();
+      }
+      solicitudesPorServicio[p.codigo_servicio].add(p.id_solicitud);
+    });
+
+    for (const [codigo, solicitudes] of Object.entries(solicitudesPorServicio)) {
+      const primeraSolicitud = Array.from(solicitudes)[0];
+      const pasos = pasosActividad
+        .filter(p => p.id_solicitud === primeraSolicitud)
+        .sort((a, b) => a.num_paso - b.num_paso)
+        .map(p => ({
+          num_paso: p.num_paso,
+          nombre_paso: p.nombre_paso,
+          nombre_oficina: p.nombre_oficina,
+          estado_paso: p.estado_paso
+        }));
+      pasosMap[codigo] = pasos;
+    }
+
+    // 6. Obtener espacios físicos por sede
     const serviciosConEspacios = await Promise.all(servicios.map(async (serv) => {
       const espacios = await sequelize.query(
         `SELECT 
@@ -44,60 +142,82 @@ exports.getServiciosEspacios = async (req, res) => {
         }
       );
 
+      const key = `${serv.tipo_categoria}|${serv.nombre_sede}`;
+      const limiteMaximo = limitesMap[key] || null;
+      const cargosServicio = cargosMap[serv.codigo_servicio] || [];
+      const pasosServicio = pasosMap[serv.codigo_servicio] || [];
+      
+      const tarifas = tarifasMap[serv.codigo_servicio] || {
+        miembro_activo: parseFloat(serv.precio),
+        egresado: parseFloat(serv.precio) * 0.9,
+        publico_externo: parseFloat(serv.precio) * 1.2
+      };
+
       return {
         ...serv,
+        limite_maximo: limiteMaximo,
+        cargos_adicionales: cargosServicio,
+        pasos: pasosServicio,
+        tarifas: tarifas,
+        entidad_nombre: serv.entidad_nombre || 'Entidad no especificada',
         espacios: espacios
       };
     }));
 
-    // Asegurar que es un array (por si acaso)
-    const resultado = Array.isArray(serviciosConEspacios) ? serviciosConEspacios : [serviciosConEspacios];
+    console.log('✅ Respuesta enviada con', serviciosConEspacios.length, 'servicios');
+    res.json(serviciosConEspacios);
 
-    console.log('Resultado a enviar:', resultado); // Para depuración
-
-    res.json(resultado);
   } catch (error) {
-    console.error('Error al obtener servicios de espacios:', error);
-    res.status(500).json({ error: 'Error interno del servidor.' });
+    console.error('❌ Error al obtener servicios:', error);
+    res.status(500).json({ 
+      error: 'Error interno del servidor.',
+      detalle: error.message 
+    });
   }
 };
 
+// ============================================================
+// GET /api/service/
+// ============================================================
 exports.getAllServicios = async (req, res) => {
   try {
     const servicios = await sequelize.query(
       `SELECT 
-         codigo_servicio,
-         nombre_sede,
-         precio,
-         descripcion_detallada,
-         requisitos_de_acceso,
-         tipo_categoria
-       FROM servicio
-       ORDER BY tipo_categoria, descripcion_detallada`,
+         s.codigo_servicio,
+         s.nombre_sede,
+         s.precio,
+         s.descripcion_detallada,
+         s.requisitos_de_acceso,
+         s.tipo_categoria,
+         s.id_entidad,
+         e.nombre AS entidad_nombre
+       FROM servicio s
+       LEFT JOIN entidad_prestadora e ON e.id_entidad = s.id_entidad
+       ORDER BY s.tipo_categoria, s.descripcion_detallada`,
       { type: QueryTypes.SELECT }
     );
 
     res.json(servicios);
   } catch (error) {
-    console.error('Error al obtener todos los servicios:', error);
+    console.error('❌ Error al obtener todos los servicios:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
 
-
-
-// ... (mantén las funciones existentes)
-
-// Obtener detalle de un servicio con sus pasos de una solicitud ejemplo
+// ============================================================
+// GET /api/service/:codigo/detalle
+// ============================================================
 exports.getDetalleServicio = async (req, res) => {
   try {
     const { codigo } = req.params;
 
-    // 1. Obtener el servicio
     const servicio = await sequelize.query(
-      `SELECT codigo_servicio, nombre_sede, precio, descripcion_detallada, requisitos_de_acceso, tipo_categoria
-       FROM servicio
-       WHERE codigo_servicio = :codigo`,
+      `SELECT s.codigo_servicio, s.nombre_sede, s.precio, s.descripcion_detallada, 
+              s.requisitos_de_acceso, s.tipo_categoria, s.id_entidad,
+              e.nombre AS entidad_nombre
+       FROM servicio s
+       LEFT JOIN entidad_prestadora e ON e.id_entidad = s.id_entidad
+       WHERE s.codigo_servicio = :codigo`,
       { replacements: { codigo }, type: QueryTypes.SELECT }
     );
 
@@ -107,37 +227,80 @@ exports.getDetalleServicio = async (req, res) => {
 
     const serv = servicio[0];
 
-    // 2. Obtener una solicitud asociada a este servicio (la más reciente)
-    const solicitud = await sequelize.query(
-      `SELECT id_solicitud
-       FROM solicitud
+    const limites = await sequelize.query(
+      `SELECT tipo_categoria, nombre_sede, monto_limt_max
+       FROM limite_categoria_sede`,
+      { type: QueryTypes.SELECT }
+    );
+
+    const limitesMap = {};
+    limites.forEach(l => {
+      const key = `${l.tipo_categoria}|${l.nombre_sede}`;
+      limitesMap[key] = parseFloat(l.monto_limt_max);
+    });
+
+    const key = `${serv.tipo_categoria}|${serv.nombre_sede}`;
+    const limiteMaximo = limitesMap[key] || null;
+
+    const cargos = await sequelize.query(
+      `SELECT nombre_concepto, monto, tipo_suplemento
+       FROM cargo_adicional
+       WHERE codigo_servicio = :codigo`,
+      { replacements: { codigo }, type: QueryTypes.SELECT }
+    );
+
+    const pasos = await sequelize.query(
+      `SELECT p.num_paso, p.nombre_paso, p.nombre_oficina, p.estado_paso
+       FROM paso_actividad p
+       JOIN solicitud s ON s.id_solicitud = p.id_solicitud
+       WHERE s.codigo_servicio = :codigo
+       ORDER BY p.num_paso
+       LIMIT 10`,
+      { replacements: { codigo }, type: QueryTypes.SELECT }
+    );
+
+    const espacios = await sequelize.query(
+      `SELECT 
+         ef.nombre_sede,
+         ef.nombre_edif,
+         ef.num_identificador,
+         ef.cap_maxima_aforo,
+         ef.tipo_espacio_fisico,
+         ef.estado_mantenimiento
+       FROM espacio_fisico ef
+       WHERE ef.nombre_sede = :sede
+       ORDER BY ef.nombre_edif, ef.num_identificador`,
+      {
+        replacements: { sede: serv.nombre_sede },
+        type: QueryTypes.SELECT
+      }
+    );
+
+    const tarifas = await sequelize.query(
+      `SELECT tarifa_miembro_activo, tarifa_egresado, tarifa_publico_externo
+       FROM historial_tarifas
        WHERE codigo_servicio = :codigo
-       ORDER BY fecha_creacion DESC
+         AND fecha_vigencia_inicio <= CURRENT_DATE
+         AND (fecha_vigencia_fin IS NULL OR fecha_vigencia_fin >= CURRENT_DATE)
+       ORDER BY fecha_vigencia_inicio DESC
        LIMIT 1`,
       { replacements: { codigo }, type: QueryTypes.SELECT }
     );
 
-    let pasos = [];
-    if (solicitud && solicitud.length > 0) {
-      const idSolicitud = solicitud[0].id_solicitud;
-      // 3. Obtener pasos de esa solicitud
-      pasos = await sequelize.query(
-        `SELECT num_paso, nombre_paso, estado_paso
-         FROM paso_actividad
-         WHERE id_solicitud = :idSolicitud
-         ORDER BY num_paso`,
-        { replacements: { idSolicitud }, type: QueryTypes.SELECT }
-      );
-    }
-
-    // 4. Enviar respuesta
     res.json({
-      servicio: serv,
-      pasos: pasos
+      servicio: {
+        ...serv,
+        limite_maximo: limiteMaximo,
+        entidad_nombre: serv.entidad_nombre || 'Entidad no especificada'
+      },
+      cargos_adicionales: cargos,
+      pasos: pasos,
+      espacios: espacios,
+      tarifas: tarifas.length > 0 ? tarifas[0] : null
     });
 
   } catch (error) {
-    console.error('Error al obtener detalle del servicio:', error);
+    console.error('❌ Error al obtener detalle del servicio:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

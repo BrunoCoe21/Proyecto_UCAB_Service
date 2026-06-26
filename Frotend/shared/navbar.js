@@ -41,21 +41,20 @@ function inyectarSidebar() {
  let enlacesHtml = '';
 
   if (rol === 'ESTUDIANTE') {
-    // Se eliminó "Inicio" y ahora index.html es "Mi Perfil"
     enlacesHtml = `
-      <a href="index.html" class="${marcarActivo('index.html')}"> Mi Perfil</a>
+      <a href="../estudiante/estudiante.html" class="${marcarActivo('estudiante.html')}"> Mi Perfil</a>
 
       <div class="nav-section">SERVICIOS</div>
-      <a href="servicios.html" class="${marcarActivo('servicios.html')}">Servicios</a>
-      <a href="solicitudes.html" class="${marcarActivo('solicitudes.html')}"> Mis Solicitudes</a>
+      <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
+      <a href="../servicio/solicitudes.html" class="${marcarActivo('solicitudes.html')}"> Mis Solicitudes</a>
 
       <div class="nav-section">FINANZAS</div>
-      <a href="facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
-      <a href="pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
+      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
+      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
     `;
   } else if (rol === 'EGRESADO') {
     enlacesHtml = `
-      <a href="../estudiante/index.html" class="${marcarActivo('index.html')}">Mi Perfil</a>
+      <a href="../estudiante/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
 
       <div class="nav-section">OPORTUNIDADES</div>
       <a href="../egresado/bolsa.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
@@ -64,13 +63,13 @@ function inyectarSidebar() {
     // Docente y Personal Administrativo comparten el mismo perfil (son EMPLEADOS),
     // por eso usan la misma carpeta /administrativo/ y el mismo menú.
     enlacesHtml = `
-      <a href="index.html" class="${marcarActivo('index.html')}">Mi Perfil</a>
+      <a href="../empleado/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
 
       <div class="nav-section">GESTIÓN DE PERSONAL</div>
-      <a href="vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+      <a href="../empleado/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
 
       <div class="nav-section">SOLICITUDES</div>
-      <a href="gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
+      <a href="../empleado/gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
     `;
   } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
 
