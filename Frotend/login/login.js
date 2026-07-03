@@ -70,12 +70,12 @@ form.addEventListener('submit', async (e) => {
     // roles (cajero, admin), solo hay que sumar un 'else if' aquí.
     // --------------------------------------------------------------------
     if (rolPrincipal === 'ESTUDIANTE' || rolPrincipal === 'EGRESADO') {
-      window.location.href = '../estudiante/index.html';
+      window.location.href = '../estudiante/estudiante.html';
     } else if (rolPrincipal === 'DOCENTE' || rolPrincipal === 'ADMINISTRATIVO') {
       window.location.href = '../administrativo/index.html';
     } else {
       // Rol reconocido por el backend pero sin pantalla propia todavía.
-      window.location.href = '../estudiante/index.html';
+      window.location.href = '../estudiante/estudiante.html';
     }
 
   } catch (error) {

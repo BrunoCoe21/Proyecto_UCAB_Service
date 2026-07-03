@@ -57,7 +57,7 @@ function inyectarSidebar() {
       <a href="../estudiante/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
 
       <div class="nav-section">OPORTUNIDADES</div>
-      <a href="../egresado/bolsa.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
+      <a href="../bolsa_trabajo/bolsa_trabajo.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
     `;
   } else if (rol === 'DOCENTE' || rol === 'ADMINISTRATIVO') {
     // Docente y Personal Administrativo comparten el mismo perfil (son EMPLEADOS),
