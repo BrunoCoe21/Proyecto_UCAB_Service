@@ -17,6 +17,35 @@ const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
 // ----------------------------------------------------------------------------
+//  Sincroniza solicitud.estado_general según el estado real de sus pasos.
+//  No existe ningún trigger en la base que haga esto solo, así que se llama
+//  explícitamente cada vez que un paso cambia de estado (aquí y también
+//  desde reservaController al completar el paso de reserva).
+//  Regla acordada:
+//    - Si TODOS los pasos están 'completado'      -> solicitud 'cerrada'
+//    - Si AL MENOS UNO está 'en proceso'           -> solicitud 'en proceso'
+//    - En cualquier otro caso (todos 'pendiente')  -> solicitud 'abierta'
+// ----------------------------------------------------------------------------
+async function sincronizarEstadoSolicitud(idSolicitud, transaction) {
+  const pasos = await sequelize.query(
+    `SELECT estado_paso FROM paso_actividad WHERE id_solicitud = :idSolicitud`,
+    { replacements: { idSolicitud }, type: QueryTypes.SELECT, transaction }
+  );
+  if (pasos.length === 0) return;
+
+  const todosCompletados = pasos.every(p => p.estado_paso === 'completado');
+  const algunoEnProceso = pasos.some(p => p.estado_paso === 'en proceso');
+
+  const nuevoEstado = todosCompletados ? 'cerrada' : (algunoEnProceso ? 'en proceso' : 'abierta');
+
+  await sequelize.query(
+    `UPDATE solicitud SET estado_general = :nuevoEstado WHERE id_solicitud = :idSolicitud`,
+    { replacements: { nuevoEstado, idSolicitud }, type: QueryTypes.UPDATE, transaction }
+  );
+}
+exports.sincronizarEstadoSolicitud = sincronizarEstadoSolicitud;   // se reutiliza en reservaController
+
+// ----------------------------------------------------------------------------
 //  GET /api/gestion/oficinas
 //  Lista las oficinas existentes, para que el empleado elija con cuál trabajar.
 // ----------------------------------------------------------------------------
@@ -74,17 +103,35 @@ exports.listarPasosPorOficina = async (req, res) => {
 
 // ----------------------------------------------------------------------------
 //  PUT /api/gestion/pasos/:idSolicitud/:numPaso
-//  Cambia el estado de un paso ('en proceso' o 'completado'). El propio
-//  trigger de la base (fn_paso_actividad_control) rechaza completar un paso
-//  si hay uno anterior sin completar, y graba fecha_fin automáticamente.
+//  Cambia el estado de un paso ('en proceso' o 'completado').
+//
+//  CORRECCIÓN: el trigger de la base (fn_paso_actividad_control) solo
+//  rechaza COMPLETAR un paso si hay uno anterior sin completar; no impedía
+//  poner un paso en 'en proceso' aunque el anterior tampoco estuviera
+//  completado, lo que permitía tener dos pasos consecutivos "en proceso" a
+//  la vez (caso real visto en SOL-001). Esta validación se agrega aquí, del
+//  lado del backend, antes de tocar la base.
 // ----------------------------------------------------------------------------
 exports.actualizarEstadoPaso = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { idSolicitud, numPaso } = req.params;
     const { estado_paso } = req.body;
 
     if (!['en proceso', 'completado'].includes(estado_paso)) {
+      await t.rollback();
       return res.status(400).json({ error: 'Estado no válido. Use "en proceso" o "completado".' });
+    }
+
+    // Bloquea tanto "iniciar" como "completar" si hay un paso anterior sin completar.
+    const anteriorSinCompletar = await sequelize.query(
+      `SELECT 1 FROM paso_actividad
+       WHERE id_solicitud = :idSolicitud AND num_paso < :numPaso AND estado_paso <> 'completado'`,
+      { replacements: { idSolicitud, numPaso }, type: QueryTypes.SELECT, transaction: t }
+    );
+    if (anteriorSinCompletar.length > 0) {
+      await t.rollback();
+      return res.status(400).json({ error: 'Hay un paso anterior sin completar; no se puede avanzar este paso todavía.' });
     }
 
     // Si se marca 'en proceso' por primera vez, registrar fecha_inicio si no la tiene.
@@ -93,12 +140,17 @@ exports.actualizarEstadoPaso = async (req, res) => {
        SET estado_paso = :estado_paso,
            fecha_inicio = COALESCE(fecha_inicio, CASE WHEN :estado_paso = 'en proceso' THEN CURRENT_TIMESTAMP END)
        WHERE id_solicitud = :idSolicitud AND num_paso = :numPaso`,
-      { replacements: { idSolicitud, numPaso, estado_paso }, type: QueryTypes.UPDATE }
+      { replacements: { idSolicitud, numPaso, estado_paso }, type: QueryTypes.UPDATE, transaction: t }
     );
 
+    // Mantiene solicitud.estado_general sincronizado con sus pasos.
+    await sincronizarEstadoSolicitud(idSolicitud, t);
+
+    await t.commit();
     res.json({ mensaje: `Paso actualizado a "${estado_paso}".` });
 
   } catch (error) {
+    await t.rollback();
     // El trigger de la base devuelve un mensaje claro si hay un paso anterior
     // sin completar; ese mensaje llega tal cual hasta el frontend.
     console.error('Error al actualizar paso:', error);

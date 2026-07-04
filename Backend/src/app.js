@@ -16,6 +16,7 @@ const vacanteRoutes = require('./routes/vacanteRoutes');
 const vinculoFamiliarRoutes = require('./routes/vinculoFamiliarRoutes');
 const empleadoRoutes = require('./routes/empleadoRoutes');
 const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');
+const reservaRoutes = require('./routes/reservaRoutes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/vacantes', vacanteRoutes);
 app.use('/api/vinculos', vinculoFamiliarRoutes);
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/gestion', gestionSolicitudRoutes);
+app.use('/api/reservas', reservaRoutes);
 
 // Middleware de errores
 app.use((err, req, res, next) => {

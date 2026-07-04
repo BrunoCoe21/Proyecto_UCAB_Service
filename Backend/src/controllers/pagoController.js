@@ -15,6 +15,7 @@
 
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
+const { sincronizarEstadoSolicitud } = require('./gestionSolicitudController');
 
 // Métodos válidos y a qué nivel pertenecen (debe coincidir con la base).
 const METODOS_VIRTUALES   = ['zelle', 'criptomoneda'];
@@ -173,6 +174,31 @@ exports.registrarPago = async (req, res) => {
 
     // 3) Nivel 2: el método concreto, con sus campos propios
     await insertarMetodoConcreto(metodo, numControl, fecha, datos, t);
+
+    // NUEVO: si la factura quedó 'pagada' (el trigger fn_pago_actualiza_factura
+    // ya la actualizó), buscar la solicitud asociada vía el folio y marcar su
+    // paso "Pago pendiente" como completado. No requiere que ningún admin
+    // confirme nada — es automático en el momento del pago, según se acordó.
+    const facturaActualizada = await sequelize.query(
+      `SELECT estatus, numero_folio FROM factura WHERE num_control = :numControl LIMIT 1`,
+      { replacements: { numControl }, type: QueryTypes.SELECT, transaction: t }
+    );
+    if (facturaActualizada[0].estatus === 'pagada') {
+      const folio = await sequelize.query(
+        `SELECT id_solicitud FROM folio_consumo WHERE numero_folio = :numeroFolio LIMIT 1`,
+        { replacements: { numeroFolio: facturaActualizada[0].numero_folio }, type: QueryTypes.SELECT, transaction: t }
+      );
+      if (folio.length > 0) {
+        const idSolicitud = folio[0].id_solicitud;
+        await sequelize.query(
+          `UPDATE paso_actividad
+           SET estado_paso = 'completado'
+           WHERE id_solicitud = :idSolicitud AND nombre_paso = 'Pago pendiente' AND estado_paso <> 'completado'`,
+          { replacements: { idSolicitud }, type: QueryTypes.UPDATE, transaction: t }
+        );
+        await sincronizarEstadoSolicitud(idSolicitud, t);
+      }
+    }
 
     await t.commit();
 
