@@ -79,7 +79,8 @@ function tarjetaPaso(p) {
       </div>
       <div class="paso-acciones">
         ${p.estado_paso === 'pendiente'
-          ? `<button class="btn-accion btn-iniciar" onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'en proceso')">Iniciar</button>`
+          ? `<button class="btn-accion btn-iniciar" ${bloqueado ? 'disabled title="Hay un paso anterior sin completar"' : ''}
+                     onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'en proceso')">Iniciar</button>`
           : ''}
         <button class="btn-accion btn-completar" ${bloqueado ? 'disabled title="Hay un paso anterior sin completar"' : ''}
                 onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'completado')">

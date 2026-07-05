@@ -362,25 +362,40 @@ function getColorCategoria(categoria) {
 // ============================================================
 // INICIAR SOLICITUD
 // ============================================================
+// CAMBIO DE FLUJO (acordado): si el servicio es de categoría Cultura o
+// Deporte, requiere reservar un espacio, así que en vez de crear la
+// solicitud directo se abre el modal de reserva (definido más abajo). Ese
+// modal crea la solicitud Y la reserva juntas al confirmar.
+//
+// CORRECCIÓN: se quitó 'estado_general: EN PROCESO' del body — ese valor en
+// mayúsculas no coincidía con los que usa el resto de la base ('abierta',
+// 'en proceso', 'cerrada'). Ahora el backend siempre decide el estado
+// inicial ('abierta'), en minúsculas, de forma consistente.
 async function iniciarSolicitud(codigoServicio) {
   if (!servicioSeleccionado) {
     alert('Por favor, seleccione un servicio primero.');
     return;
   }
-  
+
+  const categoriasConReserva = ['Cultura', 'Deporte'];
+  if (categoriasConReserva.includes(servicioSeleccionado.tipo_categoria)) {
+    abrirModalReservaServicio(servicioSeleccionado);
+    return;
+  }
+
   try {
     const token = localStorage.getItem('ucab_token');
     const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
     const cedula = usuario?.cedula || usuario?.cedula_identidad;
-    
+
     if (!cedula) {
       alert('No se pudo identificar al usuario.');
       return;
     }
-    
+
     const timestamp = Date.now().toString().slice(-6);
     const idSolicitud = `SOL-${timestamp}`;
-    
+
     const response = await fetch(`${API_URL}/solicitudes`, {
       method: 'POST',
       headers: {
@@ -390,24 +405,255 @@ async function iniciarSolicitud(codigoServicio) {
       body: JSON.stringify({
         id_solicitud: idSolicitud,
         cedula_identidad: cedula,
-        codigo_servicio: codigoServicio,
-        estado_general: 'EN PROCESO'
+        codigo_servicio: codigoServicio
       })
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Error al crear la solicitud');
     }
-    
+
     console.log('✅ Solicitud creada');
-    
+
     restaurarPanelVacio();
     window.location.href = '../estudiante/solicitudes.html';
-    
+
   } catch (error) {
     console.error('❌ Error:', error);
     alert('No se pudo iniciar la solicitud: ' + error.message);
+  }
+}
+
+// ============================================================================
+//  MODAL DE RESERVA DE ESPACIO (movido aquí desde Mis Solicitudes, acordado)
+//  Paso A: elegir espacio de la sede del servicio
+//  Paso B: fecha/hora/personas + botón "Verificar disponibilidad"
+//  Paso C: si está disponible, lista dinámica de acompañantes (0 a N, con
+//          scroll si crece mucho) + botón "Confirmar"
+// ============================================================================
+
+let reservaEnCurso = null;
+let contadorAcompanantes = 0;
+
+async function abrirModalReservaServicio(servicio) {
+  reservaEnCurso = { codigoServicio: servicio.codigo_servicio, nombreSede: servicio.nombre_sede };
+  contadorAcompanantes = 0;
+
+  let modal = document.getElementById('modal-reserva');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-reserva';
+    modal.className = 'modal-overlay-reserva';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal-caja-reserva">
+      <div class="modal-reserva-header">
+        <h2>Reservar espacio · ${servicio.nombre_sede}</h2>
+        <button class="btn-cerrar-reserva" onclick="cerrarModalReservaServicio()">✕</button>
+      </div>
+      <div id="modal-reserva-contenido">
+        <p class="texto-vacio">Cargando espacios disponibles...</p>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+
+  try {
+    const token = localStorage.getItem('ucab_token');
+    const resp = await fetch(`${API_URL}/reservas/espacios/${encodeURIComponent(servicio.nombre_sede)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const espacios = await resp.json();
+    if (!resp.ok) throw new Error(espacios.error || 'Error al cargar espacios');
+
+    document.getElementById('modal-reserva-contenido').innerHTML = `
+      <p class="label-paso">Selecciona el espacio</p>
+      <div class="lista-espacios-modal">
+        ${espacios.map(e => `
+          <button class="item-espacio-modal" onclick='seleccionarEspacioReserva(${JSON.stringify(e)})'>
+            <strong>${e.num_identificador}</strong>
+            <span>${e.nombre_edif} · Aforo ${e.cap_maxima_aforo ?? '—'}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  } catch (error) {
+    document.getElementById('modal-reserva-contenido').innerHTML =
+      `<p class="texto-error">Error al cargar espacios: ${error.message}</p>`;
+  }
+}
+
+function cerrarModalReservaServicio() {
+  const modal = document.getElementById('modal-reserva');
+  if (modal) modal.style.display = 'none';
+  reservaEnCurso = null;
+}
+
+function seleccionarEspacioReserva(espacio) {
+  reservaEnCurso.espacio = espacio;
+
+  document.getElementById('modal-reserva-contenido').innerHTML = `
+    <p class="label-paso">Espacio: <strong>${espacio.num_identificador}</strong> (${espacio.nombre_edif})</p>
+
+    <div class="campo-reserva">
+      <label>Fecha del evento</label>
+      <input type="date" id="r-fecha" required>
+    </div>
+    <div class="campo-reserva-fila">
+      <div class="campo-reserva">
+        <label>Hora de inicio</label>
+        <input type="time" id="r-hora-inicio" required>
+      </div>
+      <div class="campo-reserva">
+        <label>Hora de fin</label>
+        <input type="time" id="r-hora-fin" required>
+      </div>
+    </div>
+    <div class="campo-reserva">
+      <label>Cantidad de personas</label>
+      <input type="number" id="r-personas" min="1" required>
+    </div>
+
+    <button class="btn-verificar" onclick="verificarDisponibilidadReserva()">Verificar disponibilidad</button>
+
+    <div id="resultado-verificacion"></div>
+  `;
+}
+
+async function verificarDisponibilidadReserva() {
+  const fecha = document.getElementById('r-fecha').value;
+  const horaInicio = document.getElementById('r-hora-inicio').value;
+  const horaFin = document.getElementById('r-hora-fin').value;
+  const personas = document.getElementById('r-personas').value;
+  const resultadoDiv = document.getElementById('resultado-verificacion');
+
+  if (!fecha || !horaInicio || !horaFin || !personas) {
+    resultadoDiv.innerHTML = '<p class="texto-error">Completa fecha, horario y cantidad de personas.</p>';
+    return;
+  }
+
+  resultadoDiv.innerHTML = '<p class="texto-vacio-sm">Verificando...</p>';
+
+  try {
+    const token = localStorage.getItem('ucab_token');
+    const { espacio } = reservaEnCurso;
+    const resp = await fetch(`${API_URL}/reservas/verificar`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre_sede: reservaEnCurso.nombreSede,
+        nombre_edif: espacio.nombre_edif,
+        num_identificador: espacio.num_identificador,
+        fecha, hora_inicio: horaInicio, hora_fin: horaFin, cant_personas: personas
+      })
+    });
+    const resultado = await resp.json();
+    if (!resp.ok) throw new Error(resultado.error || 'Error al verificar');
+
+    reservaEnCurso.datosReserva = { fecha, hora_inicio: horaInicio, hora_fin: horaFin, cant_personas: personas };
+
+    if (!resultado.disponible) {
+      resultadoDiv.innerHTML = `
+        <div class="caja-no-disponible">
+          <strong>No se puede reservar:</strong>
+          <ul>${resultado.motivos.map(m => `<li>${m}</li>`).join('')}</ul>
+        </div>
+      `;
+      return;
+    }
+
+    resultadoDiv.innerHTML = `
+      <div class="caja-disponible">
+        <strong>✓ Espacio disponible</strong>
+        <p>Mobiliario: ${resultado.espacio.tipo_mobiliario || 'No especificado'}</p>
+        <p>Tipo: ${resultado.espacio.tipo_espacio_fisico || 'No especificado'}</p>
+        ${resultado.espacio.recursos.length > 0
+          ? `<p>Recursos: ${resultado.espacio.recursos.join(', ')}</p>`
+          : '<p>Sin recursos tecnológicos registrados.</p>'}
+      </div>
+
+      <p class="label-paso">Acompañantes (opcional, personas que no son miembros de la comunidad)</p>
+      <div id="lista-acompanantes" class="lista-acompanantes-scroll"></div>
+      <button type="button" class="btn-agregar-acompanante" onclick="agregarFilaAcompanante()">+ Agregar acompañante</button>
+
+      <button class="btn-confirmar-reserva" onclick="confirmarReservaServicio()">Confirmar reserva</button>
+    `;
+
+  } catch (error) {
+    resultadoDiv.innerHTML = `<p class="texto-error">Error al verificar: ${error.message}</p>`;
+  }
+}
+
+// Lista dinámica de acompañantes: cada clic agrega una fila (cédula + nombre).
+// Sin límite duro (no existe en la base de datos); la lista tiene scroll
+// propio (max-height en el CSS) para que no crezca indefinidamente en
+// pantalla aunque se agreguen varios.
+function agregarFilaAcompanante() {
+  contadorAcompanantes++;
+  const id = contadorAcompanantes;
+  const cont = document.getElementById('lista-acompanantes');
+  const fila = document.createElement('div');
+  fila.className = 'fila-acompanante';
+  fila.id = `acomp-fila-${id}`;
+  fila.innerHTML = `
+    <input type="text" placeholder="Cédula" class="acomp-doc" data-id="${id}">
+    <input type="text" placeholder="Nombre completo" class="acomp-nombre" data-id="${id}">
+    <button type="button" class="btn-quitar-acomp" onclick="quitarFilaAcompanante(${id})">✕</button>
+  `;
+  cont.appendChild(fila);
+}
+
+function quitarFilaAcompanante(id) {
+  const fila = document.getElementById(`acomp-fila-${id}`);
+  if (fila) fila.remove();
+}
+
+function recolectarAcompanantes() {
+  const acompanantes = [];
+  document.querySelectorAll('.acomp-doc').forEach(input => {
+    const id = input.dataset.id;
+    const documento = input.value.trim();
+    const nombreInput = document.querySelector(`.acomp-nombre[data-id="${id}"]`);
+    const nombre = nombreInput ? nombreInput.value.trim() : '';
+    if (documento && nombre) acompanantes.push({ documento, nombre });
+  });
+  return acompanantes;
+}
+
+async function confirmarReservaServicio() {
+  const { codigoServicio, nombreSede, espacio, datosReserva } = reservaEnCurso;
+  const acompanantes = recolectarAcompanantes();
+
+  try {
+    const token = localStorage.getItem('ucab_token');
+    const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
+    const cedula = usuario?.cedula || usuario?.cedula_identidad;
+
+    const resp = await fetch(`${API_URL}/reservas/crear-con-solicitud`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cedula_identidad: cedula,
+        codigo_servicio: codigoServicio,
+        nombre_sede: nombreSede,
+        nombre_edif: espacio.nombre_edif,
+        num_identificador: espacio.num_identificador,
+        ...datosReserva,
+        acompanantes
+      })
+    });
+    const resultado = await resp.json();
+    if (!resp.ok) throw new Error(resultado.error || 'Error al confirmar la reserva');
+
+    cerrarModalReservaServicio();
+    restaurarPanelVacio();
+    window.location.href = '../estudiante/solicitudes.html';
+
+  } catch (error) {
+    alert('No se pudo confirmar la reserva: ' + error.message);
   }
 }
 

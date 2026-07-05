@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Mis Solicitudes | UCAB Service</title>
+  <link rel="stylesheet" href="solicitudes.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="solicitudes-main">
+
+  <div class="page-header">
+    <span class="breadcrumb">SERVICIOS</span>
+    <h1>Mis Solicitudes</h1>
+    <p class="subtitle">Historial y seguimiento de tus trámites institucionales.</p>
+  </div>
+
+  <div class="solicitudes-layout">
+
+    <!-- IZQUIERDA: lista de tarjetas -->
+    <section class="columna-lista">
+      <div id="lista-solicitudes" class="lista-solicitudes">
+        <p class="texto-vacio">Cargando solicitudes...</p>
+      </div>
+    </section>
+
+    <!-- DERECHA: resumen + linea de tiempo de la solicitud seleccionada -->
+    <aside class="detalle-sidebar">
+      <div id="detalle-solicitud" class="tarjeta-blanca">
+        <p class="texto-vacio">Selecciona una solicitud para ver su detalle.</p>
+      </div>
+    </aside>
+
+  </div>
+
+</main>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="solicitudes.js"></script>
+</body>
+</html>

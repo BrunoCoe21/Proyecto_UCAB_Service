@@ -612,3 +612,69 @@ body {
   padding: 4px 14px;
   border-radius: 20px;
 }
+/* ============================================================================
+   MODAL DE RESERVA DE ESPACIO (movido aquí desde Mis Solicitudes)
+   ============================================================================ */
+.modal-overlay-reserva {
+  position: fixed; inset: 0; background: rgba(26,26,46,.55);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+}
+.modal-caja-reserva { background: white; border-radius: 14px; width: 92%; max-width: 480px; max-height: 88vh; overflow-y: auto; }
+.modal-reserva-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #e6e2da; }
+.modal-reserva-header h2 { font-size: 16px; font-weight: 700; }
+.btn-cerrar-reserva { background: none; border: none; font-size: 16px; cursor: pointer; color: #8a9bb2; }
+
+#modal-reserva-contenido { padding: 18px 22px; }
+.label-paso { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #6b7280; }
+
+.lista-espacios-modal { display: flex; flex-direction: column; gap: 10px; }
+.item-espacio-modal {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  background: #f8f6f2; border: 1.5px solid #e6e2da; border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; font-family: inherit; text-align: left; width: 100%;
+}
+.item-espacio-modal:hover { border-color: #4a1d6e; }
+.item-espacio-modal strong { font-size: 14px; }
+.item-espacio-modal span { font-size: 12px; color: #8a9bb2; }
+
+.campo-reserva { margin-bottom: 14px; }
+.campo-reserva label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.campo-reserva input, .campo-reserva select {
+  width: 100%; padding: 10px 12px; border: 1px solid #e6e2da; border-radius: 8px;
+  font-size: 14px; font-family: inherit; background: #fcfbf9;
+}
+.campo-reserva input:focus { outline: none; border-color: #4a1d6e; }
+.campo-reserva-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-verificar, .btn-confirmar-reserva {
+  width: 100%; background: #4a1d6e; color: white; border: none; border-radius: 8px;
+  padding: 12px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 6px;
+}
+.btn-verificar:hover, .btn-confirmar-reserva:hover { background: #361552; }
+
+.caja-disponible { background: #e6f5ec; border-radius: 10px; padding: 14px; margin: 14px 0; font-size: 13px; }
+.caja-disponible strong { color: #0a7e3d; display: block; margin-bottom: 6px; }
+.caja-no-disponible { background: #fde8e8; border-radius: 10px; padding: 14px; margin: 14px 0; font-size: 13px; color: #b3261e; }
+.caja-no-disponible ul { margin: 6px 0 0 18px; }
+
+/* --- Lista dinámica de acompañantes, con scroll si crece mucho --- */
+.lista-acompanantes-scroll {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 4px;
+}
+.fila-acompanante { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 8px; align-items: center; }
+.fila-acompanante input {
+  padding: 8px 10px; border: 1px solid #e6e2da; border-radius: 8px; font-size: 13px; font-family: inherit;
+}
+.fila-acompanante input:focus { outline: none; border-color: #4a1d6e; }
+.btn-quitar-acomp {
+  background: #fde8e8; color: #b3261e; border: none; border-radius: 6px;
+  width: 28px; height: 28px; cursor: pointer; font-size: 12px; flex-shrink: 0;
+}
+.btn-agregar-acompanante {
+  width: 100%; background: #f0e8f5; color: #4a1d6e; border: 1.5px dashed #c9b8d8; border-radius: 8px;
+  padding: 9px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; margin-bottom: 14px;
+}
+.btn-agregar-acompanante:hover { background: #e8dcf0; }
+
+.texto-vacio-sm { color: #8a9bb2; font-size: 13px; }

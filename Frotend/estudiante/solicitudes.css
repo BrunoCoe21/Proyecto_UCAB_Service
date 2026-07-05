@@ -1,0 +1,107 @@
+/* ============================================================================
+   solicitudes.css - Mis Solicitudes UCAB
+   Mismo estilo y paleta que servicio.css (#f8f6f2, #1a1a2e, #4a1d6e)
+   ============================================================================ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background-color: #f8f6f2;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1a1a2e;
+}
+
+.solicitudes-main { flex: 1; max-width: 1400px; margin: 0 auto; padding: 20px 30px; }
+
+/* --- Encabezado --- */
+.page-header { margin-bottom: 24px; }
+.breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase; font-weight: 600; }
+.page-header h1 { font-size: 32px; color: #1a1a2e; margin-top: 4px; font-weight: 700; }
+.subtitle { font-size: 15px; color: #6b7280; margin-top: 6px; }
+
+/* --- Layout dos columnas --- */
+.solicitudes-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; width: 100%; }
+@media (max-width: 900px) { .solicitudes-layout { grid-template-columns: 1fr; } }
+
+/* --- Lista de tarjetas --- */
+.lista-solicitudes { display: flex; flex-direction: column; gap: 14px; }
+.tarjeta-solicitud {
+  background: white; border: 1.5px solid #e6e2da; border-radius: 14px;
+  padding: 18px; cursor: pointer; transition: all .15s;
+}
+.tarjeta-solicitud:hover { border-color: #4a1d6e; }
+.tarjeta-solicitud.seleccionada { border-color: #4a1d6e; box-shadow: 0 2px 10px rgba(74,29,110,.12); }
+
+.tarjeta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.solicitud-id { font-size: 13px; font-weight: 700; color: #4a1d6e; }
+.solicitud-servicio { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.solicitud-fecha { font-size: 12px; color: #8a9bb2; }
+
+/* --- Badges de estado (mismos colores de bg-* de servicio.css) --- */
+.badge-estado { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: .3px; }
+.estado-abierta  { background: #e6f5ec; color: #0a7e3d; }
+.estado-proceso  { background: #fcf6eb; color: #a57c00; }
+.estado-cerrada  { background: #eef2f6; color: #1a1a2e; }
+
+/* --- Tarjeta de detalle (sidebar derecho) --- */
+.tarjeta-blanca { background: white; border: 1.5px solid #e6e2da; border-radius: 14px; padding: 22px; }
+
+.detalle-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid #e6e2da; }
+.detalle-id { font-size: 12px; font-weight: 700; color: #8a9bb2; }
+.detalle-nombre { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+.caja-oficina { background: #f0e8f5; border-radius: 10px; padding: 14px; margin-bottom: 18px; }
+.caja-oficina-label { font-size: 11px; text-transform: uppercase; color: #6b2b8a; font-weight: 700; letter-spacing: .5px; }
+.caja-oficina-valor { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-top: 4px; }
+.caja-oficina-resp { font-size: 13px; color: #6b7280; margin-top: 2px; }
+
+.titulo-seccion-sm { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #6b7280; margin: 18px 0 10px; }
+
+.seccion-acreditaciones, .seccion-reserva, .seccion-acompanantes { margin-bottom: 6px; }
+.fila-acreditacion { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #e6e2da; }
+.tipo-doc { font-size: 11px; color: #8a9bb2; background: #f8f6f2; padding: 2px 8px; border-radius: 10px; }
+
+.reserva-linea { font-size: 13px; color: #1a1a2e; margin-bottom: 4px; }
+
+/* --- Línea de tiempo --- */
+.linea-tiempo { display: flex; flex-direction: column; gap: 4px; }
+.paso-tiempo { display: flex; gap: 12px; padding: 10px 0; position: relative; }
+.paso-tiempo:not(:last-child)::before {
+  content: ''; position: absolute; left: 5px; top: 24px; bottom: -6px; width: 2px; background: #e6e2da;
+}
+.punto-tiempo { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; z-index: 1; }
+.punto-pendiente  { background: #e6e2da; }
+.punto-proceso    { background: #b8860b; }
+.punto-completado { background: #0a7e3d; }
+
+.paso-tiempo-info { flex: 1; }
+.paso-tiempo-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.paso-tiempo-top strong { font-size: 14px; }
+.paso-tiempo-fechas { font-size: 12px; color: #8a9bb2; }
+.paso-tiempo-oficina { font-size: 12px; color: #4a1d6e; font-weight: 600; margin-bottom: 2px; }
+
+.badge-mini { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.badge-mini.punto-pendiente  { background: #eef2f6; color: #6b7280; }
+.badge-mini.punto-proceso    { background: #fcf6eb; color: #a57c00; }
+.badge-mini.punto-completado { background: #e6f5ec; color: #0a7e3d; }
+
+.texto-vacio { color: #8a9bb2; font-size: 14px; padding: 24px; text-align: center; }
+.texto-vacio-sm { color: #8a9bb2; font-size: 13px; }
+.texto-error { color: #b3261e; font-size: 14px; padding: 16px; }
+
+
+/* --- Caja de factura/pago en el detalle de la solicitud --- */
+.caja-factura {
+  border-radius: 10px; padding: 14px; margin-bottom: 18px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.caja-factura-pendiente { background: #fdf3e0; }
+.caja-factura-pagada { background: #e6f5ec; color: #0a7e3d; font-weight: 700; font-size: 14px; }
+.caja-factura-label { font-size: 11px; text-transform: uppercase; color: #a57c00; font-weight: 700; letter-spacing: .5px; }
+.caja-factura-monto { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-top: 2px; }
+.caja-factura-num { font-size: 12px; opacity: .8; }
+.btn-ver-factura {
+  background: #4a1d6e; color: white; border: none; border-radius: 8px;
+  padding: 10px 18px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.btn-ver-factura:hover { background: #361552; }

@@ -46,7 +46,7 @@ function inyectarSidebar() {
 
       <div class="nav-section">SERVICIOS</div>
       <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
-      <a href="../servicio/solicitudes.html" class="${marcarActivo('solicitudes.html')}"> Mis Solicitudes</a>
+      <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}"> Mis Solicitudes</a>
 
       <div class="nav-section">FINANZAS</div>
       <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
@@ -63,13 +63,13 @@ function inyectarSidebar() {
     // Docente y Personal Administrativo comparten el mismo perfil (son EMPLEADOS),
     // por eso usan la misma carpeta /administrativo/ y el mismo menú.
     enlacesHtml = `
-      <a href="../empleado/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
+      <a href="../administrativo/empleado.html" class="${marcarActivo('empleado.html')}">Mi Perfil</a>
 
       <div class="nav-section">GESTIÓN DE PERSONAL</div>
-      <a href="../empleado/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
 
       <div class="nav-section">SOLICITUDES</div>
-      <a href="../empleado/gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
+      <a href="../administrativo/gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
     `;
   } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
 
