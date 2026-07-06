@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Bolsa de Trabajo | UCAB Services</title>
+
+  <!-- Estilos compartidos -->
+  <link rel="stylesheet" href="../shared/navbar.css?v=1">
+  <link rel="stylesheet" href="bolsa_trabajo.css?v=1">
+
+  <!-- Fuente -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- El navbar se inyecta aquí mediante navbar.js -->
+  <div id="navbar-container"></div>
+
+  <main class="bolsa-main">
+    <!-- Encabezado con índice académico -->
+    <div class="page-header">
+      <span class="breadcrumb">PORTAL DEL MIEMBRO</span>
+      <h1>Bolsa de Trabajo</h1>
+      <p class="subtitle" id="encabezado-perfil">
+        Vacantes publicadas por aliados comerciales UCAB · 
+        <span id="indice-academico">Cargando índice...</span>
+      </p>
+    </div>
+
+    <!-- Layout de dos columnas -->
+    <div class="bolsa-layout">
+      <!-- Columna izquierda: lista de vacantes -->
+      <div id="lista-vacantes">
+        <p style="text-align:center; padding: 40px; color:#8a9bb2;">Cargando oportunidades...</p>
+      </div>
+
+      <!-- Columna derecha: panel de detalle -->
+      <aside class="detalle-sidebar">
+        <div class="tarjeta-blanca sticky-panel" id="panel-detalle">
+          <div class="detalle-vacio">
+            <span class="icono">💼</span>
+            <h3>Selecciona una oportunidad</h3>
+            <p>Haz clic en una tarjeta para ver los detalles de la vacante.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Scripts compartidos -->
+  <script src="../shared/api.js"></script>
+  <script src="../shared/navbar.js"></script>
+  <!-- Script propio -->
+  <script src="bolsa_trabajo.js"></script>
+</body>
+</html>
