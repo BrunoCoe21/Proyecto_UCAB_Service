@@ -70,6 +70,10 @@ function inyectarSidebar() {
 
       <div class="nav-section">SOLICITUDES</div>
       <a href="../administrativo/gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
+
+      <div class="nav-section">REPORTES</div>
+      <a href="../administrativo/reportes.html" class="${marcarActivo('reportes.html')}">Panel de Reportes</a>
+
     `;
   } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
 

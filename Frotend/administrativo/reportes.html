@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Reportes | UCAB Service</title>
+  <link rel="stylesheet" href="reportes.css">
+  <link rel="stylesheet" href="../shared/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="reportes-main">
+  <div class="page-header">
+    <span class="breadcrumb">REPORTES</span>
+    <h1>Panel de Reportes</h1>
+    <p class="subtitulo">Análisis estratégico de la operación UCAB-Services.</p>
+  </div>
+
+  <div class="grid-reportes">
+    <div class="card-reporte" onclick="cargarReporte('solicitudes')">
+      <span class="icono-reporte">📋</span>
+      <h3>Solicitudes</h3>
+      <p>Detalle de todas las solicitudes</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('estado-cuenta')">
+      <span class="icono-reporte">💰</span>
+      <h3>Estado de Cuenta</h3>
+      <p>Facturas y saldos pendientes</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('ingresos-servicio')">
+      <span class="icono-reporte">📊</span>
+      <h3>Ingresos por Servicio</h3>
+      <p>Recaudación por tipo de servicio</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('ocupacion-espacios')">
+      <span class="icono-reporte">🏢</span>
+      <h3>Ocupación de Espacios</h3>
+      <p>Uso de instalaciones</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('postulaciones')">
+      <span class="icono-reporte">💼</span>
+      <h3>Postulaciones</h3>
+      <p>Vacantes y candidatos</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('recurrencia')">
+      <span class="icono-reporte">⭐</span>
+      <h3>Recurrencia</h3>
+      <p>Índice de fidelidad de miembros</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('becarios')">
+      <span class="icono-reporte">🎓</span>
+      <h3>Becarios</h3>
+      <p>Situación académica de becarios</p>
+    </div>
+    <div class="card-reporte" onclick="cargarReporte('pagos-metodo')">
+      <span class="icono-reporte">💳</span>
+      <h3>Pagos por Método</h3>
+      <p>Recaudación por canal de pago</p>
+    </div>
+  </div>
+
+  <div id="contenedor-reporte" class="contenedor-reporte" style="display:none;">
+    <button class="btn-volver" onclick="cerrarReporte()">← Volver a reportes</button>
+    <div id="tabla-reporte" class="tabla-reporte-wrapper">
+      <p class="texto-vacio">Cargando datos...</p>
+    </div>
+  </div>
+</main>
+
+<script src="../shared/api.js"></script>
+<script src="../shared/navbar.js"></script>
+<script src="reportes.js"></script>
+</body>
+</html>

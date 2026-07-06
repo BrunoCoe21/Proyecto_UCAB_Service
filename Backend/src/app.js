@@ -17,6 +17,7 @@ const vinculoFamiliarRoutes = require('./routes/vinculoFamiliarRoutes');
 const empleadoRoutes = require('./routes/empleadoRoutes');
 const gestionSolicitudRoutes = require('./routes/gestionSolicitudRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
+const reporteRoutes = require('./routes/reporteRoutes');
 
 const app = express();
 
@@ -39,6 +40,8 @@ app.use('/api/vinculos', vinculoFamiliarRoutes);
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/gestion', gestionSolicitudRoutes);
 app.use('/api/reservas', reservaRoutes);
+app.use('/api/reportes', reporteRoutes);
+
 
 // Middleware de errores
 app.use((err, req, res, next) => {
