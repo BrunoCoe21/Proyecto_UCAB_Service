@@ -110,7 +110,34 @@ function marcarActivo(nombreArchivo) {
 }
 
 // Retorna directo al login.html
-window.cerrarSesionGlobal = function() {
-  localStorage.clear();
-  window.location.href = '../login/login.html';
+window.cerrarSesionGlobal = async function() {  // ← ✅ AGREGAR async
+  try {
+    const token = localStorage.getItem('ucab_token');
+    
+    if (token) {
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          console.log('✅ Sesión cerrada correctamente');
+        } else {
+          console.warn('⚠️ Error al cerrar sesión en el servidor');
+        }
+      } catch (fetchError) {
+        console.warn('⚠️ Error de red al cerrar sesión:', fetchError);
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Error al cerrar sesión:', error);
+  } finally {
+    // Limpiar localStorage y redirigir al login
+    localStorage.clear();
+    window.location.href = '../login/login.html';
+  }
 };

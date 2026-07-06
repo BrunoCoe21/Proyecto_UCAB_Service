@@ -10,7 +10,9 @@ exports.obtenerPerfil = async (req, res) => {
       SELECT u.cedula_identidad, u.primer_nombre, u.primer_apellido, 
              u.fecha_nacimiento, u.sexo, u.numero_telefono, 
              u.correo_institucional, u.direccion_habitacion_detallada, 
-             u.estado_cuenta, e.promedio, e.uc_aprobadas, e.semestre_actual, 
+             u.estado_cuenta, u.estatus_verificacion_dos_pasos,
+             u.intentos_fallidos_auth, u.ult_fecha_cambio_cont, u.ultima_conexion,
+             e.promedio, e.uc_aprobadas, e.semestre_actual, 
              e.escuela, e.facultad
       FROM usuario u
       LEFT JOIN estudiante e ON u.cedula_identidad = e.cedula_identidad
@@ -34,12 +36,33 @@ exports.obtenerPerfil = async (req, res) => {
       WHERE p.cedula_identidad = :cedula 
       ORDER BY p.fecha_inicio DESC
     `, { replacements: { cedula }, type: QueryTypes.SELECT });
+
+    // 3. NUEVO: Última sesión del usuario
+    const sesionActual = await sequelize.query(`
+      SELECT 
+        direccion_ip,
+        identificador_dispositivo,
+        geolocalizacion_aprox,
+        fecha_acceso
+      FROM sesion
+      WHERE cedula_identidad = :cedula
+      ORDER BY fecha_acceso DESC
+      LIMIT 1
+    `, { replacements: { cedula }, type: QueryTypes.SELECT });
+
+    // 4. Combinar todos los datos
+    const respuesta = { 
+      ...perfil[0], 
+      trayectoria,
+      sesion_actual: sesionActual.length > 0 ? sesionActual[0] : null
+    };
     
-    // Combinamos ambos resultados
-    const respuesta = { ...perfil[0], trayectoria };
     res.json(respuesta);
 
   } catch (error) {
+    console.error('Error en obtenerPerfil:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+    
+   

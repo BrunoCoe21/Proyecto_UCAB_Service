@@ -44,7 +44,17 @@ form.addEventListener('submit', async (e) => {
 
     const rolPrincipal = data.roles[0].toUpperCase();
 
-    // 1. Guardamos con los nombres nuevos
+    // Guardar los datos de auditoría en localStorage
+    if (data.sesion_actual) {
+      localStorage.setItem('ucab_sesion_actual', JSON.stringify({
+        ip: data.sesion_actual.ip,
+        dispositivo: data.sesion_actual.dispositivo,
+        geolocalizacion: data.sesion_actual.geolocalizacion,
+        fecha_conexion: data.sesion_actual.fecha_conexion
+      }));
+    }
+
+    // 1. Guardar token y datos del usuario en localStorage
     localStorage.setItem('ucab_rol', rolPrincipal);
     localStorage.setItem('ucab_token', data.token);
     localStorage.setItem('ucab_usuario', JSON.stringify({

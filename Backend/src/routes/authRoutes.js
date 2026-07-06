@@ -5,5 +5,6 @@ const { verificarToken } = require('../middleware/auth');
 
 router.post('/login', authController.login);
 router.post('/cambiar-contrasena', verificarToken, authController.cambiarContrasena);
+router.post('/logout', verificarToken, authController.logout); 
 
 module.exports = router;

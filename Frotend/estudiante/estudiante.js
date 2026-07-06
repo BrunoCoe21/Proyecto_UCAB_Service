@@ -1,13 +1,11 @@
-// estudiante.js - Versión con depuración
+
+// estudiante.js - Versión con depuración y formato sencillo
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🔍 Iniciando carga del perfil...');
 
   // --- OBTENER SESIÓN ---
   const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
   const token = localStorage.getItem('ucab_token');
 
-  console.log('📦 usuario:', usuario);
-  console.log('🔑 token:', token ? '✅ presente' : '❌ ausente');
 
   if (!usuario || !token) {
     console.error('❌ No hay sesión activa. Redirigiendo al login...');
@@ -32,17 +30,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    console.log(`🌐 Llamando a API: /api/estudiantes/${cedula}`);
-
-    // Usamos fetch directamente para más control
+    
     const response = await fetch(`http://localhost:5000/api/estudiantes/${cedula}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-
-    console.log('📡 Respuesta HTTP:', response.status, response.statusText);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -51,15 +45,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const data = await response.json();
-    console.log('✅ Datos recibidos de la API:', data);
-
     // Llenar todos los campos del perfil
     llenarPerfil(data, usuario);
     llenarTrayectoria(data.trayectoria);
 
+    llenarSeguridad(data, usuario);
+
+
   } catch (error) {
+
+
+
+
     console.error('💥 Error al cargar el perfil:', error);
-    // Los campos ya tienen placeholders, no hacemos nada más
   }
 
   // --- LÓGICA DE PESTAÑAS ---
@@ -75,14 +73,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- FUNCIÓN QUE LLENA TODOS LOS CAMPOS DEL PERFIL ---
 function llenarPerfil(data, usuarioSesion) {
-  console.log('✏️ Llenando perfil con datos reales de la BD:', data);
 
   // ----- COLUMNA IZQUIERDA (Identidad) -----
   const nombreCompleto = (data.primer_nombre || '') + ' ' + (data.primer_apellido || '');
   document.getElementById('perfil-nombre').textContent = nombreCompleto.trim() || '---';
   document.getElementById('perfil-escuela-side').textContent = data.escuela || data.facultad || '---';
 
-  // Avatar (iniciales)
+
   const avatar = document.getElementById('perfil-avatar');
   if (data.primer_nombre && data.primer_apellido) {
     avatar.textContent = (data.primer_nombre.charAt(0) + data.primer_apellido.charAt(0)).toUpperCase();
@@ -108,11 +105,11 @@ function llenarPerfil(data, usuarioSesion) {
     badgeEstado.style.color = '#991b1b';
   }
 
-  // ----- DATOS PERSONALES -----
-  // Corregimos los nombres para que coincidan con la BD (numero_telefono, direccion_habitacion_detallada)
+
   document.getElementById('dato-cedula').textContent = data.cedula_identidad ? 'V-' + data.cedula_identidad : '---';
+
+
   
-  // Formatear la fecha de nacimiento si existe
   if (data.fecha_nacimiento) {
     const fecha = new Date(data.fecha_nacimiento);
     document.getElementById('dato-fecha-nac').textContent = fecha.toLocaleDateString('es-ES', { timeZone: 'UTC' });
@@ -122,8 +119,8 @@ function llenarPerfil(data, usuarioSesion) {
 
   document.getElementById('dato-nombres').textContent = data.primer_nombre || '---';
   document.getElementById('dato-apellidos').textContent = data.primer_apellido || '---';
+
   
-  // Formatear sexo
   let sexoDisplay = '---';
   if (data.sexo === 'F') sexoDisplay = 'Femenino';
   if (data.sexo === 'M') sexoDisplay = 'Masculino';
@@ -131,13 +128,15 @@ function llenarPerfil(data, usuarioSesion) {
   
   document.getElementById('dato-telefono').textContent = data.numero_telefono || '---';
   document.getElementById('dato-correo').textContent = data.correo_institucional || '---';
-  document.getElementById('dato-sede').textContent = 'Montalbán'; // Dato estático por ahora según tu diseño
+
+  document.getElementById('dato-sede').textContent = 'Montalbán';
   document.getElementById('dato-direccion').textContent = data.direccion_habitacion_detallada || '---';
 
-  // ----- ATRIBUTOS DEL ROL ACTIVO -----
+
   document.getElementById('resumen-promedio').textContent = data.promedio || '--';
   
-  // Nivel del promedio
+
+
   const promedio = parseFloat(data.promedio);
   let nivel = '---';
   if (!isNaN(promedio)) {
@@ -149,14 +148,14 @@ function llenarPerfil(data, usuarioSesion) {
   document.getElementById('resumen-promedio-nivel').textContent = nivel;
 
   document.getElementById('resumen-uc').textContent = data.uc_aprobadas || '--';
-  document.getElementById('resumen-uc-total').textContent = 'de requeridos'; 
 
+
+  document.getElementById('resumen-uc-total').textContent = 'de requeridos'; 
   document.getElementById('resumen-semestre').textContent = data.semestre_actual ? data.semestre_actual + '°' : '--';
   document.getElementById('resumen-semestre-anio').textContent = 'Período Activo';
 }
 
-
-
+// --- FUNCIÓN PARA LLENAR LA TRAYECTORIA ---
 function llenarTrayectoria(trayectoria) {
   const tbody = document.getElementById('tbody-trayectoria');
   tbody.innerHTML = ''; 
@@ -171,8 +170,8 @@ function llenarTrayectoria(trayectoria) {
     
     const anioInicio = p.fecha_inicio ? new Date(p.fecha_inicio).getFullYear() : '---';
     const finTexto = p.fecha_finalizacion ? new Date(p.fecha_finalizacion).toLocaleDateString() : 'Vigente';
-    
-    // Lógica de Beca: Si es 'Regular', mostrar "No posee"[cite: 49]
+
+
     const esBecado = p.condicion_beca !== 'Regular';
     const textoBeca = esBecado ? p.condicion_beca : 'No posee';
     const badgeBecaClass = esBecado ? 'badge-azul' : 'badge-cerrado'; 
@@ -194,3 +193,93 @@ function llenarTrayectoria(trayectoria) {
   });
 }
 
+// ============================================================
+// 🔒 SECCIÓN DE SEGURIDAD - CON FORMATO SENCILLO
+// ============================================================
+function llenarSeguridad(data, usuarioSesion) {
+  
+  // ============================================================
+  // 1. Parámetros de Seguridad
+  // ============================================================
+  
+  const estadoCuenta = data.estado_cuenta || 'activa';
+  const estadoElem = document.getElementById('seg-estado-cuenta');
+  if (estadoElem) {
+    estadoElem.textContent = estadoCuenta.charAt(0).toUpperCase() + estadoCuenta.slice(1);
+    estadoElem.className = 'badge-activo';
+  }
+
+  const mfa = data.estatus_verificacion_dos_pasos;
+  const mfaElem = document.getElementById('seg-mfa');
+  if (mfaElem) {
+    mfaElem.textContent = mfa ? '✅ Activado' : '❌ Desactivado';
+    mfaElem.className = mfa ? 'badge-azul' : 'badge-cerrado';
+  }
+
+  // ÚLTIMA FECHA DE CAMBIO DE CONTRASEÑA 
+  const ultimaPassElem = document.getElementById('seg-ultima-pass');
+  if (ultimaPassElem) {
+    if (data.ult_fecha_cambio_cont) {
+      ultimaPassElem.textContent = new Date(data.ult_fecha_cambio_cont).toLocaleString('es-VE');
+    } else {
+      ultimaPassElem.textContent = 'Nunca cambiada';
+    }
+  }
+
+  // Intentos fallidos
+  const intentosElem = document.getElementById('seg-intentos');
+  if (intentosElem) {
+    const intentos = parseInt(data.intentos_fallidos_auth) || 0;
+    intentosElem.textContent = intentos;
+  }
+
+  // ============================================================
+  // 2. Auditoría de Sesión Actual
+  // ============================================================
+  
+  let sesionData = null;
+  try {
+    const sesionGuardada = localStorage.getItem('ucab_sesion_actual');
+    if (sesionGuardada) {
+      sesionData = JSON.parse(sesionGuardada);
+    }
+  } catch (e) {
+    console.warn('No se pudo leer la sesión guardada:', e);
+  }
+
+  if (!sesionData && data.sesion_actual) {
+    sesionData = data.sesion_actual;
+  }
+
+  if (sesionData) {
+    const ipElem = document.getElementById('audit-ip');
+    if (ipElem) ipElem.textContent = sesionData.direccion_ip || sesionData.ip || 'No disponible';
+    
+    const geoElem = document.getElementById('audit-geo');
+    if (geoElem) geoElem.textContent = sesionData.geolocalizacion_aprox || sesionData.geolocalizacion || 'No disponible';
+    
+    const uuidElem = document.getElementById('audit-uuid');
+    if (uuidElem) uuidElem.textContent = sesionData.identificador_dispositivo || sesionData.dispositivo || 'No disponible';
+  }
+
+  // ÚLTIMA CONEXIÓN 
+  const conexionElem = document.getElementById('audit-ultima-conexion');
+  if (conexionElem) {
+    let fechaParaMostrar = null;
+    
+    if (data.ultima_conexion) {
+      fechaParaMostrar = data.ultima_conexion;
+    } else if (data.sesion_actual && data.sesion_actual.fecha_acceso) {
+      fechaParaMostrar = data.sesion_actual.fecha_acceso;
+    } else if (data.sesion_actual && data.sesion_actual.fecha_conexion) {
+      fechaParaMostrar = data.sesion_actual.fecha_conexion;
+    }
+    
+    if (fechaParaMostrar) {
+      conexionElem.textContent = new Date(fechaParaMostrar).toLocaleString('es-VE');
+    } else {
+      conexionElem.textContent = 'No registrada';
+    }
+  }
+
+}
