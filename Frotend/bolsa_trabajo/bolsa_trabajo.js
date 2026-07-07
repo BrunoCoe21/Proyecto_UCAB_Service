@@ -1,11 +1,13 @@
 // ============================================================================
 //  bolsa_trabajo.js  ·  UCAB-Services  ·  Bolsa de Trabajo (Egresados)
 //  Consume los endpoints de /api/vacantes definidos en vacanteController.
+//  VERSIÓN CON FILTRO POR PERFIL BUSCADO
 // ============================================================================
 
 const API_URL = 'http://localhost:5000/api';
 
 let vacantes = [];
+let vacantesFiltradas = [];
 let postulacionesUsuario = new Set(); // ids de vacantes a las que ya se postuló
 let vacanteSeleccionada = null;
 let usuario = null;
@@ -24,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 2. Verificar que sea egresado (por si acaso)
+  // 2. Verificar que sea egresado
   const roles = usuario.roles || [];
   if (!roles.includes('egresado')) {
     alert('Acceso restringido a egresados.');
@@ -32,20 +34,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 3. Cargar datos
+  // 3. Configurar evento del filtro
+  const filtroSelect = document.getElementById('filtro-perfil');
+  filtroSelect.addEventListener('change', aplicarFiltro);
+
+  // 4. Cargar datos
   await cargarPerfilEgresado();
   await cargarPostulaciones();
   await cargarVacantes();
-
-  // 4. Configurar evento para clics en tarjetas (delegación)
-  document.getElementById('lista-vacantes').addEventListener('click', (e) => {
-    const card = e.target.closest('.tarjeta-vacante');
-    if (card) {
-      const id = card.dataset.id;
-      const vacante = vacantes.find(v => v.id_vacante === id);
-      if (vacante) mostrarDetalle(vacante);
-    }
-  });
 });
 
 // ============================================================
@@ -86,7 +82,7 @@ async function cargarPostulaciones() {
 }
 
 // ============================================================
-//  LISTAR VACANTES
+//  CARGAR VACANTES Y POBLAR FILTRO
 // ============================================================
 async function cargarVacantes() {
   const container = document.getElementById('lista-vacantes');
@@ -104,35 +100,18 @@ async function cargarVacantes() {
           <p style="font-size: 13px; color: #8a9bb2; margin-top: 8px;">Vuelve más tarde.</p>
         </div>
       `;
+      // Limpiar el select del filtro
+      const select = document.getElementById('filtro-perfil');
+      select.innerHTML = '<option value="todos">Todos</option>';
       return;
     }
 
-    // Renderizar tarjetas
-    let html = '<div class="vacantes-grid">';
-    vacantes.forEach(v => {
-      const yaPostulado = postulacionesUsuario.has(v.id_vacante);
-      const estadoClase = v.estatus_vacante === 'disponible' ? 'disponible' : 'finalizada';
-      const estadoTexto = yaPostulado ? 'Postulado' : (v.estatus_vacante === 'disponible' ? 'Disponible' : 'Finalizada');
-      const badgeClase = yaPostulado ? 'postulado' : estadoClase;
+    // 1. Poblar el select con los perfiles únicos
+    poblarFiltro(vacantes);
 
-      html += `
-        <div class="tarjeta-vacante" data-id="${v.id_vacante}">
-          <div class="cargo">${v.cargo_solicitado || 'Sin título'}</div>
-          <div class="organizacion">${v.organizacion || 'Empresa no especificada'}</div>
-          <div class="meta-info">
-            <span class="fecha">📅 ${formatearFecha(v.fecha_oferta)}</span>
-            <span class="estado-badge ${badgeClase}">${estadoTexto}</span>
-          </div>
-        </div>
-      `;
-    });
-    html += '</div>';
-    container.innerHTML = html;
-
-    // Si hay vacantes, seleccionar la primera automáticamente (opcional)
-    if (vacantes.length > 0) {
-      mostrarDetalle(vacantes[0]);
-    }
+    // 2. Mostrar todas las vacantes inicialmente (filtro = 'todos')
+    vacantesFiltradas = [...vacantes];
+    renderizarVacantes(vacantesFiltradas, 'todos');
 
   } catch (error) {
     console.error('Error:', error);
@@ -144,6 +123,119 @@ async function cargarVacantes() {
       </div>
     `;
   }
+}
+
+// ============================================================
+//  POBLAR EL SELECT CON PERFILES ÚNICOS
+// ============================================================
+function poblarFiltro(vacantes) {
+  const select = document.getElementById('filtro-perfil');
+  // Limpiar opciones existentes, mantener solo "Todos"
+  select.innerHTML = '<option value="todos">Todos</option>';
+
+  const perfiles = new Set();
+  vacantes.forEach(v => {
+    if (v.perfil_buscado) {
+      perfiles.add(v.perfil_buscado);
+    }
+  });
+
+  // Ordenar alfabéticamente
+  const perfilesOrdenados = Array.from(perfiles).sort((a, b) => a.localeCompare(b));
+  perfilesOrdenados.forEach(perfil => {
+    const option = document.createElement('option');
+    option.value = perfil;
+    option.textContent = perfil;
+    select.appendChild(option);
+  });
+}
+
+// ============================================================
+//  APLICAR FILTRO (al cambiar el select)
+// ============================================================
+function aplicarFiltro() {
+  const select = document.getElementById('filtro-perfil');
+  const perfilSeleccionado = select.value;
+
+  let vacantesAMostrar = vacantes;
+  let perfilMostrado = 'todos';
+
+  if (perfilSeleccionado !== 'todos') {
+    vacantesAMostrar = vacantes.filter(v => v.perfil_buscado === perfilSeleccionado);
+    perfilMostrado = perfilSeleccionado;
+  }
+
+  vacantesFiltradas = vacantesAMostrar;
+  renderizarVacantes(vacantesAMostrar, perfilMostrado);
+
+  // Si la vacante seleccionada previamente no está en el filtro, limpiar el detalle
+  if (vacanteSeleccionada) {
+    const existe = vacantesAMostrar.some(v => v.id_vacante === vacanteSeleccionada.id_vacante);
+    if (!existe) {
+      vacanteSeleccionada = null;
+      const panel = document.getElementById('panel-detalle');
+      if (panel) {
+        panel.innerHTML = `
+          <div class="detalle-vacio">
+            <span class="icono">💼</span>
+            <h3>Selecciona una oportunidad</h3>
+            <p>Haz clic en una tarjeta para ver los detalles de la vacante.</p>
+          </div>
+        `;
+      }
+    }
+  } else {
+    // Si no hay selección y hay vacantes, seleccionar la primera
+    if (vacantesAMostrar.length > 0) {
+      // No seleccionamos automáticamente para no forzar, pero si el usuario quiere, puede hacer clic.
+      // Opcional: seleccionar la primera
+      // mostrarDetalle(vacantesAMostrar[0]);
+    }
+  }
+}
+
+// ============================================================
+//  RENDERIZAR TARJETAS DE VACANTES
+// ============================================================
+function renderizarVacantes(vacantesMostrar, perfilSeleccionado) {
+  const container = document.getElementById('lista-vacantes');
+
+  if (vacantesMostrar.length === 0) {
+    let mensaje = 'No hay oportunidades disponibles.';
+    if (perfilSeleccionado !== 'todos') {
+      mensaje = `No hay oportunidades disponibles para el perfil: ${perfilSeleccionado}.`;
+    }
+    container.innerHTML = `
+      <div class="sin-vacantes">
+        <p>📌 ${mensaje}</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '<div class="vacantes-grid">';
+  vacantesMostrar.forEach(v => {
+    const yaPostulado = postulacionesUsuario.has(v.id_vacante);
+    const estadoClase = v.estatus_vacante === 'disponible' ? 'disponible' : 'finalizada';
+    const estadoTexto = yaPostulado ? 'Postulado' : (v.estatus_vacante === 'disponible' ? 'Disponible' : 'Finalizada');
+    const badgeClase = yaPostulado ? 'postulado' : estadoClase;
+
+    html += `
+      <div class="tarjeta-vacante" data-id="${v.id_vacante}">
+        <div class="cargo">${v.cargo_solicitado || 'Sin título'}</div>
+        <div class="organizacion">${v.organizacion || 'Empresa no especificada'}</div>
+        <div class="meta-info">
+          <span class="fecha">📅 ${formatearFecha(v.fecha_oferta)}</span>
+          <span class="estado-badge ${badgeClase}">${estadoTexto}</span>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Si no hay vacante seleccionada, no hacemos nada
+  // Si hay vacante seleccionada pero no está en el filtro, ya se limpió en aplicarFiltro
 }
 
 // ============================================================
@@ -231,10 +323,11 @@ async function postularse(idVacante) {
     if (!response.ok) {
       if (response.status === 409) {
         alert('⚠️ Ya te has postulado a esta vacante anteriormente.');
-        // Actualizar la lista de postulaciones para reflejar el cambio
         await cargarPostulaciones();
-        // Re-renderizar tarjetas y detalle
-        await cargarVacantes();
+        // Re-renderizar manteniendo el filtro actual
+        const select = document.getElementById('filtro-perfil');
+        const perfil = select.value;
+        aplicarFiltro(); // esto re-renderiza con el filtro actual
         return;
       }
       throw new Error(data.error || 'Error al postularse');
@@ -244,8 +337,11 @@ async function postularse(idVacante) {
 
     // Actualizar el estado local
     postulacionesUsuario.add(idVacante);
-    // Re-renderizar tarjetas y detalle
-    await cargarVacantes();
+    // Re-renderizar manteniendo el filtro actual
+    const select = document.getElementById('filtro-perfil');
+    const perfil = select.value;
+    aplicarFiltro();
+
     // Si la vacante seleccionada era la misma, actualizar el detalle
     if (vacanteSeleccionada && vacanteSeleccionada.id_vacante === idVacante) {
       mostrarDetalle(vacanteSeleccionada);
@@ -271,3 +367,19 @@ function formatearFecha(fechaStr) {
   if (diff < 7) return `Hace ${diff} días`;
   return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+// ============================================================
+//  EVENTO DE CLIC EN TARJETAS (delegación)
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Delegación de eventos para las tarjetas
+  document.getElementById('lista-vacantes').addEventListener('click', (e) => {
+    const card = e.target.closest('.tarjeta-vacante');
+    if (card) {
+      const id = card.dataset.id;
+      // Buscar en vacantesFiltradas (las que están visibles)
+      const vacante = vacantesFiltradas.find(v => v.id_vacante === id);
+      if (vacante) mostrarDetalle(vacante);
+    }
+  });
+});
