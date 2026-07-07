@@ -470,3 +470,69 @@ INSERT INTO egresado (
 (30000010, 17.75, 'Ingeniero telecomunicacion', 2022);
 
 --------------------------------------------------------------------------------------------------------------------
+
+
+-- Funciono para insertar mediante un funcion datos a la tabla postula
+
+-- ============================================================================
+--  FUNCIÓN: postular_egresado
+--  Valida que el título del egresado coincida con el perfil buscado de la
+--  vacante. Si coincide, inserta en postula con estado 'postulado'.
+--  Retorna JSON { success: boolean, message: string }
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION postular_egresado(
+    p_cedula INTEGER,
+    p_id_vacante VARCHAR
+)
+RETURNS JSON
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_titulo_egresado VARCHAR;
+    v_perfil_buscado VARCHAR;
+    v_estatus_vacante VARCHAR;
+BEGIN
+    -- 1. Verificar que el egresado existe y obtener su título
+    SELECT titulo INTO v_titulo_egresado
+    FROM egresado
+    WHERE cedula_identidad = p_cedula;
+
+    IF v_titulo_egresado IS NULL THEN
+        RETURN json_build_object('success', false, 'message', 'Egresado no encontrado.');
+    END IF;
+
+    -- 2. Verificar que la vacante existe, está disponible y obtener su perfil_buscado
+    SELECT perfil_buscado, estatus_vacante
+    INTO v_perfil_buscado, v_estatus_vacante
+    FROM oportunidad_laboral
+    WHERE id_vacante = p_id_vacante;
+
+    IF v_perfil_buscado IS NULL THEN
+        RETURN json_build_object('success', false, 'message', 'Vacante no encontrada.');
+    END IF;
+
+    IF v_estatus_vacante != 'disponible' THEN
+        RETURN json_build_object('success', false, 'message', 'Esta vacante ya no está disponible.');
+    END IF;
+
+    -- 3. Validar que el título coincida exactamente con el perfil buscado
+    IF v_titulo_egresado != v_perfil_buscado THEN
+        RETURN json_build_object('success', false, 'message', 'Usted no cumple con el perfil que se busca.');
+    END IF;
+
+    -- 4. Insertar la postulación con estado 'postulado'
+    INSERT INTO postula (cedula_identidad, id_vacante, estado_postulacion, fecha_postulacion)
+    VALUES (p_cedula, p_id_vacante, 'postulado', CURRENT_DATE);
+
+    RETURN json_build_object('success', true, 'message', 'Postulación enviada correctamente.');
+
+EXCEPTION
+    WHEN unique_violation THEN
+        RETURN json_build_object('success', false, 'message', 'Ya te has postulado a esta vacante.');
+    WHEN OTHERS THEN
+        RETURN json_build_object('success', false, 'message', SQLERRM);
+END;
+$$;
+
+----------------------------------------------------------------------------------'
