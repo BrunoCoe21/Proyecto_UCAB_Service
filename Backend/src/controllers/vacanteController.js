@@ -1,15 +1,7 @@
 // ============================================================================
 //  src/controllers/vacanteController.js  ·  UCAB-Services  ·  BOLSA DE TRABAJO
-// ----------------------------------------------------------------------------
-//  Solo para EGRESADOS (así lo pide el enunciado: "estudiantes egresados").
-//
-//  Nota importante sobre el diseño: el esquema real (tabla oportunidad_laboral)
-//  NO tiene salario, ubicación, ni un índice mínimo numérico por vacante — esos
-//  campos existían solo en el Figma de referencia, que es una guía visual, no
-//  el modelo de datos real. Aquí se muestra únicamente lo que la base tiene:
-//  cargo_solicitado, responsabilidad, beneficios, perfil_buscado y la entidad
-//  externa que publica. El índice académico del egresado se muestra como dato
-//  informativo de su perfil, sin comparación automática contra ningún mínimo.
+//  VERSIÓN CON FUNCIÓN SQL postular_egresado()
+//  La función valida: título vs perfil, disponibilidad, duplicados.
 // ============================================================================
 
 const sequelize = require('../config/database');
@@ -116,41 +108,57 @@ exports.perfilEgresado = async (req, res) => {
 
 // ----------------------------------------------------------------------------
 //  POST /api/vacantes/:idVacante/postular
-//  Registra la postulación del egresado autenticado a una vacante.
-//  La PK compuesta (cedula_identidad, id_vacante) ya impide que la misma
-//  persona postule dos veces a la misma vacante; ese error se traduce a un
-//  mensaje claro en vez de un error genérico de base de datos.
+//  Registra la postulación usando la función SQL postular_egresado().
+//  La función valida: título vs perfil, disponibilidad, duplicados.
+//  Retorna JSON { success, message }.
 // ----------------------------------------------------------------------------
 exports.postularse = async (req, res) => {
   try {
     const { idVacante } = req.params;
-    const cedula = req.usuario.cedula;   // viene del token (middleware verificarToken)
+    const cedula = req.usuario.cedula;
 
-    // La vacante debe existir y estar disponible
-    const vacante = await sequelize.query(
-      `SELECT estatus_vacante FROM oportunidad_laboral WHERE id_vacante = :idVacante LIMIT 1`,
-      { replacements: { idVacante }, type: QueryTypes.SELECT }
-    );
-    if (vacante.length === 0) {
-      return res.status(404).json({ error: 'Vacante no encontrada.' });
-    }
-    if (vacante[0].estatus_vacante !== 'disponible') {
-      return res.status(400).json({ error: 'Esta vacante ya no está disponible.' });
-    }
-
-    await sequelize.query(
-      `INSERT INTO postula (cedula_identidad, id_vacante, estado_postulacion, fecha_postulacion)
-       VALUES (:cedula, :idVacante, 'Recibida', CURRENT_DATE)`,
-      { replacements: { cedula, idVacante }, type: QueryTypes.INSERT }
+    // Llamar a la función SQL
+    const result = await sequelize.query(
+      `SELECT postular_egresado(:cedula, :idVacante) AS resultado`,
+      {
+        replacements: { cedula, idVacante },
+        type: QueryTypes.SELECT
+      }
     );
 
-    res.json({ mensaje: 'Postulación enviada correctamente.' });
+    const jsonResult = result[0]?.resultado;
+    if (!jsonResult) {
+      throw new Error('No se recibió respuesta de la función.');
+    }
+
+    // El resultado es un JSON, lo parseamos
+    const parsed = typeof jsonResult === 'string' ? JSON.parse(jsonResult) : jsonResult;
+
+    if (parsed.success) {
+      return res.json({ mensaje: parsed.message });
+    } else {
+      // Mapear errores a códigos HTTP según el mensaje
+      const msg = parsed.message;
+      if (msg.includes('Ya te has postulado')) {
+        return res.status(409).json({ error: msg });
+      }
+      if (msg.includes('no cumple con el perfil')) {
+        return res.status(403).json({ error: msg });
+      }
+      if (msg.includes('no está disponible')) {
+        return res.status(400).json({ error: msg });
+      }
+      if (msg.includes('Vacante no encontrada')) {
+        return res.status(404).json({ error: msg });
+      }
+      if (msg.includes('Egresado no encontrado')) {
+        return res.status(404).json({ error: msg });
+      }
+      // Cualquier otro error
+      return res.status(500).json({ error: msg });
+    }
 
   } catch (error) {
-    // Violación de la PK compuesta = ya se había postulado antes
-    if (error.name === 'SequelizeUniqueConstraintError' || /duplicate key/i.test(error.message)) {
-      return res.status(409).json({ error: 'Ya te has postulado a esta vacante.' });
-    }
     console.error('Error al postularse:', error);
     res.status(500).json({ error: 'No se pudo registrar la postulación.' });
   }
