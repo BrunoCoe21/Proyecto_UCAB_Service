@@ -278,3 +278,26 @@ async function insertarMetodoConcreto(metodo, numControl, fecha, d, t) {
       throw new Error(`Método no soportado: ${metodo}`);
   }
 }
+
+// ----------------------------------------------------------------------------
+//  GET /api/facturas/billetera/:cedula   (reporte QA: Billetera TAI)
+//  Devuelve el saldo actual de la billetera TAI del miembro (tabla posee).
+//  El frontend lo muestra antes de pagar y bloquea la transacción si el
+//  saldo no alcanza; el trigger de la base es la garantía final.
+// ----------------------------------------------------------------------------
+exports.obtenerBilleteraTai = async (req, res) => {
+  try {
+    const { cedula } = req.params;
+    const billetera = await sequelize.query(
+      `SELECT uid_billetera, saldo FROM posee WHERE cedula_identidad = :cedula LIMIT 1`,
+      { replacements: { cedula }, type: QueryTypes.SELECT }
+    );
+    if (billetera.length === 0) {
+      return res.status(404).json({ error: 'El miembro no posee una billetera TAI registrada.' });
+    }
+    res.json(billetera[0]);
+  } catch (error) {
+    console.error('Error al obtener billetera TAI:', error);
+    res.status(500).json({ error: 'No se pudo consultar la billetera.' });
+  }
+};

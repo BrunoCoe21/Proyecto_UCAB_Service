@@ -4,13 +4,11 @@
 //  Para DOCENTE y PERSONAL_ADMINISTRATIVO (son EMPLEADOS). Permite ver los
 //  pasos de actividad pendientes/en proceso de una OFICINA y avanzarlos.
 //
-//  DECISIÓN DE DISEÑO (importante): paso_actividad.responsable_asignado es un
-//  campo de texto libre, sin clave foránea hacia ningún empleado — en los
-//  datos reales del proyecto siempre queda NULL. Por eso NO se usa para
-//  filtrar "mis tareas". En su lugar, se filtra por OFICINA (nombre_oficina),
-//  que sí es una FK real hacia oficina_responsable. El empleado elige su
-//  oficina y ve los pasos de esa oficina; cualquier empleado de la misma
-//  oficina puede atender cualquier paso de ella.
+//  DISEÑO (QA v2): oficina_responsable.responsable_asignado y
+//  paso_actividad.responsable_asignado ahora son INTEGER FK hacia
+//  empleado(cedula_identidad). El filtrado "mis oficinas" y "mis pasos"
+//  compara CÉDULAS, no nombres, y hay un trigger en la BD que valida que
+//  la cédula asignada exista en la tabla empleado.
 // ============================================================================
 
 const sequelize = require('../config/database');
@@ -52,7 +50,11 @@ exports.sincronizarEstadoSolicitud = sincronizarEstadoSolicitud;   // se reutili
 exports.listarOficinas = async (req, res) => {
   try {
     const oficinas = await sequelize.query(
-      `SELECT nombre_oficina, responsable_asignado FROM oficina_responsable ORDER BY nombre_oficina`,
+      `SELECT o.nombre_oficina, o.responsable_asignado,
+              u.primer_nombre || ' ' || u.primer_apellido AS responsable_nombre
+       FROM oficina_responsable o
+       LEFT JOIN usuario u ON u.cedula_identidad = o.responsable_asignado
+       ORDER BY o.nombre_oficina`,
       { type: QueryTypes.SELECT }
     );
     res.json(oficinas);
@@ -195,5 +197,60 @@ exports.obtenerSolicitudCompleta = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener solicitud completa:', error);
     res.status(500).json({ error: 'No se pudo obtener la solicitud.' });
+  }
+};
+
+// ----------------------------------------------------------------------------
+//  PUT /api/gestion/oficinas/:nombreOficina/responsable   (reporte QA)
+//  Asigna explícitamente un responsable (empleado) a la oficina. El nombre
+//  del responsable se toma del TOKEN del empleado autenticado ("asignarme"),
+//  para que quede trazado quién atiende cada oficina.
+// ----------------------------------------------------------------------------
+exports.asignarResponsable = async (req, res) => {
+  try {
+    const { nombreOficina } = req.params;
+    const cedula = req.usuario.cedula;
+
+    // QA v2: la BD valida con trigger que la cédula sea de un empleado real.
+    const empleado = await sequelize.query(
+      `SELECT 1 FROM empleado WHERE cedula_identidad = :cedula LIMIT 1`,
+      { replacements: { cedula }, type: QueryTypes.SELECT }
+    );
+    if (empleado.length === 0) return res.status(403).json({ error: 'Tu usuario no está registrado como empleado.' });
+
+    const resultado = await sequelize.query(
+      `UPDATE oficina_responsable SET responsable_asignado = :cedula
+       WHERE nombre_oficina = :nombreOficina`,
+      { replacements: { cedula, nombreOficina }, type: QueryTypes.UPDATE }
+    );
+    if (resultado[1] === 0) return res.status(404).json({ error: 'Oficina no encontrada.' });
+
+    res.json({ mensaje: `Ahora eres el responsable asignado de "${nombreOficina}".` });
+  } catch (error) {
+    console.error('Error al asignar responsable:', error);
+    res.status(500).json({ error: 'No se pudo asignar el responsable.' });
+  }
+};
+
+// ----------------------------------------------------------------------------
+//  GET /api/gestion/mis-oficinas   (reporte QA)
+//  Oficinas donde el empleado autenticado figura como responsable asignado.
+//  Si tiene al menos una, el frontend restringe "Pasos por Atender" SOLO a
+//  esas oficinas (el personal ya no ve los pasos de oficinas ajenas).
+// ----------------------------------------------------------------------------
+exports.misOficinas = async (req, res) => {
+  try {
+    const cedula = req.usuario.cedula;
+    const oficinas = await sequelize.query(
+      `SELECT o.nombre_oficina, o.responsable_asignado
+       FROM oficina_responsable o
+       WHERE o.responsable_asignado = :cedula
+       ORDER BY o.nombre_oficina`,
+      { replacements: { cedula }, type: QueryTypes.SELECT }
+    );
+    res.json(oficinas);
+  } catch (error) {
+    console.error('Error al obtener mis oficinas:', error);
+    res.status(500).json({ error: 'No se pudieron consultar tus oficinas.' });
   }
 };

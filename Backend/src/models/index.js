@@ -1,7 +1,10 @@
 // src/models/index.js
 const sequelize = require('../config/database');
 const Usuario = require('./usuario');
-const Estudiante = require('./estudiante');
+// CORRECCIÓN de portabilidad: el archivo se llama 'Estudiante.js' (E mayúscula).
+// En Windows el require en minúscula funcionaba por casualidad (sistema de
+// archivos sin distinción de mayúsculas); en Linux/Mac el servidor no arrancaba.
+const Estudiante = require('./Estudiante');
 const Servicio = require('./servicio');
 const Solicitud = require('./solicitud');
 const Factura = require('./factura');
@@ -37,5 +40,9 @@ module.exports = {
   Servicio,
   Solicitud,
   Factura,
-  Pago
+  Pago,
+  // Alias en minúscula: usuarioController destructura { usuario, estudiante }
+  // en minúscula; sin estos alias esas referencias quedaban undefined.
+  usuario: Usuario,
+  estudiante: Estudiante
 };

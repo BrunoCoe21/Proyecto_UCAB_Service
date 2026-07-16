@@ -85,6 +85,24 @@ exports.getServiciosEspacios = async (req, res) => {
       };
     });
 
+    // 4b. Acreditaciones requeridas por servicio (reporte QA: el frontend
+    //     bloquea "Iniciar solicitud" hasta simular la carga del documento).
+    const acreditaciones = await sequelize.query(
+      `SELECT r.codigo_servicio, ar.id_acreditacion, ar.nombre_requisito, ar.tipo_documento
+       FROM requiere r
+       JOIN acreditacion_requisito ar ON ar.id_acreditacion = r.id_acreditacion`,
+      { type: QueryTypes.SELECT }
+    );
+    const acreditacionesMap = {};
+    acreditaciones.forEach(a => {
+      if (!acreditacionesMap[a.codigo_servicio]) acreditacionesMap[a.codigo_servicio] = [];
+      acreditacionesMap[a.codigo_servicio].push({
+        id_acreditacion: a.id_acreditacion,
+        nombre_requisito: a.nombre_requisito,
+        tipo_documento: a.tipo_documento
+      });
+    });
+
     // 5. Obtener pasos de actividad
     const pasosActividad = await sequelize.query(
       `SELECT 
@@ -156,6 +174,7 @@ exports.getServiciosEspacios = async (req, res) => {
       return {
         ...serv,
         limite_maximo: limiteMaximo,
+        acreditaciones: acreditacionesMap[serv.codigo_servicio] || [],
         cargos_adicionales: cargosServicio,
         pasos: pasosServicio,
         tarifas: tarifas,

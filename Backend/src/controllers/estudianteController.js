@@ -21,6 +21,26 @@ exports.obtenerPerfil = async (req, res) => {
 
     if (perfil.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
 
+    // 1b. NUEVO (reporte QA): atributos de EGRESADO, BECARIO y PREPARADOR.
+    //     - El perfil de egresado debe mostrar título/índice/año y conservar
+    //       todo su historial previo como estudiante.
+    //     - Los atributos de becario y preparador se muestran debajo del
+    //       avatar en el frontend.
+    const egresado = await sequelize.query(`
+      SELECT indice_academico_final, titulo, anio_graduacion
+      FROM egresado WHERE cedula_identidad = :cedula LIMIT 1
+    `, { replacements: { cedula }, type: QueryTypes.SELECT });
+
+    const becario = await sequelize.query(`
+      SELECT tipo_de_beca, estatus, indice_de_mantenimiento
+      FROM becario WHERE cedula_identidad = :cedula LIMIT 1
+    `, { replacements: { cedula }, type: QueryTypes.SELECT });
+
+    const preparador = await sequelize.query(`
+      SELECT asignatura, horas
+      FROM preparadores WHERE cedula_identidad = :cedula LIMIT 1
+    `, { replacements: { cedula }, type: QueryTypes.SELECT });
+
     // 2. NUEVO: Historial de Trayectoria
     const trayectoria = await sequelize.query(`
       SELECT 
@@ -54,6 +74,9 @@ exports.obtenerPerfil = async (req, res) => {
     const respuesta = { 
       ...perfil[0], 
       trayectoria,
+      egresado:   egresado[0]   || null,
+      becario:    becario[0]    || null,
+      preparador: preparador[0] || null,
       sesion_actual: sesionActual.length > 0 ? sesionActual[0] : null
     };
     
@@ -64,5 +87,3 @@ exports.obtenerPerfil = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
-    
-   

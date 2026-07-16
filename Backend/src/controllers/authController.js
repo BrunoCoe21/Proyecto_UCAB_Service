@@ -125,7 +125,8 @@ exports.login = async (req, res) => {
     // 1. Buscar el usuario por correo
     const usuarios = await sequelize.query(
       `SELECT cedula_identidad, primer_nombre, primer_apellido,
-              correo_institucional, contrasena, estado_cuenta, intentos_fallidos_auth
+              correo_institucional, contrasena, estado_cuenta, intentos_fallidos_auth,
+              estatus_verificacion_dos_pasos
        FROM usuario
        WHERE correo_institucional = :correo
        LIMIT 1`,
@@ -142,8 +143,11 @@ exports.login = async (req, res) => {
       return res.status(403).json({ error: `La cuenta está ${usuario.estado_cuenta}.` });
     }
 
-    // 3. Verificar contraseña (BYPASS para desarrollo)
-    const coincide = (contrasena === 'Clave123');
+    // 3. Verificar contraseña con bcrypt REAL (se eliminó el bypass de
+    //    desarrollo). Requiere que usuario.contrasena tenga un hash bcrypt
+    //    válido — el script 07 / el 02 actualizado cargan el hash real de
+    //    'Clave123' para todos los usuarios de prueba.
+    const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
     if (!coincide) {
       await sequelize.query(
         `UPDATE usuario SET intentos_fallidos_auth = intentos_fallidos_auth + 1
@@ -151,6 +155,27 @@ exports.login = async (req, res) => {
         { replacements: { cedula: usuario.cedula_identidad }, type: QueryTypes.UPDATE }
       );
       return res.status(401).json({ error: 'Credenciales inválidas.' });
+    }
+
+    // 3b. VERIFICACIÓN EN DOS PASOS (reporte QA): si el usuario tiene MFA
+    //     activado, la contraseña sola NO basta. Se emite un token temporal
+    //     de 5 minutos con alcance '2fa'; el frontend debe llamar a
+    //     /verificar-2fa con el código. Simulación académica: el código se
+    //     muestra en la consola del servidor y se devuelve como codigo_demo
+    //     (en producción se enviaría por correo/SMS y se quitaría del JSON).
+    if (usuario.estatus_verificacion_dos_pasos === true) {
+      const codigo = String(Math.floor(100000 + Math.random() * 900000));
+      const tokenTemporal = jwt.sign(
+        { cedula: usuario.cedula_identidad, alcance: '2fa', codigo },
+        JWT_SECRET, { expiresIn: '5m' }
+      );
+      console.log(`🔐 [2FA] Código de verificación para ${usuario.correo_institucional}: ${codigo}`);
+      return res.json({
+        requiere_2fa: true,
+        token_temporal: tokenTemporal,
+        codigo_demo: codigo,   // SOLO DEMO ACADÉMICA
+        mensaje: 'Verificación en dos pasos requerida.'
+      });
     }
 
     // 4. Login exitoso - Actualizar usuario
@@ -287,5 +312,76 @@ exports.logout = async (req, res) => {
   } catch (err) {
     console.error('❌ Error en logout:', err);
     return res.status(500).json({ error: 'Error al cerrar sesión.' });
+  }
+};
+
+// ----------------------------------------------------------------------------
+// POST /api/auth/verificar-2fa   (reporte QA: check de validación en el login)
+// Body: { token_temporal, codigo }
+// Valida el código contra el token temporal firmado y, si coincide, completa
+// el login (resetea intentos, registra la sesión y emite el token real).
+// ----------------------------------------------------------------------------
+exports.verificar2FA = async (req, res) => {
+  try {
+    const { token_temporal, codigo } = req.body;
+    if (!token_temporal || !codigo) {
+      return res.status(400).json({ error: 'Token temporal y código son obligatorios.' });
+    }
+
+    let datos;
+    try {
+      datos = jwt.verify(token_temporal, JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: 'La verificación expiró. Inicia sesión de nuevo.' });
+    }
+    if (datos.alcance !== '2fa') {
+      return res.status(401).json({ error: 'Token no válido para verificación en dos pasos.' });
+    }
+    if (String(codigo).trim() !== datos.codigo) {
+      return res.status(401).json({ error: 'Código de verificación incorrecto.' });
+    }
+
+    const usuarios = await sequelize.query(
+      `SELECT cedula_identidad, primer_nombre, primer_apellido, correo_institucional,
+              intentos_fallidos_auth
+       FROM usuario WHERE cedula_identidad = :cedula LIMIT 1`,
+      { replacements: { cedula: datos.cedula }, type: QueryTypes.SELECT }
+    );
+    if (usuarios.length === 0) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    const usuario = usuarios[0];
+
+    await sequelize.query(
+      `UPDATE usuario SET intentos_fallidos_auth = 0, ultima_conexion = CURRENT_TIMESTAMP
+       WHERE cedula_identidad = :cedula`,
+      { replacements: { cedula: usuario.cedula_identidad }, type: QueryTypes.UPDATE }
+    );
+
+    const ipReal = await obtenerIPReal(req);
+    const userAgent = req.headers['user-agent'] || 'Desconocido';
+    const uuid = generarUUID(ipReal, userAgent);
+    const geolocalizacion = await obtenerGeolocalizacion(ipReal);
+
+    await sequelize.query(
+      `INSERT INTO sesion (cedula_identidad, fecha_acceso, direccion_ip, identificador_dispositivo, geolocalizacion_aprox)
+       VALUES (:cedula, CURRENT_TIMESTAMP, :ip, :dispositivo, :geolocalizacion)`,
+      { replacements: { cedula: usuario.cedula_identidad, ip: ipReal, dispositivo: uuid, geolocalizacion },
+        type: QueryTypes.INSERT }
+    );
+
+    const roles = await obtenerRoles(usuario.cedula_identidad);
+    const token = jwt.sign({ cedula: usuario.cedula_identidad, roles }, JWT_SECRET, { expiresIn: '8h' });
+
+    return res.json({
+      token,
+      cedula: usuario.cedula_identidad,
+      nombre: `${usuario.primer_nombre} ${usuario.primer_apellido}`,
+      roles,
+      intentos_fallidos: usuario.intentos_fallidos_auth || 0,
+      sesion_actual: { ip: ipReal, dispositivo: uuid, geolocalizacion, fecha_conexion: new Date().toISOString() }
+    });
+
+  } catch (err) {
+    console.error('❌ Error en verificar-2fa:', err);
+    return res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

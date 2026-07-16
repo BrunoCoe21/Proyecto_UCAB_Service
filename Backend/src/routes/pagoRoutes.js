@@ -12,15 +12,25 @@ const { verificarToken, exigirRol } = require('../middleware/auth');
 //   GET /api/facturas/estudiante/:cedula
 router.get('/estudiante/:cedula',
   verificarToken,
-  exigirRol('estudiante', 'egresado'),
+  exigirRol('estudiante', 'egresado', 'docente', 'administrativo'),
   pagoController.obtenerFacturasEstudiante
+);
+
+// Saldo de la billetera TAI del miembro (tabla posee) — reporte QA.
+//   GET /api/facturas/billetera/:cedula
+//   (Se registra ANTES de '/:numControl/detalle' para que 'billetera' no sea
+//    capturado como si fuera un número de control.)
+router.get('/billetera/:cedula',
+  verificarToken,
+  exigirRol('estudiante', 'egresado', 'docente', 'administrativo'),
+  pagoController.obtenerBilleteraTai
 );
 
 // Detalle de una factura: líneas de cargo + abonos realizados.
 //   GET /api/facturas/:numControl/detalle
 router.get('/:numControl/detalle',
   verificarToken,
-  exigirRol('estudiante', 'egresado'),
+  exigirRol('estudiante', 'egresado', 'docente', 'administrativo'),
   pagoController.obtenerDetalleFactura
 );
 
@@ -28,7 +38,7 @@ router.get('/:numControl/detalle',
 //   POST /api/facturas/:numControl/pagar
 router.post('/:numControl/pagar',
   verificarToken,
-  exigirRol('estudiante', 'egresado'),
+  exigirRol('estudiante', 'egresado', 'docente', 'administrativo'),
   pagoController.registrarPago
 );
 

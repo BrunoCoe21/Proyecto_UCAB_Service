@@ -17,14 +17,18 @@ const { QueryTypes } = require('sequelize');
 
 // ----------------------------------------------------------------------------
 //  GET /api/vinculos
-//  Lista todos los vínculos familiares registrados por CUALQUIER empleado
-//  (es información institucional, no privada de quien la registró).
+//  Lista los vínculos familiares registrados POR EL EMPLEADO AUTENTICADO
+//  (corrección QA: antes todos los empleados veían los vínculos de todos).
 // ----------------------------------------------------------------------------
 exports.listarVinculos = async (req, res) => {
   try {
+    // CORRECCIÓN QA: antes se listaban los vínculos de TODOS los empleados.
+    // Ahora cada empleado solo ve los vínculos que ÉL registró (la relación
+    // "registra" del ER, materializada en la FK cedula_registrador).
+    const cedulaRegistrador = req.usuario.cedula;
     const vinculos = await sequelize.query(
       `SELECT v.ci, v.nombre, v.fecha_nac, v.parentesco, v.estado_vinculo,
-              v.fecha_inicio_vinculo, v.fecha_fin_vinculo, v.cedula_registrador,
+              v.fecha_inicio_vinculo, v.fecha_fin_vinculo, r.cedula_empleado AS cedula_registrador,
               CASE
                 WHEN cm.ci IS NOT NULL THEN 'menor'
                 WHEN cme.ci IS NOT NULL THEN 'mayor_estudiante'
@@ -34,10 +38,12 @@ exports.listarVinculos = async (req, res) => {
               cme.constancia_estudio_ext, cme.certificado_solteria,
               date_part('year', age(v.fecha_nac)) AS edad_actual
        FROM vinculo_familiar v
+       JOIN registra r                    ON r.ci = v.ci
        LEFT JOIN carga_menor cm           ON cm.ci = v.ci
        LEFT JOIN carga_mayor_estudiante cme ON cme.ci = v.ci
+       WHERE r.cedula_empleado = :cedulaRegistrador
        ORDER BY v.estado_vinculo, v.nombre`,
-      { type: QueryTypes.SELECT }
+      { replacements: { cedulaRegistrador }, type: QueryTypes.SELECT }
     );
     res.json(vinculos);
   } catch (error) {
@@ -109,10 +115,18 @@ exports.registrarVinculo = async (req, res) => {
     // 1) Entidad fuerte vinculo_familiar (el trigger valida al registrador)
     await sequelize.query(
       `INSERT INTO vinculo_familiar
-         (ci, cedula_registrador, nombre, fecha_nac, parentesco, estado_vinculo, fecha_inicio_vinculo)
-       VALUES (:ci, :cedulaRegistrador, :nombre, :fecha_nac, :parentesco, 'activo', :fecha_inicio_vinculo)`,
-      { replacements: { ci, cedulaRegistrador, nombre, fecha_nac, parentesco,
+         (ci, nombre, fecha_nac, parentesco, estado_vinculo, fecha_inicio_vinculo)
+       VALUES (:ci, :nombre, :fecha_nac, :parentesco, 'activo', :fecha_inicio_vinculo)`,
+      { replacements: { ci, nombre, fecha_nac, parentesco,
                         fecha_inicio_vinculo: fecha_inicio_vinculo || new Date() },
+        type: QueryTypes.INSERT, transaction: t }
+    );
+
+    // QA: se materializa la relación "registra" del ER (empleado -> vínculo)
+    await sequelize.query(
+      `INSERT INTO registra (ci, cedula_empleado, fecha_registro)
+       VALUES (:ci, :cedulaRegistrador, CURRENT_DATE)`,
+      { replacements: { ci, cedulaRegistrador },
         type: QueryTypes.INSERT, transaction: t }
     );
 
@@ -153,7 +167,7 @@ exports.registrarVinculo = async (req, res) => {
 // ----------------------------------------------------------------------------
 exports.editarVinculo = async (req, res) => {
   const { ci } = req.params;
-  const { nombre, parentesco, fecha_nac, esquema_vacunacion, centro_edu_inic,
+  const { nombre, parentesco, fecha_nac, subtipo, esquema_vacunacion, centro_edu_inic,
           constancia_estudio_ext, certificado_solteria } = req.body;
 
   const t = await sequelize.transaction();
@@ -176,6 +190,53 @@ exports.editarVinculo = async (req, res) => {
       { replacements: { ci, nombre: nombre || null, parentesco: parentesco || null, fecha_nac: fecha_nac || null },
         type: QueryTypes.UPDATE, transaction: t }
     );
+
+    // CORRECCIÓN QA (botón Editar / Subtipo): antes solo se actualizaban los
+    // CAMPOS del subtipo existente, pero nunca se podía CAMBIAR el subtipo en
+    // sí (menor <-> mayor estudiante <-> ninguno); ese era el bug reportado.
+    // Ahora, si el body trae 'subtipo', se sincronizan las subtablas: se
+    // elimina la fila del subtipo anterior y se inserta la del nuevo. Los
+    // triggers de la base (disjunción y "subtipo Ninguno" para cónyuge/padre/
+    // madre) siguen vigilando que el cambio sea válido.
+    if (subtipo !== undefined) {
+      const subtipoActual = await sequelize.query(
+        `SELECT (SELECT 1 FROM carga_menor cm WHERE cm.ci = :ci)            AS es_menor,
+                (SELECT 1 FROM carga_mayor_estudiante cme WHERE cme.ci = :ci) AS es_mayor`,
+        { replacements: { ci }, type: QueryTypes.SELECT, transaction: t }
+      );
+      const esMenor = !!subtipoActual[0].es_menor;
+      const esMayor = !!subtipoActual[0].es_mayor;
+
+      if (subtipo !== 'menor' && esMenor) {
+        await sequelize.query(`DELETE FROM carga_menor WHERE ci = :ci`,
+          { replacements: { ci }, type: QueryTypes.DELETE, transaction: t });
+      }
+      if (subtipo !== 'mayor_estudiante' && esMayor) {
+        await sequelize.query(`DELETE FROM carga_mayor_estudiante WHERE ci = :ci`,
+          { replacements: { ci }, type: QueryTypes.DELETE, transaction: t });
+      }
+      if (subtipo === 'menor' && !esMenor) {
+        await sequelize.query(
+          `INSERT INTO carga_menor (ci, esquema_vacunacion, centro_edu_inic)
+           VALUES (:ci, :esquema_vacunacion, :centro_edu_inic)`,
+          { replacements: { ci, esquema_vacunacion: esquema_vacunacion || null,
+                            centro_edu_inic: centro_edu_inic || null },
+            type: QueryTypes.INSERT, transaction: t });
+      }
+      if (subtipo === 'mayor_estudiante' && !esMayor) {
+        if (!constancia_estudio_ext || !certificado_solteria) {
+          await t.rollback();
+          return res.status(400).json({
+            error: 'Para cambiar el subtipo a "Mayor estudiante" son obligatorios la constancia de estudio y el certificado de soltería.'
+          });
+        }
+        await sequelize.query(
+          `INSERT INTO carga_mayor_estudiante (ci, constancia_estudio_ext, certificado_solteria)
+           VALUES (:ci, :constancia_estudio_ext, :certificado_solteria)`,
+          { replacements: { ci, constancia_estudio_ext, certificado_solteria },
+            type: QueryTypes.INSERT, transaction: t });
+      }
+    }
 
     // Actualizar campos del subtipo, si la fila existe en alguna subtabla
     if (esquema_vacunacion !== undefined || centro_edu_inic !== undefined) {

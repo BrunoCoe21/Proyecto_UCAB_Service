@@ -7,7 +7,9 @@ const router = express.Router();
 const reservaController = require('../controllers/reservaController');
 const { verificarToken, exigirRol } = require('../middleware/auth');
 
-const soloEstudianteEgresado = exigirRol('estudiante', 'egresado');
+// QA: docentes y administrativos ahora también acceden a Servicios y pueden
+// reservar (el enunciado lo permite: cualquier miembro con vinculación vigente).
+const soloEstudianteEgresado = exigirRol('estudiante', 'egresado', 'docente', 'administrativo');
 
 router.get('/espacios/:nombreSede',      verificarToken, soloEstudianteEgresado, reservaController.listarEspaciosPorSede);
 router.post('/verificar',                verificarToken, soloEstudianteEgresado, reservaController.verificarDisponibilidad);

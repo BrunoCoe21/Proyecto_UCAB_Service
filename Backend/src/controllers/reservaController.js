@@ -36,7 +36,11 @@ const { sincronizarEstadoSolicitud } = require('./gestionSolicitudController');
 //  pero ya no es necesario para que el estudiante vea su factura.
 // ----------------------------------------------------------------------------
 async function generarFolioFacturaYPasoPago({ idSolicitud, codigoServicio, precio, concepto, siguienteNumPaso }, t) {
-  const numeroFolio = `FOL-${idSolicitud.replace('SOL-', '')}-${Date.now().toString().slice(-4)}`;
+  // CORRECCIÓN QA: el número de folio y el número de control de la factura
+  // ahora se generan de forma INDEPENDIENTE (antes el num_control era
+  // 'FAC-' + folio, mezclando ambos consecutivos de forma errónea).
+  const sufijoFolio   = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}`;
+  const numeroFolio   = `FOL-${sufijoFolio}`;
 
   // FOLIO_CONSUMO — se deja 'cerrado' porque su factura se genera ya mismo
   // (no queda "abierto" esperando un cierre masivo posterior).
@@ -68,7 +72,8 @@ async function generarFolioFacturaYPasoPago({ idSolicitud, codigoServicio, preci
   // FACTURA — generada de inmediato (cambio acordado), a nombre del usuario
   // solicitante (no corporativa). num_control sigue el mismo patrón que ya
   // usa el resto del proyecto: 'FAC-' + folio.
-  const numControl = `FAC-${numeroFolio}`;
+  const sufijoControl = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}`;
+  const numControl    = `FAC-${sufijoControl}`;   // independiente del folio (QA)
   const cedula = await sequelize.query(
     `SELECT cedula_identidad FROM solicitud WHERE id_solicitud = :idSolicitud LIMIT 1`,
     { replacements: { idSolicitud }, type: QueryTypes.SELECT, transaction: t }
@@ -136,6 +141,13 @@ exports.verificarDisponibilidad = async (req, res) => {
     }
     if (hora_fin <= hora_inicio) {
       return res.status(400).json({ error: 'La hora de fin debe ser posterior a la hora de inicio.' });
+    }
+    // CORRECCIÓN QA: no se puede reservar en una fecha anterior a hoy.
+    // (El calendario del frontend también lo bloquea, pero el backend es la
+    // garantía real: nadie puede saltarse la validación llamando a la API.)
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    if (new Date(fecha + 'T00:00:00') < hoy) {
+      return res.status(400).json({ error: 'No es posible reservar en una fecha anterior al día de hoy.' });
     }
 
     const espacios = await sequelize.query(
@@ -211,6 +223,12 @@ exports.confirmarReserva = async (req, res) => {
 
   if (!nombre_sede || !nombre_edif || !num_identificador || !fecha || !hora_inicio || !hora_fin || !cant_personas) {
     return res.status(400).json({ error: 'Faltan datos obligatorios de la reserva.' });
+  }
+  {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    if (new Date(fecha + 'T00:00:00') < hoy) {
+      return res.status(400).json({ error: 'No es posible reservar en una fecha anterior al día de hoy.' });
+    }
   }
 
   const t = await sequelize.transaction();
@@ -318,6 +336,12 @@ exports.crearSolicitudConReserva = async (req, res) => {
   if (!cedula_identidad || !codigo_servicio || !nombre_sede || !nombre_edif ||
       !num_identificador || !fecha || !hora_inicio || !hora_fin || !cant_personas) {
     return res.status(400).json({ error: 'Faltan datos obligatorios para crear la solicitud con reserva.' });
+  }
+  {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    if (new Date(fecha + 'T00:00:00') < hoy) {
+      return res.status(400).json({ error: 'No es posible reservar en una fecha anterior al día de hoy.' });
+    }
   }
 
   const t = await sequelize.transaction();
