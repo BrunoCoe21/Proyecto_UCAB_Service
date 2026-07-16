@@ -94,10 +94,16 @@ function tarjetaFactura(f) {
     anulada: 'estado-anulada'
   }[f.estatus] || 'estado-pendiente';
 
+  // QA: mientras el folio no esté pagado se muestra el NÚMERO DE FOLIO;
+  // el número de control de la factura solo se revela cuando está pagada.
+  const identificadorVisible = f.estatus === 'pagada'
+    ? f.num_control
+    : (f.numero_folio || f.num_control);
+
   return `
     <div class="item-factura" data-numcontrol="${f.num_control}">
       <div class="item-factura-top">
-        <span class="item-control">${f.num_control}</span>
+        <span class="item-control">${identificadorVisible}</span>
         <span class="badge-estado ${estadoClase}">${f.estatus.toUpperCase()}</span>
       </div>
       <p class="item-concepto">${f.concepto || 'Aranceles universitarios'}</p>
@@ -150,7 +156,10 @@ async function cargarDetalle(numControl) {
     cont.innerHTML = `
       <div class="detalle-header">
         <div>
-          <span class="detalle-control">${factura.num_control}</span>
+          <!-- QA: el número de control solo se muestra si la factura está
+               pagada; mientras tanto se muestra el número de folio. -->
+          <span class="detalle-control">${factura.estatus === 'pagada' ? factura.num_control : factura.numero_folio}</span>
+          ${factura.estatus !== 'pagada' ? '<p class="detalle-fecha">N° de control disponible al completar el pago</p>' : ''}
           <p class="detalle-fecha">Emitida el ${formatearFecha(factura.fecha_emision)}</p>
         </div>
         <span class="badge-estado ${'estado-' + factura.estatus}">${factura.estatus.toUpperCase()}</span>

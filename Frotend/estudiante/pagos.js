@@ -125,6 +125,41 @@ function irADatos() {
   `;
 
   document.getElementById('form-pago').onsubmit = enviarPago;
+
+  // QA — Billetera TAI: consultar el saldo real (tabla posee) y bloquear la
+  // transacción si no es suficiente.
+  if (metodoActual === 'tai') {
+    consultarSaldoTai();
+  }
+}
+
+async function consultarSaldoTai() {
+  const caja = document.getElementById('caja-saldo-tai');
+  const btn = document.getElementById('btn-confirmar');
+  try {
+    const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
+    const cedula = usuario?.cedula || usuario?.cedula_identidad;
+    const billetera = await API.request(`/facturas/billetera/${cedula}`);
+    const saldo = Number(billetera.saldo);
+
+    if (saldo >= facturaActual.saldo) {
+      caja.className = 'caja-disponible';
+      caja.innerHTML = `<strong>💳 Saldo TAI disponible: $${saldo.toFixed(2)}</strong>
+                        <p>Quedarán $${(saldo - facturaActual.saldo).toFixed(2)} después de este pago.</p>`;
+      if (btn) btn.disabled = false;
+    } else {
+      caja.className = 'caja-no-disponible';
+      caja.innerHTML = `<strong>Saldo TAI insuficiente</strong>
+                        <p>Disponible: $${saldo.toFixed(2)} · Requerido: $${facturaActual.saldo.toFixed(2)}.
+                        Recarga tu billetera o elige otro método.</p>`;
+      if (btn) { btn.disabled = true; btn.title = 'Saldo TAI insuficiente'; }
+    }
+  } catch (error) {
+    caja.className = 'caja-no-disponible';
+    caja.innerHTML = `<strong>No posees una billetera TAI registrada.</strong>
+                      <p>Elige otro método de pago.</p>`;
+    if (btn) { btn.disabled = true; btn.title = 'Sin billetera TAI'; }
+  }
 }
 
 // Campos propios de cada método (coinciden con las columnas de la base)
@@ -137,13 +172,34 @@ function camposPorMetodo(metodo) {
 
   switch (metodo) {
     case 'tai':
-      return campo('uid', 'UID del chip NFC', '04:A3:F2:1B:C8:9E:22') +
+      // QA: se muestra el SALDO ACTUAL de la billetera (tabla posee). El UID
+      // lo resuelve la base a partir del titular de la factura; el usuario
+      // solo indica el terminal. Si el saldo no alcanza, el botón se bloquea
+      // (y el trigger de la base es la garantía final).
+      return `<div class="caja-disponible" id="caja-saldo-tai">
+                <strong>Consultando saldo de tu billetera TAI...</strong>
+              </div>` +
              campo('codigoTerminal', 'Código del terminal POS', 'POS-MONT-04');
     case 'zelle':
+      // QA: validaciones estrictas — correo con formato válido, nombre solo
+      // letras y espacios, confirmación solo números.
       return campo('correoOrigen', 'Correo Zelle de origen', 'pagador@email.com', 'email') +
-             campo('titular', 'Nombre del titular', 'Jane Doe') +
-             campo('confirmacion', 'N° de confirmación Zelle', '10 dígitos');
+             `<div class="campo">
+                <label>Nombre del titular</label>
+                <input type="text" id="titular" placeholder="Jane Doe" required
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+"
+                       title="Solo letras y espacios">
+              </div>` +
+             `<div class="campo">
+                <label>N° de confirmación Zelle</label>
+                <input type="text" id="confirmacion" placeholder="Solo números" required
+                       inputmode="numeric" pattern="[0-9]+"
+                       title="Solo números enteros">
+              </div>`;
     case 'criptomoneda':
+      // La tasa de conversión viene PREDETERMINADA con la tasa BCV del sistema
+      // pero el usuario puede editarla (por si el operador tiene una tasa distinta
+      // pactada al momento del pago). El backend la registra tal cual llega.
       return `<div class="campo"><label>Red</label>
                 <select id="red">
                   <option>USDT-TRC20 (Tron)</option>
@@ -153,15 +209,18 @@ function camposPorMetodo(metodo) {
                 </select></div>` +
              campo('txid', 'Hash de la transacción (TXID)', '0x...') +
              campo('billeteraOrigen', 'Dirección de billetera origen', 'T... o 0x...') +
-             campo('tasaConversion', 'Tasa de conversión', '1 USDT = 1.00 USD');
+             `<div class="campo">
+                <label>Tasa de conversión (Bs por USD)</label>
+                <input type="number" id="tasaConversion" step="0.01" min="0"
+                       value="${TASA_BCV}" required>
+                <small style="color:#6b7280;">Predeterminada con la tasa BCV; puedes ajustarla si el operador te indica otra.</small>
+              </div>`;
     case 'tarjeta':
+      // QA: se eliminaron los campos "Titular de tarjeta" y "Tipo".
       return campo('numero', 'Número de tarjeta', '0000 0000 0000 0000') +
-             campo('titular', 'Titular de la tarjeta', 'Como aparece en la tarjeta') +
              campo('expiry', 'Vencimiento (MM/AAAA)', '12/2027') +
              `<div class="campo"><label>Franquicia</label>
-                <select id="franquicia"><option>Visa</option><option>Mastercard</option><option>Amex</option></select></div>` +
-             `<div class="campo"><label>Tipo</label>
-                <select id="tipoRed"><option>Débito</option><option>Crédito</option></select></div>`;
+                <select id="franquicia"><option>Visa</option><option>Mastercard</option><option>Amex</option></select></div>`;
     case 'pago_movil':
       return `<div class="campo"><label>Banco</label>
                 <select id="banco">
@@ -173,10 +232,14 @@ function camposPorMetodo(metodo) {
              campo('telefono', 'Teléfono', '0412-0000000') +
              campo('referencia', 'N° de referencia', '00000000');
     case 'efectivo':
+      // QA: se eliminó "Monto entregado" (el monto es el saldo de la factura)
+      // y el desglose por denominación quedó OPCIONAL.
       return `<div class="campo"><label>Moneda</label>
                 <select id="moneda"><option>USD</option><option>Bolivares</option><option>Euros</option></select></div>` +
-             campo('monto', 'Monto entregado', '0.00', 'number') +
-             campo('desglose', 'Desglose de billetes', 'Ej: 2 de 50, 1 de 20');
+             `<div class="campo">
+                <label>Desglose de billetes (opcional)</label>
+                <input type="text" id="desglose" placeholder="Ej: 2 de 50, 1 de 20">
+              </div>`;
     default:
       return '';
   }

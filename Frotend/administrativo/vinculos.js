@@ -18,6 +18,7 @@ async function cargarVinculos() {
   const cuerpo = document.getElementById('tabla-body');
   try {
     const vinculos = await API.request('/vinculos');
+    window._vinculosCache = vinculos;   // cache para el botón Editar (por ci)
 
     if (vinculos.length === 0) {
       cuerpo.innerHTML = '<tr><td colspan="7" class="texto-vacio">No hay familiares registrados.</td></tr>';
@@ -47,7 +48,11 @@ function filaVinculo(v) {
       <td>${subtipoLabel}</td>
       <td><span class="badge ${estadoClase}">${v.estado_vinculo.toUpperCase()}</span></td>
       <td class="celda-acciones">
-        <button class="btn-accion btn-editar" onclick='editar(${JSON.stringify(v)})'>Editar</button>
+        <!-- CORRECCIÓN (bug QA del botón Editar): antes se serializaba el
+             objeto completo con JSON.stringify dentro del onclick; cualquier
+             comilla o apóstrofe en el nombre rompía el HTML y el botón dejaba
+             de responder. Ahora se pasa solo la cédula y se busca en cache. -->
+        <button class="btn-accion btn-editar" onclick="editarPorCi('${v.ci}')">Editar</button>
         ${botonBaja}
       </td>
     </tr>
@@ -69,6 +74,12 @@ function abrirModalNuevo() {
 // ----------------------------------------------------------------------------
 //  Modal: abrir en modo "editar" con los datos ya cargados
 // ----------------------------------------------------------------------------
+function editarPorCi(ci) {
+  const v = (window._vinculosCache || []).find(x => String(x.ci) === String(ci));
+  if (!v) { alert('No se encontró el vínculo.'); return; }
+  editar(v);
+}
+
 function editar(v) {
   document.getElementById('modal-titulo').textContent = 'Editar familiar';
   document.getElementById('modo-edicion').value = 'editar';
@@ -85,7 +96,7 @@ function editar(v) {
     document.getElementById('f-centro-edu').value = v.centro_edu_inic || '';
   } else if (v.subtipo === 'mayor_estudiante') {
     document.getElementById('f-constancia').value = v.constancia_estudio_ext || '';
-    document.getElementById('f-soltería').value = v.certificado_solteria || '';
+    document.getElementById('f-solteria').value = v.certificado_solteria || '';
   }
 
   document.getElementById('modal-vinculo').style.display = 'flex';
@@ -119,7 +130,7 @@ async function guardarVinculo(e) {
     esquema_vacunacion: document.getElementById('f-vacunacion').value,
     centro_edu_inic: document.getElementById('f-centro-edu').value,
     constancia_estudio_ext: document.getElementById('f-constancia').value,
-    certificado_solteria: document.getElementById('f-soltería').value,
+    certificado_solteria: document.getElementById('f-solteria').value,
   };
 
   try {

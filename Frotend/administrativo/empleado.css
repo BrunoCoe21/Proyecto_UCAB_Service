@@ -60,3 +60,26 @@ body { background-color: var(--fondo); font-family: 'Plus Jakarta Sans', sans-se
 
 .texto-vacio { color: var(--muted); font-size: 14px; }
 .texto-error { color: #b3261e; font-size: 14px; }
+
+/* ============================================================
+   QA: el correo institucional se veía superpuesto/pegado a su
+   etiqueta. Se separan las filas de contacto y se permite que el
+   correo haga salto de línea en lugar de desbordarse.
+   ============================================================ */
+.dato-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.dato-fila strong {
+  text-align: right;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 65%;
+}
+.dato-fila-correo strong {
+  font-size: 13px;
+  line-height: 1.45;
+}

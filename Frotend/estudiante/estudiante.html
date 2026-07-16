@@ -38,8 +38,11 @@
 
         <div class="roles-box mt-3">
           <h3 class="titulo-pequeno">Roles Activos — Período Vigente</h3>
+          <!-- QA: el rol principal ya NO está cableado como "Estudiante Activo";
+               lo calcula el JS según el periodo de vinculación vigente
+               (Estudiante / Egresado / Docente...). -->
           <div class="rol-item">
-            <span class="punto-azul"></span> Estudiante Activo
+            <span class="punto-azul"></span> <span id="rol-principal">Cargando...</span>
           </div>
           <div class="rol-item" id="rol-preparador" style="display:none;">
             <span class="punto-azul"></span> Preparador · <span id="rol-materia">---</span>
@@ -47,6 +50,8 @@
           <div class="rol-item" id="rol-becado" style="display:none;">
             <span class="punto-azul"></span> Becado · <span id="rol-tipo-beca">---</span>
           </div>
+          <!-- QA: atributos específicos de becario / preparador, debajo del avatar -->
+          <div id="atributos-rol-extra" style="margin-top:8px; font-size:12px; color:#6b7280; text-align:left;"></div>
         </div>
       </div>
     </aside>
@@ -169,7 +174,6 @@
                   <th>FECHA FIN</th>
                   <th>ÍNDICE</th>
                   <th>BECA</th>
-                  <th>ESTADO</th>
                 </tr>
               </thead>
               <tbody id="tbody-trayectoria">
@@ -208,6 +212,10 @@
                 <span class="valor-lista" id="seg-intentos">---</span>
               </li>
             </ul>
+            <!-- QA: botón de cambio de contraseña. La fecha del cambio la
+                 registra el backend/trigger automáticamente en usuario. -->
+            <button id="btn-cambiar-pass" class="tab-btn" style="margin-top:12px; width:100%;"
+                    onclick="abrirCambioContrasena()">🔑 Cambiar contraseña</button>
           </div>
 
           <!-- Auditoría de Sesión Actual -->

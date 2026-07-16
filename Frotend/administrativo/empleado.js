@@ -87,3 +87,29 @@ function formatearFecha(fecha) {
   if (!fecha) return '--';
   return new Date(fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
+
+// ============================================================
+// QA: CAMBIO DE CONTRASEÑA del empleado (usa /api/auth/cambiar-contrasena;
+// la fecha del cambio queda registrada automáticamente en usuario).
+// ============================================================
+async function abrirCambioContrasena() {
+  const actual = prompt('Contraseña actual:');
+  if (!actual) return;
+  const nueva = prompt('Nueva contraseña (mínimo 8 caracteres):');
+  if (!nueva) return;
+  if (nueva.length < 8) { alert('La nueva contraseña debe tener al menos 8 caracteres.'); return; }
+
+  try {
+    const token = localStorage.getItem('ucab_token');
+    const resp = await fetch('http://localhost:5000/api/auth/cambiar-contrasena', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contrasenaActual: actual, contrasenaNueva: nueva })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudo cambiar la contraseña.');
+    alert('✅ Contraseña actualizada. La fecha del cambio quedó registrada.');
+  } catch (error) {
+    alert('❌ ' + error.message);
+  }
+}

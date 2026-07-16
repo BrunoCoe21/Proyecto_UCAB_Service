@@ -37,12 +37,64 @@ form.addEventListener('submit', async (e) => {
       throw new Error(data.error || 'Credenciales inválidas.');
     }
 
+    // ── VERIFICACIÓN EN DOS PASOS (reporte QA) ──────────────────────────────
+    // Si el usuario tiene MFA activado, el backend no entrega el token real:
+    // pide un código de 6 dígitos. Se muestra el paso 2 y se completa el
+    // login con /verificar-2fa. (En esta demo académica el código llega en
+    // codigo_demo y en la consola del servidor; en producción iría por correo.)
+    if (data.requiere_2fa) {
+      const dataFinal = await pedirCodigo2FA(data);
+      completarLogin(dataFinal, correo);
+      return;
+    }
+
+    completarLogin(data, correo);
+
+  } catch (error) {
+    console.error("Detalle del error en Login:", error);
+    mostrarError(error.message);
+  } finally {
+    btnIngresar.disabled = false;
+    btnIngresar.textContent = 'Ingresar al Portal';
+  }
+});
+
+// ----------------------------------------------------------------------------
+//  Paso 2 del login (2FA): pide el código y lo valida contra el backend.
+// ----------------------------------------------------------------------------
+async function pedirCodigo2FA(dataLogin) {
+  const codigo = prompt(
+    'Verificación en dos pasos activada.\n' +
+    'Ingresa el código de 6 dígitos enviado a tu correo institucional.\n' +
+    `(Demo académica — código: ${dataLogin.codigo_demo})`
+  );
+  if (!codigo) throw new Error('Verificación en dos pasos cancelada.');
+
+  const resp = await fetch(`${API_URL}/verificar-2fa`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token_temporal: dataLogin.token_temporal, codigo: codigo.trim() })
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.error || 'Código incorrecto.');
+  return data;
+}
+
+// ----------------------------------------------------------------------------
+//  Cierra el login: guarda sesión, intentos fallidos previos (QA) y redirige.
+// ----------------------------------------------------------------------------
+function completarLogin(data, correo) {
     // --- NUEVA VALIDACIÓN ESTRICTA DE SEGURIDAD ---
     if (!data.roles || data.roles.length === 0) {
       throw new Error('Tu cuenta no tiene un rol asignado. Contacta a soporte técnico.');
     }
 
     const rolPrincipal = data.roles[0].toUpperCase();
+
+    // QA: los intentos fallidos ya se registraban en la BD pero no se veían
+    // en la interfaz. Se guardan aquí (el backend los reporta ANTES de
+    // resetearlos) y el perfil los muestra en la pestaña de Seguridad.
+    localStorage.setItem('ucab_intentos_previos', String(data.intentos_fallidos ?? 0));
 
     // Guardar los datos de auditoría en localStorage
     if (data.sesion_actual) {
@@ -88,14 +140,7 @@ form.addEventListener('submit', async (e) => {
       window.location.href = '../estudiante/estudiante.html';
     }
 
-  } catch (error) {
-    console.error("Detalle del error en Login:", error);
-    mostrarError(error.message);
-  } finally {
-    btnIngresar.disabled = false;
-    btnIngresar.textContent = 'Ingresar al Portal';
-  }
-});
+}
 
 function mostrarError(mensaje) {
   alerta.textContent = `⚠️ ${mensaje}`;

@@ -3,6 +3,9 @@ const API_URL = 'http://localhost:5000/api';
 
 let servicioSeleccionado = null;
 let perfilUsuario = null; // 'miembro_activo', 'egresado', 'publico_externo'
+// QA: registro en memoria de los documentos de acreditación "cargados"
+// (simulación de carga de archivos). Clave: codigo_servicio -> Set de ids.
+const documentosCargados = {};
 
 // ============================================================
 // OBTENER PERFIL DEL USUARIO
@@ -310,20 +313,63 @@ function mostrarDetalleServicio(servicio) {
     `;
   }
 
+  // QA — ACREDITACIONES: si el servicio exige documentos (tablas requiere y
+  // acreditacion_requisito), se muestra un botón que SIMULA la carga de cada
+  // archivo y el botón "Iniciar solicitud" queda INHABILITADO hasta que
+  // todos los documentos estén cargados.
+  const acreditaciones = servicio.acreditaciones || [];
+  const cargados = documentosCargados[servicio.codigo_servicio] || new Set();
+  const faltanDocumentos = acreditaciones.some(a => !cargados.has(a.id_acreditacion));
+
+  if (acreditaciones.length > 0) {
+    html += `
+      <div class="detalle-requisitos">
+        <h4>Documentos de acreditación requeridos</h4>
+        ${acreditaciones.map(a => {
+          const listo = cargados.has(a.id_acreditacion);
+          return `
+            <div class="cargo-fila" id="fila-acred-${a.id_acreditacion}">
+              <span>${listo ? '✅' : '📎'} ${a.nombre_requisito} <small>(${a.tipo_documento})</small></span>
+              ${listo
+                ? '<span style="color:#065f46; font-weight:600;">Cargado</span>'
+                : `<button type="button" class="btn-agregar-acompanante"
+                           onclick="simularCargaDocumento('${servicio.codigo_servicio}','${a.id_acreditacion}')">
+                     Cargar archivo
+                   </button>`}
+            </div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
   // ADVERTENCIA
   html += `
     <div class="detalle-advertencia">
       <p>⚠️ Asegúrese de estar solvente en caja antes de iniciar cualquier trámite.</p>
     </div>
     
-    <!-- Botón Iniciar Solicitud -->
-    <button class="btn-iniciar-solicitud" onclick="iniciarSolicitud('${servicio.codigo_servicio}')">
-      Iniciar solicitud ›
+    <!-- Botón Iniciar Solicitud (QA: inhabilitado si faltan acreditaciones) -->
+    <button class="btn-iniciar-solicitud" id="btn-iniciar-solicitud"
+            ${faltanDocumentos ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Debes cargar los documentos de acreditación requeridos"' : ''}
+            onclick="iniciarSolicitud('${servicio.codigo_servicio}')">
+      ${faltanDocumentos ? '🔒 Carga los documentos para continuar' : 'Iniciar solicitud ›'}
     </button>
   </div>
   `;
   
   panel.innerHTML = html;
+}
+
+// QA: simulación de carga de archivos de acreditación. Marca el documento
+// como cargado y repinta el panel; cuando todos están cargados, el botón
+// "Iniciar solicitud" se habilita.
+function simularCargaDocumento(codigoServicio, idAcreditacion) {
+  if (!documentosCargados[codigoServicio]) documentosCargados[codigoServicio] = new Set();
+  documentosCargados[codigoServicio].add(idAcreditacion);
+  alert('📄 Documento cargado correctamente (simulación).');
+  if (servicioSeleccionado && servicioSeleccionado.codigo_servicio === codigoServicio) {
+    mostrarDetalleServicio(servicioSeleccionado);
+  }
 }
 
 // ============================================================
@@ -500,7 +546,9 @@ function seleccionarEspacioReserva(espacio) {
 
     <div class="campo-reserva">
       <label>Fecha del evento</label>
-      <input type="date" id="r-fecha" required>
+      <!-- QA: el calendario no permite fechas anteriores a hoy (min=hoy);
+           el backend valida lo mismo por si alguien manipula el HTML. -->
+      <input type="date" id="r-fecha" required min="${new Date().toISOString().split('T')[0]}">
     </div>
     <div class="campo-reserva-fila">
       <div class="campo-reserva">

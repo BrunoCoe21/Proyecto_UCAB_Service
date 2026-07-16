@@ -1,5 +1,8 @@
 // ============================================================================
 //  gestion.js  ·  Gestión de Solicitudes y Pasos (docente / administrativo)
+//  QA: el botón Completar queda BLOQUEADO mientras el paso esté 'pendiente'
+//  (primero hay que Iniciarlo) y el personal solo ve las oficinas de las que
+//  es responsable asignado, si tiene alguna.
 //  Filtra por OFICINA (FK real), no por persona (responsable_asignado es
 //  texto libre sin FK y siempre NULL en los datos reales del proyecto).
 // ============================================================================
@@ -13,23 +16,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ----------------------------------------------------------------------------
-//  Llena el selector de oficinas. Recuerda la última oficina elegida.
+//  Carga las oficinas del empleado y decide qué mostrarle:
+//    a) Tiene UNA oficina asignada       -> carga sus pasos AUTOMÁTICAMENTE
+//                                          (oculta el selector, muestra el nombre
+//                                          de la oficina como título).
+//    b) Tiene VARIAS oficinas asignadas  -> selector con solo esas oficinas.
+//    c) NO tiene ninguna asignada        -> selector con TODAS las oficinas y
+//                                          botón "Asignarme como responsable".
 // ----------------------------------------------------------------------------
 async function cargarOficinas() {
   const select = document.getElementById('select-oficina');
+  const contSelector = document.querySelector('.selector-oficina');
   try {
-    const oficinas = await API.request('/gestion/oficinas');
-    select.innerHTML = '<option value="">Selecciona una oficina...</option>' +
-      oficinas.map(o => `<option value="${o.nombre_oficina}">${o.nombre_oficina}</option>`).join('');
+    const misOficinas = await API.request('/gestion/mis-oficinas');
+    window._tieneOficinaAsignada = misOficinas.length > 0;
 
-    // Si ya había una oficina elegida en una visita anterior, la recuerda.
+    // CASO A: exactamente UNA oficina asignada -> carga automática
+    if (misOficinas.length === 1) {
+      const oficina = misOficinas[0].nombre_oficina;
+      // Reemplaza el selector por una etiqueta con el nombre de la oficina.
+      contSelector.innerHTML =
+        `<label>Tu oficina asignada:</label>
+         <div style="display:inline-block; padding:8px 14px; background:#e0e7ff;
+                     color:#1e3a8a; border-radius:6px; font-weight:600;">
+           📌 ${oficina}
+         </div>`;
+      localStorage.setItem('ucab_oficina_seleccionada', oficina);
+      cargarPasos(oficina);
+      return;
+    }
+
+    // CASOS B y C: varias asignadas, o ninguna (mostrar todas para poder asignarse)
+    const oficinas = misOficinas.length > 0 ? misOficinas : await API.request('/gestion/oficinas');
+
+    select.innerHTML = '<option value="">Selecciona una oficina...</option>' +
+      oficinas.map(o => `<option value="${o.nombre_oficina}">${o.nombre_oficina}${o.responsable_nombre ? ' — Resp: ' + o.responsable_nombre : ''}</option>`).join('');
+
+    // Recuerda la última oficina elegida.
     const ultimaOficina = localStorage.getItem('ucab_oficina_seleccionada');
-    if (ultimaOficina) {
+    if (ultimaOficina && Array.from(select.options).some(o => o.value === ultimaOficina)) {
       select.value = ultimaOficina;
       cargarPasos(ultimaOficina);
     }
   } catch (error) {
     select.innerHTML = '<option value="">Error al cargar oficinas</option>';
+    console.error('cargarOficinas fallo:', error);
   }
 }
 
@@ -54,10 +85,32 @@ async function cargarPasos(nombreOficina) {
       return;
     }
 
-    cont.innerHTML = pasos.map(p => tarjetaPaso(p)).join('');
+    const botonAsignarse = window._tieneOficinaAsignada
+      ? ''
+      : `<div style="margin-bottom:12px;">
+           <button class="btn-accion btn-iniciar" onclick="asignarmeOficina('${nombreOficina.replace(/'/g, "\\'")}')">
+             📌 Asignarme como responsable de esta oficina
+           </button>
+         </div>`;
+
+    cont.innerHTML = botonAsignarse + pasos.map(p => tarjetaPaso(p)).join('');
 
   } catch (error) {
     cont.innerHTML = `<p class="texto-error">Error: ${error.message}</p>`;
+  }
+}
+
+// QA: asignación explícita de responsables por oficina.
+async function asignarmeOficina(nombreOficina) {
+  if (!confirm(`¿Asignarte como responsable de "${nombreOficina}"? A partir de ahora solo verás los pasos de tus oficinas.`)) return;
+  try {
+    await API.request(`/gestion/oficinas/${encodeURIComponent(nombreOficina)}/responsable`, 'PUT', {});
+    alert('✅ Asignación registrada.');
+    localStorage.setItem('ucab_oficina_seleccionada', nombreOficina);
+    await cargarOficinas();
+    cargarPasos(nombreOficina);
+  } catch (error) {
+    alert('No se pudo asignar: ' + error.message);
   }
 }
 
@@ -82,10 +135,11 @@ function tarjetaPaso(p) {
           ? `<button class="btn-accion btn-iniciar" ${bloqueado ? 'disabled title="Hay un paso anterior sin completar"' : ''}
                      onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'en proceso')">Iniciar</button>`
           : ''}
-        <button class="btn-accion btn-completar" ${bloqueado ? 'disabled title="Hay un paso anterior sin completar"' : ''}
-                onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'completado')">
-          Completar
-        </button>
+        ${p.estado_paso === 'en proceso'
+          ? `<button class="btn-accion btn-completar" ${bloqueado ? 'disabled title="Hay un paso anterior sin completar"' : ''}
+                     onclick="cambiarEstado('${p.id_solicitud}', ${p.num_paso}, 'completado')">Completar</button>`
+          : `<button class="btn-accion btn-completar" disabled
+                     title="El paso debe estar 'en proceso' para poder completarse">Completar</button>`}
       </div>
     </div>
   `;

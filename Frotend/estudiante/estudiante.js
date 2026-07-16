@@ -1,4 +1,3 @@
-
 // estudiante.js - Versión con depuración y formato sencillo
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -48,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Llenar todos los campos del perfil
     llenarPerfil(data, usuario);
     llenarTrayectoria(data.trayectoria);
-
+    llenarRolesActivos(data);       // QA: rol real + atributos becario/preparador
     llenarSeguridad(data, usuario);
 
 
@@ -161,7 +160,7 @@ function llenarTrayectoria(trayectoria) {
   tbody.innerHTML = ''; 
 
   if (!trayectoria || trayectoria.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay historial registrado.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No hay historial registrado.</td></tr>';
     return;
   }
 
@@ -176,10 +175,8 @@ function llenarTrayectoria(trayectoria) {
     const textoBeca = esBecado ? p.condicion_beca : 'No posee';
     const badgeBecaClass = esBecado ? 'badge-azul' : 'badge-cerrado'; 
     
-    const badgeEstado = p.fecha_finalizacion 
-      ? '<span class="badge-cerrado">Cerrado</span>' 
-      : '<span class="badge-activo">Activo</span>';
-
+    // QA: se eliminó la columna "Estado" (el estado ya se deduce de la
+    // fecha de fin: si dice "Vigente", el periodo está activo).
     tr.innerHTML = `
       <td class="fw-bold">${anioInicio}</td>
       <td>${p.rol_activo.toUpperCase()}</td>
@@ -187,7 +184,6 @@ function llenarTrayectoria(trayectoria) {
       <td>${finTexto}</td>
       <td class="fw-bold">${p.indice_nota || '--'}</td>
       <td><span class="${badgeBecaClass}">${textoBeca}</span></td>
-      <td>${badgeEstado}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -226,11 +222,16 @@ function llenarSeguridad(data, usuarioSesion) {
     }
   }
 
-  // Intentos fallidos
+  // Intentos fallidos (QA): el login exitoso los resetea a 0 en la base,
+  // así que aquí se muestran los intentos PREVIOS a esta sesión (los guarda
+  // login.js antes del reseteo) más los que la base tenga registrados ahora.
   const intentosElem = document.getElementById('seg-intentos');
   if (intentosElem) {
-    const intentos = parseInt(data.intentos_fallidos_auth) || 0;
-    intentosElem.textContent = intentos;
+    const actuales = parseInt(data.intentos_fallidos_auth) || 0;
+    const previos = parseInt(localStorage.getItem('ucab_intentos_previos')) || 0;
+    intentosElem.textContent = actuales > 0
+      ? actuales
+      : (previos > 0 ? `0 (hubo ${previos} antes de este inicio de sesión)` : '0');
   }
 
   // ============================================================
@@ -282,4 +283,86 @@ function llenarSeguridad(data, usuarioSesion) {
     }
   }
 
+}
+
+// ============================================================
+// QA: ROLES ACTIVOS DINÁMICOS + ATRIBUTOS DE BECARIO/PREPARADOR/EGRESADO
+// El rol principal se toma del periodo de vinculación VIGENTE (fecha_fin
+// nula); ya no queda cableado "Estudiante Activo" cuando el usuario es
+// egresado. Los atributos específicos se pintan debajo del avatar.
+// ============================================================
+function llenarRolesActivos(data) {
+  const rolElem = document.getElementById('rol-principal');
+  const vigente = (data.trayectoria || []).find(p => !p.fecha_finalizacion);
+
+  const etiquetas = {
+    estudiante: 'Estudiante Activo',
+    egresado: 'Egresado',
+    docente: 'Docente Activo',
+    personal_administrativo: 'Personal Administrativo'
+  };
+  if (rolElem) {
+    if (vigente) rolElem.textContent = etiquetas[vigente.rol_activo] || vigente.rol_activo;
+    else rolElem.textContent = 'Sin vinculación vigente';
+  }
+
+  const extra = document.getElementById('atributos-rol-extra');
+  let html = '';
+
+  if (data.becario) {
+    const b = document.getElementById('rol-becado');
+    if (b) { b.style.display = 'flex'; document.getElementById('rol-tipo-beca').textContent = data.becario.tipo_de_beca; }
+    html += `<div><strong>Beca:</strong> ${data.becario.tipo_de_beca} · Estatus: ${data.becario.estatus} · Índice de mantenimiento: ${data.becario.indice_de_mantenimiento}</div>`;
+  }
+  if (data.preparador) {
+    const p = document.getElementById('rol-preparador');
+    if (p) { p.style.display = 'flex'; document.getElementById('rol-materia').textContent = data.preparador.asignatura; }
+    html += `<div><strong>Preparaduría:</strong> ${data.preparador.asignatura} · ${data.preparador.horas} horas de ayudantía</div>`;
+  }
+  if (data.egresado) {
+    html += `<div><strong>Egresado:</strong> ${data.egresado.titulo} (${data.egresado.anio_graduacion}) · Índice final: ${data.egresado.indice_academico_final}</div>`;
+  }
+  if (extra) extra.innerHTML = html;
+
+  // Si el usuario es EGRESADO puro (sin fila de estudiante), la tarjeta de
+  // "Atributos del Rol Activo" muestra sus datos de egresado en vez de
+  // promedios de estudiante vacíos.
+  if (data.egresado && data.promedio == null) {
+    document.getElementById('resumen-promedio').textContent = data.egresado.indice_academico_final;
+    document.getElementById('resumen-promedio-nivel').textContent = 'Índice académico final';
+    document.getElementById('resumen-uc').textContent = data.egresado.anio_graduacion;
+    document.getElementById('resumen-uc-total').textContent = 'Año de graduación';
+    document.getElementById('resumen-semestre').textContent = '🎓';
+    document.getElementById('resumen-semestre-anio').textContent = data.egresado.titulo;
+    const esc = document.getElementById('perfil-escuela-side');
+    if (esc && esc.textContent === '---') esc.textContent = data.egresado.titulo;
+  }
+}
+
+// ============================================================
+// QA: CAMBIO DE CONTRASEÑA (usa /api/auth/cambiar-contrasena;
+// la fecha del cambio la guarda la base automáticamente)
+// ============================================================
+async function abrirCambioContrasena() {
+  const actual = prompt('Contraseña actual:');
+  if (!actual) return;
+  const nueva = prompt('Nueva contraseña (mínimo 8 caracteres):');
+  if (!nueva) return;
+  if (nueva.length < 8) { alert('La nueva contraseña debe tener al menos 8 caracteres.'); return; }
+
+  try {
+    const token = localStorage.getItem('ucab_token');
+    const resp = await fetch('http://localhost:5000/api/auth/cambiar-contrasena', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contrasenaActual: actual, contrasenaNueva: nueva })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'No se pudo cambiar la contraseña.');
+    alert('✅ Contraseña actualizada. La fecha del cambio quedó registrada.');
+    const fechaElem = document.getElementById('seg-ultima-pass');
+    if (fechaElem) fechaElem.textContent = new Date().toLocaleString('es-VE');
+  } catch (error) {
+    alert('❌ ' + error.message);
+  }
 }

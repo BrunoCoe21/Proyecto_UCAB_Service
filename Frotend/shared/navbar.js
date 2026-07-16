@@ -13,7 +13,12 @@ function verificarSeguridadRuta() {
     return;
   }
 
-  if (rutaActual.includes('/estudiante/') && rolActivo !== 'ESTUDIANTE' && rolActivo !== 'EGRESADO') elAccesoEsInvalido();
+  // QA: docentes y administrativos ahora también acceden a Servicios,
+  // Mis Solicitudes y Estado de Cuenta (viven en /estudiante/). Solo el
+  // PERFIL de estudiante (estudiante.html) sigue reservado a estudiante/egresado.
+  const rolesComunidad = ['ESTUDIANTE', 'EGRESADO', 'DOCENTE', 'ADMINISTRATIVO'];
+  if (rutaActual.includes('/estudiante/estudiante.html') && rolActivo !== 'ESTUDIANTE' && rolActivo !== 'EGRESADO') elAccesoEsInvalido();
+  else if (rutaActual.includes('/estudiante/') && !rolesComunidad.includes(rolActivo)) elAccesoEsInvalido();
   if (rutaActual.includes('/cajero/') && rolActivo !== 'CAJERO') elAccesoEsInvalido();
   // CORRECCIÓN: antes solo dejaba pasar a 'ADMINISTRATIVO'; un DOCENTE también
   // usa la carpeta /administrativo/ (comparten el mismo perfil de empleado).
@@ -53,17 +58,51 @@ function inyectarSidebar() {
       <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
     `;
   } else if (rol === 'EGRESADO') {
+    // QA: se agregan Servicios y Mis Solicitudes al perfil de egresado
+    // (más Finanzas, porque el egresado puede contratar y pagar servicios).
     enlacesHtml = `
       <a href="../estudiante/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
+
+      <div class="nav-section">SERVICIOS</div>
+      <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
+      <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}">Mis Solicitudes</a>
+
+      <div class="nav-section">FINANZAS</div>
+      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
+      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
 
       <div class="nav-section">OPORTUNIDADES</div>
       <a href="../bolsa_trabajo/bolsa_trabajo.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
     `;
-  } else if (rol === 'DOCENTE' || rol === 'ADMINISTRATIVO') {
-    // Docente y Personal Administrativo comparten el mismo perfil (son EMPLEADOS),
-    // por eso usan la misma carpeta /administrativo/ y el mismo menú.
+  } else if (rol === 'DOCENTE') {
+    // QA: al DOCENTE se le eliminan "Pasos por Atender" y el "Panel de
+    // Reportes" (son del personal administrativo) y se le agregan
+    // Servicios y Mis Solicitudes.
     enlacesHtml = `
       <a href="../administrativo/empleado.html" class="${marcarActivo('empleado.html')}">Mi Perfil</a>
+
+      <div class="nav-section">SERVICIOS</div>
+      <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
+      <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}">Mis Solicitudes</a>
+
+      <div class="nav-section">FINANZAS</div>
+      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
+      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
+
+      <div class="nav-section">GESTIÓN DE PERSONAL</div>
+      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+    `;
+  } else if (rol === 'ADMINISTRATIVO') {
+    enlacesHtml = `
+      <a href="../administrativo/empleado.html" class="${marcarActivo('empleado.html')}">Mi Perfil</a>
+
+      <div class="nav-section">SERVICIOS</div>
+      <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
+      <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}">Mis Solicitudes</a>
+
+      <div class="nav-section">FINANZAS</div>
+      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
+      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
 
       <div class="nav-section">GESTIÓN DE PERSONAL</div>
       <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
@@ -73,7 +112,6 @@ function inyectarSidebar() {
 
       <div class="nav-section">REPORTES</div>
       <a href="../administrativo/reportes.html" class="${marcarActivo('reportes.html')}">Panel de Reportes</a>
-
     `;
   } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
 

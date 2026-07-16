@@ -30,8 +30,12 @@
 
       <div class="tarjeta-blanca">
         <h3 class="titulo-pequeno">Contacto</h3>
-        <p class="dato-fila"><span>Correo</span><strong id="perfil-correo">--</strong></p>
+        <p class="dato-fila dato-fila-correo"><span>Correo</span><strong id="perfil-correo">--</strong></p>
         <p class="dato-fila"><span>Teléfono</span><strong id="perfil-telefono">--</strong></p>
+        <button class="card-acceso" style="width:100%; margin-top:10px; cursor:pointer; border:1px solid #e5e7eb; background:#fff;"
+                onclick="abrirCambioContrasena()">
+          🔑 Cambiar contraseña
+        </button>
       </div>
     </aside>
 
@@ -56,6 +60,15 @@
           <a href="vinculos.html" class="card-acceso">
             <span class="card-acceso-titulo">Vínculos Familiares</span>
             <span class="card-acceso-desc">Registrar y gestionar familiares del personal</span>
+          </a>
+          <!-- QA: se agregan Servicios y Mis Solicitudes al perfil del empleado -->
+          <a href="../servicio/servicio.html" class="card-acceso">
+            <span class="card-acceso-titulo">Servicios</span>
+            <span class="card-acceso-desc">Catálogo de servicios disponibles para miembros</span>
+          </a>
+          <a href="../estudiante/solicitudes.html" class="card-acceso">
+            <span class="card-acceso-titulo">Mis Solicitudes</span>
+            <span class="card-acceso-desc">Seguimiento de tus trámites y reservas</span>
           </a>
         </div>
       </div>
