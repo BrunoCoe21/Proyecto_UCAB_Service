@@ -30,6 +30,7 @@ body {
 .page-header { margin-bottom: 24px; }
 .breadcrumb { font-size: 12px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
 .page-header h1 { font-size: 32px; color: var(--texto); margin-top: 4px; font-weight: 700; }
+.subtitulo { font-size: 15px; color: #6b7280; margin-top: 6px; }
 
 /* --- Banner de saldo total --- */
 .banner-saldo {
@@ -69,6 +70,8 @@ body {
 
 /* --- Lista de facturas --- */
 .lista-facturas { display: flex; flex-direction: column; gap: 12px; }
+.lista-facturas-pago { display: flex; flex-direction: column; gap: 12px; max-width: 620px; }
+
 .item-factura {
   background: var(--card);
   border: 1.5px solid var(--borde);
@@ -80,6 +83,19 @@ body {
 .item-factura:hover { border-color: var(--primary); }
 .item-factura.seleccionada { border-color: var(--primary); box-shadow: 0 2px 10px rgba(74,29,110,.12); }
 
+.item-factura-pago {
+  background: var(--card);
+  border: 1.5px solid var(--borde);
+  border-radius: 12px;
+  padding: 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all .15s;
+}
+.item-factura-pago:hover { border-color: var(--primary); box-shadow: 0 2px 10px rgba(74,29,110,.1); }
+
 .item-factura-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
 .item-control { font-size: 13px; font-weight: 700; color: var(--primary); }
 .item-concepto { font-size: 14px; color: var(--texto); margin-bottom: 10px; }
@@ -87,7 +103,7 @@ body {
 .item-fecha { font-size: 12px; color: var(--muted); }
 .item-saldo { font-size: 16px; font-weight: 700; color: var(--texto); }
 
-/* 🔥 NUEVO: Badge para pago pendiente de verificacion */
+/* Badge para pago pendiente de verificacion */
 .badge-pago-pendiente {
   font-size: 9px;
   font-weight: 700;
@@ -142,7 +158,7 @@ body {
 }
 .btn-pagar:hover { opacity: 0.92; }
 
-/* 🔥 NUEVO: Sellos de estado */
+/* Sellos de estado */
 .sello-pagada {
   text-align: center;
   color: var(--verde);
@@ -165,26 +181,25 @@ body {
 .sello-verificacion strong { color: #92400e; display: block; }
 .sello-verificacion p { color: #78350f; font-size: 13px; margin: 4px 0 0; }
 
+.sello-pendiente {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fdeceb;
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+.sello-pendiente .icono-pendiente { font-size: 28px; color: #b3261e; }
+.sello-pendiente strong { color: #b3261e; display: block; }
+.sello-pendiente p { color: #8a1a1a; font-size: 13px; margin: 4px 0 0; }
+
 /* --- Pasarela de pago --- */
 .paso { animation: aparecer .25s ease; }
 @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 .btn-volver { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; margin-bottom: 14px; }
 .btn-volver:hover { color: var(--primary); }
-
-.lista-facturas-pago { display: flex; flex-direction: column; gap: 12px; max-width: 620px; }
-.item-factura-pago {
-  background: var(--card);
-  border: 1.5px solid var(--borde);
-  border-radius: 12px;
-  padding: 18px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all .15s;
-}
-.item-factura-pago:hover { border-color: var(--primary); box-shadow: 0 2px 10px rgba(74,29,110,.1); }
 
 .resumen-factura {
   background: var(--fondo);
@@ -195,10 +210,28 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .resumen-saldo { font-weight: 700; color: var(--primary); font-size: 18px; }
 
-.grid-metodos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; max-width: 720px; }
+/* ============================================================
+   🔥 GRID DE MÉTODOS DE PAGO - CORREGIDO
+   ============================================================ */
+.grid-metodos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 720px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .grid-metodos {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card-metodo {
   background: var(--card);
   border: 1.5px solid var(--borde);
@@ -210,14 +243,16 @@ body {
   align-items: center;
   text-align: left;
   transition: all .15s;
+  width: 100%;
+  font-family: inherit;
 }
 .card-metodo:hover { border-color: var(--primary); }
 .card-recomendado { border-color: var(--accent); }
 .card-metodo-label { display: block; font-weight: 700; font-size: 15px; color: var(--texto); }
 .card-metodo-desc { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
-.badge-recomendado { font-size: 10px; font-weight: 700; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; }
+.badge-recomendado { font-size: 10px; font-weight: 700; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; white-space: nowrap; }
 
-.tarjeta-formulario { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 24px; max-width: 560px; }
+.tarjeta-formulario { background: var(--card); border: 1.5px solid var(--borde); border-radius: 14px; padding: 24px; max-width: 560px; width: 100%; }
 .titulo-metodo { font-size: 18px; font-weight: 700; margin-bottom: 18px; color: var(--primary); }
 .campo { margin-bottom: 14px; }
 .campo label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
@@ -241,6 +276,8 @@ body {
   border-radius: 10px;
   padding: 14px 18px;
   margin: 18px 0;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .resumen-monto strong { font-size: 20px; color: var(--primary); }
 .resumen-monto small { font-size: 12px; color: var(--muted); font-weight: 400; }
@@ -256,6 +293,7 @@ body {
   font-size: 15px;
   cursor: pointer;
   transition: opacity .2s;
+  font-family: inherit;
 }
 .btn-confirmar-pago:hover { opacity: 0.92; }
 .btn-confirmar-pago:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -340,8 +378,91 @@ body {
 }
 .btn-ver-factura:hover { background: #361552; }
 
+/* --- Modal de pago presencial --- */
+.modal-overlay-presencial {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.modal-overlay-presencial.abierto { display: flex; }
+.modal-caja-presencial {
+  background: white;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 92%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.modal-header-presencial {
+  background: #f8f6f2;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e6e2da;
+}
+.modal-header-presencial .icono-presencial { font-size: 28px; }
+.modal-header-presencial h2 { font-size: 20px; margin: 0; color: #1a1a2e; }
+.modal-body-presencial { padding: 24px; }
+.modal-mensaje-presencial { font-size: 15px; color: #1a1a2e; margin-bottom: 16px; }
+.modal-aviso-presencial {
+  background: #fef3c7;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-left: 4px solid #f59e0b;
+  margin-bottom: 16px;
+}
+.modal-aviso-presencial .aviso-icono { font-size: 24px; }
+.modal-aviso-presencial strong { color: #92400e; display: block; }
+.modal-aviso-presencial p { margin: 4px 0 0; color: #78350f; font-size: 14px; }
+.modal-detalle-presencial {
+  background: #f8f6f2;
+  border-radius: 8px;
+  padding: 16px;
+}
+.modal-detalle-presencial p { margin: 4px 0; font-size: 14px; }
+.badge-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.modal-footer-presencial { padding: 16px 24px 24px; border-top: 1px solid #e6e2da; }
+.btn-modal-presencial {
+  width: 100%;
+  padding: 12px;
+  background: #4a1d6e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-modal-presencial:hover { background: #361552; }
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
+  .finanzas-main {
+    padding: 16px;
+  }
+  .finanzas-layout {
+    grid-template-columns: 1fr;
+  }
+  .detalle-header {
+    flex-direction: column;
+  }
   .caja-factura-pendiente,
   .caja-factura-pagada,
   .caja-factura-bloqueada,
@@ -357,10 +478,21 @@ body {
   .btn-ver-factura {
     width: 100%;
   }
-  .finanzas-layout {
+  .grid-metodos {
     grid-template-columns: 1fr;
   }
-  .detalle-header {
+  .banner-saldo {
     flex-direction: column;
+    text-align: center;
+  }
+  .sello-pagada,
+  .sello-verificacion,
+  .sello-pendiente {
+    flex-direction: column;
+    text-align: center;
+  }
+  .resumen-factura {
+    flex-direction: column;
+    text-align: center;
   }
 }

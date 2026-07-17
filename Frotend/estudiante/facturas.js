@@ -1,10 +1,9 @@
 // ============================================================================
 //  facturas.js  ·  Estado de Cuenta del estudiante
-//  Carga las facturas reales desde la API, calcula el saldo pendiente total,
-//  y al hacer clic en una factura muestra su detalle (cargos y abonos).
+//  Carga las facturas reales desde la API. Muestra el detalle de cada una.
+//  NO tiene botones de pago - solo consulta.
 // ============================================================================
 
-const IVA = 0.16;
 let facturasCache = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,6 +30,8 @@ async function cargarFacturas(cedula) {
 
     if (facturas.length === 0) {
       lista.innerHTML = '<p class="texto-vacio">No tienes facturas registradas.</p>';
+      document.getElementById('saldo-total').innerHTML = '$0.00 <span>USD</span>';
+      document.getElementById('saldo-bs').textContent = 'Bs. 0,00';
       return;
     }
 
@@ -66,21 +67,14 @@ async function cargarFacturas(cedula) {
 }
 
 // ----------------------------------------------------------------------------
-//  Banner superior con el saldo total en USD y su equivalente en Bs.
+//  Banner superior con el saldo total.
 // ----------------------------------------------------------------------------
 function pintarBanner(saldoTotal) {
-  const tasaBCV = 38.50; // tasa de referencia para mostrar el equivalente en Bs
+  const tasaBCV = 38.50;
   document.getElementById('saldo-total').innerHTML =
     `$${saldoTotal.toFixed(2)} <span>USD</span>`;
   document.getElementById('saldo-bs').textContent =
     `Bs. ${(saldoTotal * tasaBCV).toLocaleString('es-VE', { minimumFractionDigits: 2 })} · Tasa BCV ${tasaBCV}`;
-
-  // El botón "Pagar ahora" solo aparece si hay algo que pagar
-  const btn = document.getElementById('btn-ir-pagar');
-  if (saldoTotal > 0) {
-    btn.style.display = 'inline-flex';
-    btn.onclick = () => { window.location.href = 'pagos.html'; };
-  }
 }
 
 // ----------------------------------------------------------------------------
@@ -94,24 +88,28 @@ function tarjetaFactura(f) {
     anulada: 'estado-anulada'
   }[f.estatus] || 'estado-pendiente';
 
-  // 🔥 NUEVO: mostrar el NÚMERO DE FOLIO mientras esté pendiente/parcial
-  const identificadorVisible = (f.estatus === 'pagada' || f.estatus === 'parcial')
-    ? f.num_control
-    : (f.numero_folio || f.num_control);
+  // Mostrar número de control
+  const identificador = f.num_control;
 
-  // 🔥 NUEVO: indicador visual de pago pendiente
+  // Indicador de pago pendiente de verificación
   const tienePagoPendiente = f.tiene_pago_pendiente || false;
 
   let badgePagoPendiente = '';
   if (tienePagoPendiente && f.estatus !== 'pagada') {
-    badgePagoPendiente = `<span class="badge-pago-pendiente">⏳ Verificando</span>`;
+    badgePagoPendiente = `<span class="badge-pago-pendiente">⏳ En verificacion</span>`;
   }
+
+  // Badge de estado
+  let estadoTexto = f.estatus.toUpperCase();
+  if (f.estatus === 'pagada') estadoTexto = '✓ PAGADA';
+  else if (f.estatus === 'parcial') estadoTexto = '⏳ PARCIAL';
+  else if (f.estatus === 'pendiente') estadoTexto = '⏳ PENDIENTE';
 
   return `
     <div class="item-factura" data-numcontrol="${f.num_control}">
       <div class="item-factura-top">
-        <span class="item-control">${identificadorVisible}</span>
-        <span class="badge-estado ${estadoClase}">${f.estatus.toUpperCase()}</span>
+        <span class="item-control">${identificador}</span>
+        <span class="badge-estado ${estadoClase}">${estadoTexto}</span>
         ${badgePagoPendiente}
       </div>
       <p class="item-concepto">${f.concepto || 'Aranceles universitarios'}</p>
@@ -125,7 +123,7 @@ function tarjetaFactura(f) {
 
 // ----------------------------------------------------------------------------
 //  Carga el detalle de una factura: líneas de cargo + abonos + totales.
-//  🔥 MODIFICADO: muestra correctamente el estado del pago pendiente
+//  🔥 NO tiene botón de pago - solo muestra información.
 // ----------------------------------------------------------------------------
 async function cargarDetalle(numControl) {
   const cont = document.getElementById('detalle-factura');
@@ -134,7 +132,7 @@ async function cargarDetalle(numControl) {
   try {
     const { factura, cargos, abonos } = await API.request(`/facturas/${numControl}/detalle`);
 
-    // Totales calculados a partir de las líneas de cargo
+    // Totales calculados
     const subtotal = cargos.reduce((s, c) => s + Number(c.cantidad) * Number(c.precio_unitario), 0);
     const impuesto = cargos.reduce((s, c) => s + Number(c.impuesto_ley), 0);
     const total = subtotal + impuesto;
@@ -161,10 +159,18 @@ async function cargarDetalle(numControl) {
     // 🔥 NUEVO: verificar si hay un pago pendiente
     const tienePagoPendiente = factura.tiene_pago_pendiente || false;
 
-    // 🔥 NUEVO: estado de la factura con mensaje explicativo
+    // 🔥 Estado de la factura con mensaje explicativo (SIN BOTÓN DE PAGO)
     let estadoFacturaHtml = '';
     if (factura.estatus === 'pagada') {
-      estadoFacturaHtml = '<div class="sello-pagada">✓ Factura pagada</div>';
+      estadoFacturaHtml = `
+        <div class="sello-pagada">
+          <span class="icono-pagada">✓</span>
+          <div>
+            <strong>Factura pagada</strong>
+            <p>Esta factura ha sido cancelada completamente.</p>
+          </div>
+        </div>
+      `;
     } else if (tienePagoPendiente) {
       estadoFacturaHtml = `
         <div class="sello-verificacion">
@@ -172,18 +178,24 @@ async function cargarDetalle(numControl) {
           <div>
             <strong>Pago en verificacion</strong>
             <p>El personal de Caja esta verificando tu pago. Esto puede tomar hasta 24 horas.</p>
+            <p style="font-size:12px; color:#78350f; margin-top:4px;">Una vez verificado, el estado de la factura se actualizara automaticamente.</p>
           </div>
         </div>
       `;
     } else if (factura.estatus === 'pendiente' || factura.estatus === 'parcial') {
       estadoFacturaHtml = `
-        <button class="btn-pagar" onclick="irAPagar('${factura.num_control}')">
-          Pagar esta factura
-        </button>
+        <div class="sello-pendiente">
+          <span class="icono-pendiente">⏳</span>
+          <div>
+            <strong>Pendiente de pago</strong>
+            <p>Esta factura aun no ha sido cancelada.</p>
+            <p style="font-size:12px; color:#6b7280; margin-top:4px;">Para pagar esta factura, ve a la seccion "Mis Solicitudes" y selecciona la solicitud correspondiente.</p>
+          </div>
+        </div>
       `;
     }
 
-    // 🔥 NUEVO: número de control visible siempre (para facturas pagadas o no)
+    // Número de control visible
     const numControlVisible = factura.num_control;
 
     cont.innerHTML = `
@@ -191,7 +203,7 @@ async function cargarDetalle(numControl) {
         <div>
           <span class="detalle-control">${numControlVisible}</span>
           <p class="detalle-fecha">Emitida el ${formatearFecha(factura.fecha_emision)}</p>
-          <p class="detalle-folio">Folio: ${factura.numero_folio}</p>
+          <p class="detalle-folio">Folio de consumo: ${factura.numero_folio}</p>
         </div>
         <span class="badge-estado ${'estado-' + factura.estatus}">${factura.estatus.toUpperCase()}</span>
       </div>
@@ -222,12 +234,6 @@ async function cargarDetalle(numControl) {
   } catch (error) {
     cont.innerHTML = `<p class="texto-error">Error al cargar el detalle: ${error.message}</p>`;
   }
-}
-
-// Guarda la factura elegida y va a la pasarela de pago
-function irAPagar(numControl) {
-  localStorage.setItem('ucab_factura_a_pagar', numControl);
-  window.location.href = 'pagos.html';
 }
 
 // Formatea una fecha ISO a algo legible en español
