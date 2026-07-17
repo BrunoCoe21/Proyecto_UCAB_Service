@@ -1,6 +1,5 @@
 // ============================================================================
 //  solicitudes.js  ·  Mis Solicitudes (estudiante)
-//  Lista de tarjetas a la izquierda + resumen y línea de tiempo a la derecha.
 // ============================================================================
 
 let solicitudesCache = [];
@@ -14,16 +13,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cargarSolicitudes(cedula);
 });
 
-// ----------------------------------------------------------------------------
-//  Lista de tarjetas con todas las solicitudes del usuario.
-// ----------------------------------------------------------------------------
 async function cargarSolicitudes(cedula) {
   const cont = document.getElementById('lista-solicitudes');
   try {
     solicitudesCache = await API.request(`/solicitudes/estudiante/${cedula}`);
 
     if (solicitudesCache.length === 0) {
-      cont.innerHTML = '<p class="texto-vacio">Todavía no tienes solicitudes registradas.</p>';
+      cont.innerHTML = '<p class="texto-vacio">Todavia no tienes solicitudes registradas.</p>';
       return;
     }
 
@@ -37,7 +33,6 @@ async function cargarSolicitudes(cedula) {
       });
     });
 
-    // Abrir la primera automáticamente
     const primera = document.querySelector('.tarjeta-solicitud');
     if (primera) {
       primera.classList.add('seleccionada');
@@ -63,11 +58,6 @@ function tarjetaSolicitud(s) {
   `;
 }
 
-// ----------------------------------------------------------------------------
-//  Normaliza estado_general a una clase visual + texto legible.
-//  NOTA: en los datos existen valores con distinta capitalización
-//  ('abierta', 'EN PROCESO', 'cerrada'), por eso se compara en minúsculas.
-// ----------------------------------------------------------------------------
 function claseEstado(estado) {
   const e = (estado || '').toLowerCase();
   if (e.includes('cerrada')) return { clase: 'estado-cerrada', texto: 'CERRADA' };
@@ -75,10 +65,9 @@ function claseEstado(estado) {
   return { clase: 'estado-abierta', texto: 'ABIERTA' };
 }
 
-// ----------------------------------------------------------------------------
-//  Panel de detalle: resumen + oficina/responsable actual + línea de tiempo +
-//  acreditaciones requeridas + reserva/acompañantes (si aplica).
-// ----------------------------------------------------------------------------
+// ============================================================================
+//  cargarDetalle - CON BLOQUEO DEL BOTÓN DE PAGO
+// ============================================================================
 async function cargarDetalle(idSolicitud) {
   const cont = document.getElementById('detalle-solicitud');
   cont.innerHTML = '<p class="texto-vacio">Cargando detalle...</p>';
@@ -88,6 +77,40 @@ async function cargarDetalle(idSolicitud) {
       await API.request(`/solicitudes/${idSolicitud}/detalle`);
 
     const estadoInfo = claseEstado(solicitud.estado_general);
+
+    // ================================================================
+    // 🔥 VALIDACIÓN PARA BLOQUEAR EL BOTÓN DE PAGO
+    // ================================================================
+    
+    // Buscar el paso "Pago pendiente"
+    const pasoPago = pasos.find(p => p.nombre_paso === 'Pago pendiente');
+    const existePasoPago = pasoPago !== undefined;
+    const pasoPagoCompletado = pasoPago ? pasoPago.estado_paso === 'completado' : false;
+    
+    let hayPasosPreviosPendientes = false;
+    let puedePagar = false;
+    
+    if (existePasoPago && !pasoPagoCompletado) {
+      const pasosPreviosPendientes = pasos.filter(p => 
+        p.num_paso < pasoPago.num_paso && p.estado_paso !== 'completado'
+      );
+      hayPasosPreviosPendientes = pasosPreviosPendientes.length > 0;
+      puedePagar = !hayPasosPreviosPendientes;
+    } else if (pasoPagoCompletado) {
+      puedePagar = false;
+    }
+
+    // 🔥 OBTENER si la factura tiene un pago pendiente (BLOQUEA EL BOTÓN)
+    const tienePagoPendiente = factura ? factura.tiene_pago_pendiente || false : false;
+
+    // 🔥 SI hay pago pendiente, el botón NO debe mostrarse
+    const botonPagoHabilitado = puedePagar && !tienePagoPendiente && !hayPasosPreviosPendientes;
+
+    console.log('=== DEBUG ===');
+    console.log('Pasos:', pasos.map(p => ({ num: p.num_paso, nombre: p.nombre_paso, estado: p.estado_paso })));
+    console.log('Puede pagar:', puedePagar);
+    console.log('Tiene pago pendiente:', tienePagoPendiente);
+    console.log('Boton habilitado:', botonPagoHabilitado);
 
     cont.innerHTML = `
       <div class="detalle-header">
@@ -108,7 +131,7 @@ async function cargarDetalle(idSolicitud) {
         </div>
       ` : ''}
 
-      ${factura ? cajaFactura(factura) : ''}
+      ${factura ? cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, tienePagoPendiente) : ''}
 
       ${acreditaciones.length > 0 ? `
         <div class="seccion-acreditaciones">
@@ -133,15 +156,15 @@ async function cargarDetalle(idSolicitud) {
 
       ${acompanantes.length > 0 ? `
         <div class="seccion-acompanantes">
-          <h3 class="titulo-seccion-sm">Acompañantes</h3>
+          <h3 class="titulo-seccion-sm">Acompanantes</h3>
           ${acompanantes.map(a => `<p class="reserva-linea">${a.nombre} (${a.documento_identidad})</p>`).join('')}
         </div>
       ` : ''}
 
-      <h3 class="titulo-seccion-sm">Línea de tiempo</h3>
+      <h3 class="titulo-seccion-sm">Linea de tiempo</h3>
       <div class="linea-tiempo">
         ${pasos.length === 0
-          ? '<p class="texto-vacio-sm">Esta solicitud todavía no tiene pasos registrados.</p>'
+          ? '<p class="texto-vacio-sm">Esta solicitud todavia no tiene pasos registrados.</p>'
           : pasos.map(p => filaPaso(p)).join('')}
       </div>
     `;
@@ -175,34 +198,81 @@ function formatearFecha(fecha) {
   if (!fecha) return '--';
   return new Date(fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
+
 function formatearFechaHora(fecha) {
   if (!fecha) return '--';
   return new Date(fecha).toLocaleString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-// ----------------------------------------------------------------------------
-//  Caja de factura/pago en el detalle de la solicitud. Si ya está pagada,
-//  muestra un sello; si no, el monto pendiente y un botón que lleva
-//  directo a la pasarela de pago (módulo Pagos ya existente), pre-
-//  seleccionando esta factura igual que ya hace el botón "Pagar esta
-//  factura" en Estado de Cuenta.
-// ----------------------------------------------------------------------------
-function cajaFactura(factura) {
+// ============================================================================
+//  CAJA DE FACTURA - CON BLOQUEO DEL BOTÓN
+// ============================================================================
+function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, tienePagoPendiente) {
+  
+  // 📌 ESTADO 1: Factura pagada
   if (factura.estatus === 'pagada') {
     return `
       <div class="caja-factura caja-factura-pagada">
-        <span>✓ Pagado</span>
+        <span>Pagado</span>
         <span class="caja-factura-num">${factura.num_control}</span>
       </div>
     `;
   }
+
+  // 📌 ESTADO 2: Pago en proceso de verificación (presencial pendiente)
+  if (tienePagoPendiente) {
+    return `
+      <div class="caja-factura caja-factura-en-proceso">
+        <div>
+          <p class="caja-factura-label">Pago en proceso de verificacion</p>
+          <p class="caja-factura-monto">$${Number(factura.saldo).toFixed(2)}</p>
+          <p class="caja-factura-sub">El personal de Caja esta verificando tu pago</p>
+        </div>
+        <div class="caja-factura-verificando">
+          <span class="badge-verificando">En verificacion</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // 📌 ESTADO 3: Pasos previos pendientes → bloqueado
+  if (hayPasosPreviosPendientes) {
+    return `
+      <div class="caja-factura caja-factura-bloqueada">
+        <div>
+          <p class="caja-factura-label">Pendiente por pagar</p>
+          <p class="caja-factura-monto">$${Number(factura.saldo).toFixed(2)}</p>
+        </div>
+        <div class="caja-factura-bloqueo">
+          <span class="badge-bloqueado">Completa los pasos previos para pagar</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // 📌 ESTADO 4: Todo correcto → mostrar botón de pago (SOLO si está habilitado)
+  if (botonPagoHabilitado) {
+    return `
+      <div class="caja-factura caja-factura-pendiente">
+        <div>
+          <p class="caja-factura-label">Pendiente por pagar</p>
+          <p class="caja-factura-monto">$${Number(factura.saldo).toFixed(2)}</p>
+        </div>
+        <button class="btn-ver-factura" onclick="irAPagarFactura('${factura.num_control}')">Pagar ahora</button>
+      </div>
+    `;
+  }
+
+  // 📌 ESTADO 5: Bloqueado por otro motivo (no debería pasar)
   return `
-    <div class="caja-factura caja-factura-pendiente">
+    <div class="caja-factura caja-factura-bloqueada">
       <div>
         <p class="caja-factura-label">Pendiente por pagar</p>
         <p class="caja-factura-monto">$${Number(factura.saldo).toFixed(2)}</p>
       </div>
-      <button class="btn-ver-factura" onclick="irAPagarFactura('${factura.num_control}')">Pagar ahora</button>
+      <div class="caja-factura-bloqueo">
+        <span class="badge-bloqueado">Pago no disponible</span>
+      </div>
     </div>
   `;
 }

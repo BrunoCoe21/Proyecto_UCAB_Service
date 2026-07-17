@@ -16,51 +16,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ----------------------------------------------------------------------------
-//  Carga las oficinas del empleado y decide qué mostrarle:
-//    a) Tiene UNA oficina asignada       -> carga sus pasos AUTOMÁTICAMENTE
-//                                          (oculta el selector, muestra el nombre
-//                                          de la oficina como título).
-//    b) Tiene VARIAS oficinas asignadas  -> selector con solo esas oficinas.
-//    c) NO tiene ninguna asignada        -> selector con TODAS las oficinas y
-//                                          botón "Asignarme como responsable".
+//  Llena el selector de oficinas. Recuerda la última oficina elegida.
 // ----------------------------------------------------------------------------
 async function cargarOficinas() {
   const select = document.getElementById('select-oficina');
-  const contSelector = document.querySelector('.selector-oficina');
   try {
+    // QA: si el empleado es responsable asignado de alguna oficina, SOLO ve
+    // esas oficinas (y sus pasos). Si no tiene ninguna asignada todavía, ve
+    // todas y puede asignarse una con el botón "Asignarme esta oficina".
     const misOficinas = await API.request('/gestion/mis-oficinas');
+    const oficinas = misOficinas.length > 0 ? misOficinas : await API.request('/gestion/oficinas');
     window._tieneOficinaAsignada = misOficinas.length > 0;
 
-    // CASO A: exactamente UNA oficina asignada -> carga automática
-    if (misOficinas.length === 1) {
-      const oficina = misOficinas[0].nombre_oficina;
-      // Reemplaza el selector por una etiqueta con el nombre de la oficina.
-      contSelector.innerHTML =
-        `<label>Tu oficina asignada:</label>
-         <div style="display:inline-block; padding:8px 14px; background:#e0e7ff;
-                     color:#1e3a8a; border-radius:6px; font-weight:600;">
-           📌 ${oficina}
-         </div>`;
-      localStorage.setItem('ucab_oficina_seleccionada', oficina);
-      cargarPasos(oficina);
-      return;
-    }
-
-    // CASOS B y C: varias asignadas, o ninguna (mostrar todas para poder asignarse)
-    const oficinas = misOficinas.length > 0 ? misOficinas : await API.request('/gestion/oficinas');
-
     select.innerHTML = '<option value="">Selecciona una oficina...</option>' +
-      oficinas.map(o => `<option value="${o.nombre_oficina}">${o.nombre_oficina}${o.responsable_nombre ? ' — Resp: ' + o.responsable_nombre : ''}</option>`).join('');
+      oficinas.map(o => `<option value="${o.nombre_oficina}">${o.nombre_oficina}${o.responsable_asignado ? ' — Resp: ' + o.responsable_asignado : ''}</option>`).join('');
 
-    // Recuerda la última oficina elegida.
+    // Si ya había una oficina elegida en una visita anterior, la recuerda.
     const ultimaOficina = localStorage.getItem('ucab_oficina_seleccionada');
-    if (ultimaOficina && Array.from(select.options).some(o => o.value === ultimaOficina)) {
+    if (ultimaOficina) {
       select.value = ultimaOficina;
       cargarPasos(ultimaOficina);
     }
   } catch (error) {
     select.innerHTML = '<option value="">Error al cargar oficinas</option>';
-    console.error('cargarOficinas fallo:', error);
   }
 }
 
@@ -74,7 +52,6 @@ function cambiarOficina() {
 //  Lista los pasos pendientes/en proceso de la oficina elegida.
 // ----------------------------------------------------------------------------
 async function cargarPasos(nombreOficina) {
-  window._oficinaActiva = nombreOficina;
   const cont = document.getElementById('lista-pasos');
   cont.innerHTML = '<p class="texto-vacio">Cargando pasos...</p>';
 
@@ -106,12 +83,12 @@ async function asignarmeOficina(nombreOficina) {
   if (!confirm(`¿Asignarte como responsable de "${nombreOficina}"? A partir de ahora solo verás los pasos de tus oficinas.`)) return;
   try {
     await API.request(`/gestion/oficinas/${encodeURIComponent(nombreOficina)}/responsable`, 'PUT', {});
-    alert('✅ Asignación registrada.');
+    showAviso('Asignación registrada.', 'ok');
     localStorage.setItem('ucab_oficina_seleccionada', nombreOficina);
     await cargarOficinas();
     cargarPasos(nombreOficina);
   } catch (error) {
-    alert('No se pudo asignar: ' + error.message);
+    showAviso('No se pudo asignar: ' + error.message, 'error');
   }
 }
 
@@ -153,10 +130,10 @@ function tarjetaPaso(p) {
 async function cambiarEstado(idSolicitud, numPaso, nuevoEstado) {
   try {
     await API.request(`/gestion/pasos/${idSolicitud}/${numPaso}`, 'PUT', { estado_paso: nuevoEstado });
-    const oficina = window._oficinaActiva || (document.getElementById('select-oficina') && document.getElementById('select-oficina').value);
-    if (oficina) await cargarPasos(oficina);
+    const oficina = document.getElementById('select-oficina').value;
+    await cargarPasos(oficina);
   } catch (error) {
-    alert('No se pudo actualizar el paso: ' + error.message);
+    showAviso('No se pudo actualizar el paso: ' + error.message, 'error');
   }
 }
 

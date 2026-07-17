@@ -42,4 +42,21 @@ router.post('/:numControl/pagar',
   pagoController.registrarPago
 );
 
+// -- Verificación de pagos por Caja ------------------------------------------
+// Lista los pagos presenciales pendientes de confirmación (para Caja).
+//   GET /api/facturas/pagos-pendientes
+router.get('/pagos-pendientes',
+  verificarToken,
+  exigirRol('administrativo'),
+  pagoController.listarPagosPendientes
+);
+
+// Caja confirma o rechaza un pago.
+//   PUT /api/facturas/pagos/:numControl/:fecha/confirmar
+router.put('/pagos/:numControl/:fecha/confirmar',
+  verificarToken,
+  exigirRol('administrativo'),
+  pagoController.confirmarPago
+);
+
 module.exports = router;

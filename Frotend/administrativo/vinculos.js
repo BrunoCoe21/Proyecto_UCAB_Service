@@ -76,7 +76,7 @@ function abrirModalNuevo() {
 // ----------------------------------------------------------------------------
 function editarPorCi(ci) {
   const v = (window._vinculosCache || []).find(x => String(x.ci) === String(ci));
-  if (!v) { alert('No se encontró el vínculo.'); return; }
+  if (!v) { showAviso('No se encontró el vínculo.', 'error'); return; }
   editar(v);
 }
 
@@ -96,7 +96,7 @@ function editar(v) {
     document.getElementById('f-centro-edu').value = v.centro_edu_inic || '';
   } else if (v.subtipo === 'mayor_estudiante') {
     document.getElementById('f-constancia').value = v.constancia_estudio_ext || '';
-    document.getElementById('f-solteria').value = v.certificado_solteria || '';
+    document.getElementById('f-soltería').value = v.certificado_solteria || '';
   }
 
   document.getElementById('modal-vinculo').style.display = 'flex';
@@ -130,7 +130,7 @@ async function guardarVinculo(e) {
     esquema_vacunacion: document.getElementById('f-vacunacion').value,
     centro_edu_inic: document.getElementById('f-centro-edu').value,
     constancia_estudio_ext: document.getElementById('f-constancia').value,
-    certificado_solteria: document.getElementById('f-solteria').value,
+    certificado_solteria: document.getElementById('f-soltería').value,
   };
 
   try {
@@ -144,7 +144,7 @@ async function guardarVinculo(e) {
   } catch (error) {
     // Aquí llegan tal cual los mensajes del trigger de la base, por ejemplo:
     // "El registrador X debe ser docente o personal administrativo."
-    alert('No se pudo guardar: ' + error.message);
+    showAviso('No se pudo guardar: ' + error.message, 'error');
   }
 }
 
@@ -159,6 +159,6 @@ async function inactivar(ci) {
     await API.request(`/vinculos/${ci}/inactivar`, 'PUT');
     await cargarVinculos();
   } catch (error) {
-    alert('No se pudo dar de baja: ' + error.message);
+    showAviso('No se pudo dar de baja: ' + error.message, 'error');
   }
 }

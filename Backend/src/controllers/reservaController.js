@@ -405,6 +405,7 @@ exports.crearSolicitudConReserva = async (req, res) => {
     );
 
     // 6) FOLIO + LINEA_CARGO + FACTURA (inmediata) + paso "Pago pendiente" (num_paso=2)
+    // ✅ CORREGIDO: NO se crea el paso "Verificar pago" - solo "Pago pendiente"
     const { numeroFolio } = await generarFolioFacturaYPasoPago({
       idSolicitud, codigoServicio: codigo_servicio, precio,
       concepto: `Reserva de espacio - ${num_identificador}`,

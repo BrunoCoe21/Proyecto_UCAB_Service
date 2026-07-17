@@ -44,6 +44,7 @@ function obtenerPrecioPorPerfil(tarifas, perfil) {
 // ============================================================
 // CARGAR SERVICIOS
 // ============================================================
+window.serviciosCache = [];
 async function cargarServiciosEspacios() {
   try {
     console.log('🔍 Cargando servicios...');
@@ -70,6 +71,15 @@ async function cargarServiciosEspacios() {
     
     if (!Array.isArray(servicios)) {
       servicios = [servicios];
+    }
+
+    // Guardar cache para poder re-filtrar por sede sin volver a llamar al backend
+    window.serviciosCache = servicios;
+
+    // Aplicar filtro actual (si hay una sede seleccionada)
+    const sedeSel = document.getElementById('filtro-sede');
+    if (sedeSel && sedeSel.value) {
+      servicios = servicios.filter(sv => sv.nombre_sede === sedeSel.value);
     }
 
     const container = document.getElementById('catalogo-dinamico');
@@ -366,7 +376,7 @@ function mostrarDetalleServicio(servicio) {
 function simularCargaDocumento(codigoServicio, idAcreditacion) {
   if (!documentosCargados[codigoServicio]) documentosCargados[codigoServicio] = new Set();
   documentosCargados[codigoServicio].add(idAcreditacion);
-  alert('📄 Documento cargado correctamente (simulación).');
+  showAviso('Documento cargado correctamente (simulación).', 'ok');
   if (servicioSeleccionado && servicioSeleccionado.codigo_servicio === codigoServicio) {
     mostrarDetalleServicio(servicioSeleccionado);
   }
@@ -419,7 +429,7 @@ function getColorCategoria(categoria) {
 // inicial ('abierta'), en minúsculas, de forma consistente.
 async function iniciarSolicitud(codigoServicio) {
   if (!servicioSeleccionado) {
-    alert('Por favor, seleccione un servicio primero.');
+    showAviso('Por favor, seleccione un servicio primero.', 'error');
     return;
   }
 
@@ -435,7 +445,7 @@ async function iniciarSolicitud(codigoServicio) {
     const cedula = usuario?.cedula || usuario?.cedula_identidad;
 
     if (!cedula) {
-      alert('No se pudo identificar al usuario.');
+      showAviso('No se pudo identificar al usuario.', 'error');
       return;
     }
 
@@ -467,7 +477,7 @@ async function iniciarSolicitud(codigoServicio) {
 
   } catch (error) {
     console.error('❌ Error:', error);
-    alert('No se pudo iniciar la solicitud: ' + error.message);
+    showAviso('No se pudo iniciar la solicitud: ' + error.message, 'error');
   }
 }
 
@@ -701,7 +711,7 @@ async function confirmarReservaServicio() {
     window.location.href = '../estudiante/solicitudes.html';
 
   } catch (error) {
-    alert('No se pudo confirmar la reserva: ' + error.message);
+    showAviso('No se pudo confirmar la reserva: ' + error.message, 'error');
   }
 }
 
@@ -709,3 +719,62 @@ async function confirmarReservaServicio() {
 // INICIALIZAR
 // ============================================================
 document.addEventListener('DOMContentLoaded', cargarServiciosEspacios);
+
+// ----------------------------------------------------------------------------
+//  Filtro por sede — vuelve a pintar el catálogo con el subconjunto elegido.
+//  Usa el cache en memoria (no llama al backend de nuevo).
+// ----------------------------------------------------------------------------
+function filtrarPorSede() {
+  // Si ya tenemos los servicios en cache, aplicamos el filtro sin volver al backend.
+  const sede = document.getElementById('filtro-sede').value;
+  if (window.serviciosCache && window.serviciosCache.length > 0) {
+    const filtrados = sede
+      ? window.serviciosCache.filter(sv => sv.nombre_sede === sede)
+      : window.serviciosCache;
+    pintarCatalogo(filtrados);
+  } else {
+    cargarServiciosEspacios();
+  }
+}
+
+// ----------------------------------------------------------------------------
+//  Pinta el catálogo con la lista de servicios que reciba.
+// ----------------------------------------------------------------------------
+function pintarCatalogo(servicios) {
+  const container = document.getElementById('catalogo-dinamico');
+  if (!container) return;
+
+  if (!servicios || servicios.length === 0) {
+    container.innerHTML = `
+      <div class="sin-servicios">
+        <p>📌 No hay servicios disponibles para la sede seleccionada.</p>
+      </div>`;
+    return;
+  }
+
+  let html = '<div class="servicios-grid">';
+  servicios.forEach(servicio => {
+    const tarifas = servicio.tarifas;
+    const precio = obtenerPrecioPorPerfil(tarifas, perfilUsuario);
+    const precioFormateado = precio ? Number(precio).toFixed(2) : Number(servicio.precio).toFixed(2);
+    const precioReferencia = tarifas && tarifas.miembro_activo ? Number(tarifas.miembro_activo).toFixed(2) : null;
+    const codigoLimpio = String(servicio.codigo_servicio || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    html += `
+      <article class="servicio-card">
+        <div class="servicio-header">
+          <span class="servicio-tag">${servicio.tipo_categoria || 'General'}</span>
+          <span class="servicio-precio">$${precioFormateado}
+            ${precioReferencia && precio && Number(precioReferencia) !== Number(precio)
+              ? `<small style="text-decoration: line-through; color:#94a3b8; font-size:12px; margin-left:6px;">$${precioReferencia}</small>` : ''}
+          </span>
+        </div>
+        <h3 class="servicio-titulo">${servicio.descripcion_detallada || servicio.codigo_servicio}</h3>
+        <p style="color:#64748b; font-size:13px; margin: 4px 0;"><strong>Sede:</strong> ${servicio.nombre_sede || '—'}</p>
+        <button class="btn-solicitar" onclick="mostrarDetalleServicio('${codigoLimpio}')">
+          Solicitar Trámite
+        </button>
+      </article>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}

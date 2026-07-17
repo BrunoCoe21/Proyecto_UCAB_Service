@@ -58,8 +58,6 @@ function inyectarSidebar() {
       <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
     `;
   } else if (rol === 'EGRESADO') {
-    // QA: se agregan Servicios y Mis Solicitudes al perfil de egresado
-    // (más Finanzas, porque el egresado puede contratar y pagar servicios).
     enlacesHtml = `
       <a href="../estudiante/estudiante.html" class="${marcarActivo('estudiante.html')}">Mi Perfil</a>
 
@@ -75,9 +73,6 @@ function inyectarSidebar() {
       <a href="../bolsa_trabajo/bolsa_trabajo.html" class="${marcarActivo('bolsa.html')}">Bolsa de Trabajo</a>
     `;
   } else if (rol === 'DOCENTE') {
-    // QA: al DOCENTE se le eliminan "Pasos por Atender" y el "Panel de
-    // Reportes" (son del personal administrativo) y se le agregan
-    // Servicios y Mis Solicitudes.
     enlacesHtml = `
       <a href="../administrativo/empleado.html" class="${marcarActivo('empleado.html')}">Mi Perfil</a>
 
@@ -85,12 +80,8 @@ function inyectarSidebar() {
       <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
       <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}">Mis Solicitudes</a>
 
-      <div class="nav-section">FINANZAS</div>
-      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
-      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
-
       <div class="nav-section">GESTIÓN DE PERSONAL</div>
-      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vinculos Familiares</a>
     `;
   } else if (rol === 'ADMINISTRATIVO') {
     enlacesHtml = `
@@ -100,12 +91,8 @@ function inyectarSidebar() {
       <a href="../servicio/servicio.html" class="${marcarActivo('servicio.html')}">Servicios</a>
       <a href="../estudiante/solicitudes.html" class="${marcarActivo('solicitudes.html')}">Mis Solicitudes</a>
 
-      <div class="nav-section">FINANZAS</div>
-      <a href="../estudiante/facturas.html" class="${marcarActivo('facturas.html')}">Estado de Cuenta</a>
-      <a href="../estudiante/pagos.html" class="${marcarActivo('pagos.html')}">Pagos</a>
-
       <div class="nav-section">GESTIÓN DE PERSONAL</div>
-      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vínculos Familiares</a>
+      <a href="../administrativo/vinculos.html" class="${marcarActivo('vinculos.html')}">Vinculos Familiares</a>
 
       <div class="nav-section">SOLICITUDES</div>
       <a href="../administrativo/gestion.html" class="${marcarActivo('gestion.html')}">Pasos por Atender</a>
@@ -113,11 +100,11 @@ function inyectarSidebar() {
       <div class="nav-section">REPORTES</div>
       <a href="../administrativo/reportes.html" class="${marcarActivo('reportes.html')}">Panel de Reportes</a>
     `;
-  } // ... Agregar lógica para CAJERO, ADMIN cuando se construyan esos módulos
+  }
 
   sidebarContainer.innerHTML = `
     <div class="sidebar-header">
-      <div class="logo-icon">🎓</div>
+      <div class="logo-icon">U</div>
       <div class="logo-text">
         <h2>UCAB Services</h2>
         <span>PORTAL DEL MIEMBRO</span>
@@ -137,7 +124,7 @@ function inyectarSidebar() {
         </div>
       </div>
       <button onclick="cerrarSesionGlobal()" class="btn-logout">
-        <span class="logout-icon"></span> Cerrar sesión
+        Cerrar sesion
       </button>
     </div>
   `;
@@ -152,7 +139,7 @@ function marcarActivo(nombreArchivo) {
 }
 
 // Retorna directo al login.html
-window.cerrarSesionGlobal = async function() {  // ← ✅ AGREGAR async
+window.cerrarSesionGlobal = async function() {
   try {
     const token = localStorage.getItem('ucab_token');
     
@@ -167,16 +154,16 @@ window.cerrarSesionGlobal = async function() {  // ← ✅ AGREGAR async
         });
         
         if (response.ok) {
-          console.log('✅ Sesión cerrada correctamente');
+          console.log('Sesion cerrada correctamente');
         } else {
-          console.warn('⚠️ Error al cerrar sesión en el servidor');
+          console.warn('Error al cerrar sesion en el servidor');
         }
       } catch (fetchError) {
-        console.warn('⚠️ Error de red al cerrar sesión:', fetchError);
+        console.warn('Error de red al cerrar sesion:', fetchError);
       }
     }
   } catch (error) {
-    console.warn('⚠️ Error al cerrar sesión:', error);
+    console.warn('Error al cerrar sesion:', error);
   } finally {
     // Limpiar localStorage y redirigir al login
     localStorage.clear();

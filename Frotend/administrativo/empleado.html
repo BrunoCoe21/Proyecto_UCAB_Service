@@ -17,59 +17,150 @@
     <h1>Mi Perfil</h1>
   </div>
 
+  <!-- TABS -->
+  <div class="tabs-container">
+    <button class="tab-btn active" data-target="datos">Datos Personales</button>
+    <button class="tab-btn" data-target="trayectoria">Trayectoria</button>
+    <button class="tab-btn" data-target="seguridad">Seguridad</button>
+  </div>
+
   <div class="empleado-layout">
 
-    <!-- COLUMNA IZQUIERDA: identidad -->
+    <!-- COLUMNA IZQUIERDA -->
     <aside class="columna-izquierda">
-      <div class="tarjeta-blanca tarjeta-identidad text-center">
+      <div class="tarjeta-blanca tarjeta-identidad">
         <div class="avatar-gigante" id="perfil-avatar">--</div>
         <h2 id="perfil-nombre">Cargando...</h2>
         <p class="rol-texto" id="perfil-rol">---</p>
-        <div class="badge-estado" id="perfil-estado-cuenta">✓ Cuenta Activa</div>
+        <div class="badge-estado" id="perfil-estado-cuenta">Cuenta Activa</div>
       </div>
 
       <div class="tarjeta-blanca">
         <h3 class="titulo-pequeno">Contacto</h3>
-        <p class="dato-fila dato-fila-correo"><span>Correo</span><strong id="perfil-correo">--</strong></p>
-        <p class="dato-fila"><span>Teléfono</span><strong id="perfil-telefono">--</strong></p>
-        <button class="card-acceso" style="width:100%; margin-top:10px; cursor:pointer; border:1px solid #e5e7eb; background:#fff;"
-                onclick="abrirCambioContrasena()">
-          🔑 Cambiar contraseña
-        </button>
+        <p class="dato-fila"><span>Correo</span><strong id="perfil-correo">--</strong></p>
+        <p class="dato-fila"><span>Telefono</span><strong id="perfil-telefono">--</strong></p>
       </div>
     </aside>
 
-    <!-- COLUMNA DERECHA: datos laborales + accesos -->
+    <!-- COLUMNA DERECHA -->
     <section class="columna-derecha">
 
-      <div class="tarjeta-blanca">
-        <h3 class="titulo-seccion">Información laboral</h3>
-        <div id="info-laboral" class="grid-info">
-          <p class="texto-vacio">Cargando...</p>
+      <!-- PANEL 1: DATOS PERSONALES -->
+      <div id="panel-datos" class="tab-content active">
+        <div class="tarjeta-blanca">
+          <h3 class="titulo-seccion">Informacion laboral</h3>
+          <div id="info-laboral" class="grid-info">
+            <p class="texto-vacio">Cargando...</p>
+          </div>
+        </div>
+
+        <div class="tarjeta-blanca">
+          <h3 class="titulo-seccion">Vinculacion con la institucion</h3>
+          <p id="info-vinculacion" class="texto-vacio">Cargando...</p>
         </div>
       </div>
 
-      <div class="tarjeta-blanca">
-        <h3 class="titulo-seccion">Vinculación con la institución</h3>
-        <p id="info-vinculacion" class="texto-vacio">Cargando...</p>
+      <!-- PANEL 2: TRAYECTORIA -->
+      <div id="panel-trayectoria" class="tab-content">
+        <div class="tarjeta-blanca">
+          <div class="header-con-icono">
+            <span class="icono-grande">📜</span>
+            <div>
+              <h3 class="titulo-seccion" style="margin-bottom: 2px;">Historial de Vinculacion</h3>
+              <p class="sub-etiqueta">Expediente unico - multiples periodos historicos y activos</p>
+            </div>
+          </div>
+
+          <div class="tabla-contenedor">
+            <table class="tabla-historial">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Rol</th>
+                  <th>Fecha Inicio</th>
+                  <th>Fecha Fin</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-trayectoria-emp">
+                <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <div class="tarjeta-blanca">
-        <h3 class="titulo-seccion">Accesos rápidos</h3>
-        <div class="grid-accesos">
-          <a href="vinculos.html" class="card-acceso">
-            <span class="card-acceso-titulo">Vínculos Familiares</span>
-            <span class="card-acceso-desc">Registrar y gestionar familiares del personal</span>
-          </a>
-          <!-- QA: se agregan Servicios y Mis Solicitudes al perfil del empleado -->
-          <a href="../servicio/servicio.html" class="card-acceso">
-            <span class="card-acceso-titulo">Servicios</span>
-            <span class="card-acceso-desc">Catálogo de servicios disponibles para miembros</span>
-          </a>
-          <a href="../estudiante/solicitudes.html" class="card-acceso">
-            <span class="card-acceso-titulo">Mis Solicitudes</span>
-            <span class="card-acceso-desc">Seguimiento de tus trámites y reservas</span>
-          </a>
+      <!-- PANEL 3: SEGURIDAD -->
+      <div id="panel-seguridad" class="tab-content">
+        <div class="seguridad-grid">
+
+          <!-- Parametros de Seguridad -->
+          <div class="tarjeta-blanca">
+            <div class="header-con-icono">
+              <span class="icono-dorado">🛡️</span>
+              <h3 class="titulo-seccion" style="margin-bottom: 0;">Parametros de Seguridad</h3>
+            </div>
+            <ul class="lista-seguridad">
+              <li>
+                <span class="etiqueta-lista">Estado de la cuenta</span>
+                <span class="badge-activo" id="seg-estado-cuenta">---</span>
+              </li>
+              <li>
+                <span class="etiqueta-lista">MFA (Verificacion en 2 pasos)</span>
+                <span class="badge-azul" id="seg-mfa">---</span>
+              </li>
+              <li>
+                <span class="etiqueta-lista">Ultima fecha de cambio de contrasena</span>
+                <span class="valor-lista" id="seg-ultima-pass">---</span>
+              </li>
+              <li>
+                <span class="etiqueta-lista">Intentos fallidos recientes</span>
+                <span class="valor-lista" id="seg-intentos">---</span>
+              </li>
+            </ul>
+            <button class="btn-primario" onclick="abrirCambioContrasena()">
+              Cambiar contrasena
+            </button>
+          </div>
+
+          <!-- Auditoria de Sesion Actual -->
+          <div class="tarjeta-blanca">
+            <div class="header-con-icono">
+              <span class="icono-dorado">🌐</span>
+              <h3 class="titulo-seccion" style="margin-bottom: 0;">Auditoria de Sesion Actual</h3>
+            </div>
+            <ul class="lista-auditoria">
+              <li>
+                <span class="icono-pequeno">🌐</span>
+                <div class="auditoria-info">
+                  <span class="etiqueta-lista">IP de origen</span>
+                  <span class="valor-lista monospaciado" id="audit-ip">---</span>
+                </div>
+              </li>
+              <li>
+                <span class="icono-pequeno">📍</span>
+                <div class="auditoria-info">
+                  <span class="etiqueta-lista">Geolocalizacion aproximada</span>
+                  <span class="valor-lista" id="audit-geo">---</span>
+                </div>
+              </li>
+              <li>
+                <span class="icono-pequeno">📱</span>
+                <div class="auditoria-info">
+                  <span class="etiqueta-lista">UUID del dispositivo</span>
+                  <span class="valor-lista monospaciado" id="audit-uuid">---</span>
+                </div>
+              </li>
+              <li>
+                <span class="icono-pequeno">🕒</span>
+                <div class="auditoria-info">
+                  <span class="etiqueta-lista">Ultima conexion registrada</span>
+                  <span class="valor-lista" id="audit-ultima-conexion">---</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
         </div>
       </div>
 
@@ -78,6 +169,28 @@
 
 </main>
 
+<!-- MODAL: Cambiar contrasena -->
+<div class="modal-fondo" id="modal-cambio-clave">
+  <div class="modal-caja">
+    <h3>Cambiar contrasena</h3>
+    <form onsubmit="guardarCambioContrasena(event)">
+      <div class="campo-form">
+        <label>Contrasena actual</label>
+        <input type="password" id="clave-actual" required>
+      </div>
+      <div class="campo-form">
+        <label>Nueva contrasena</label>
+        <input type="password" id="clave-nueva" required minlength="6">
+      </div>
+      <div class="modal-acciones">
+        <button type="button" class="btn-cancelar" onclick="cerrarModal('modal-cambio-clave')">Cancelar</button>
+        <button type="submit" class="btn-primario" style="width:auto; margin-top:0;">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../shared/aviso.js"></script>
 <script src="../shared/api.js"></script>
 <script src="../shared/navbar.js"></script>
 <script src="empleado.js"></script>

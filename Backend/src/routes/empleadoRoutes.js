@@ -13,4 +13,10 @@ router.get('/:cedula',
   ctrl.obtenerPerfil
 );
 
+router.get('/:cedula/trayectoria',
+  verificarToken,
+  exigirRol('docente', 'administrativo'),
+  ctrl.obtenerTrayectoria
+);
+
 module.exports = router;

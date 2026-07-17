@@ -48,26 +48,6 @@ body {
   margin-top: 6px;
 }
 
-
-.search-container input {
-  border: none;
-  outline: none;
-  width: 100%;
-  font-size: 15px;
-  font-family: inherit;
-  color: #1a1a2e;
-  margin-left: 10px;
-  background: transparent;
-}
-
-.search-container input::placeholder {
-  color: #a0aabf;
-}
-
-.search-icon {
-  color: #8a9bb2;
-}
-
 /* ============================================================
    LAYOUT PRINCIPAL - DOS COLUMNAS
    ============================================================ */
@@ -98,20 +78,20 @@ body {
 }
 
 .servicios-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 24px !important;
+  width: 100% !important;
 }
 
 @media (max-width: 768px) {
   .servicios-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
 /* ============================================================
-   TARJETA DE SERVICIO - VERSIÓN SIMPLIFICADA
+   TARJETA DE SERVICIO
    ============================================================ */
 .tarjeta-servicio {
   background: #ffffff;
@@ -181,10 +161,28 @@ body {
   flex-shrink: 0;
 }
 
+.etiqueta-perfil {
+  font-size: 9px;
+  font-weight: 600;
+  color: #8a9bb2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #f5f3ec;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 2px;
+}
+
 .precio-actual {
   font-size: 22px;
   font-weight: 700;
   color: #1a1a2e;
+}
+
+.precio-anterior {
+  font-size: 12px;
+  color: #8a9bb2;
+  text-decoration: line-through;
 }
 
 /* --- TÍTULO --- */
@@ -196,7 +194,7 @@ body {
   line-height: 1.3;
 }
 
-/* --- DESCRIPCIÓN - SOLO SEDE --- */
+/* --- DESCRIPCIÓN --- */
 .servicio-desc {
   font-size: 14px;
   color: #6b7280;
@@ -209,7 +207,7 @@ body {
   color: #1a1a2e;
 }
 
-/* --- FOOTER DE LA TARJETA - SOLO LÍMITE --- */
+/* --- FOOTER DE LA TARJETA --- */
 .tarjeta-footer {
   display: flex;
   justify-content: flex-end;
@@ -348,6 +346,29 @@ body {
   line-height: 1.3;
 }
 
+.detalle-entidad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px 16px;
+  border-bottom: 1px solid #ede9e0;
+}
+
+.detalle-entidad .entidad-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a9bb2;
+}
+
+.detalle-entidad .entidad-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a1d6e;
+  background: #f0e8f5;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
 .detalle-precios {
   padding: 0 24px 16px;
   border-bottom: 1px solid #ede9e0;
@@ -357,6 +378,48 @@ body {
   font-size: 28px;
   font-weight: 700;
   color: #1a1a2e;
+}
+
+.detalle-tarifas {
+  padding: 16px 24px;
+  background: #f8f6f2;
+  margin: 0 16px 16px;
+  border-radius: 8px;
+}
+
+.detalle-tarifas h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a9bb2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.tarifa-fila {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4b5563;
+  padding: 4px 0;
+}
+
+.tarifa-fila.destacada {
+  background: #eef2f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.tarifa-fila.tu-precio {
+  border-top: 2px solid #4a1d6e;
+  padding-top: 10px;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.tarifa-fila.tu-precio strong {
+  color: #4a1d6e;
 }
 
 .detalle-cargos {
@@ -448,10 +511,15 @@ body {
   text-align: center;
 }
 
-.btn-iniciar-solicitud:hover {
+.btn-iniciar-solicitud:hover:not(:disabled) {
   background: #361552;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(74, 29, 110, 0.25);
+}
+
+.btn-iniciar-solicitud:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ============================================================
@@ -493,67 +561,240 @@ body {
 }
 
 /* ============================================================
-   TARIFAS DIFERENCIADAS
+   MODAL DE RESERVA DE ESPACIO
    ============================================================ */
-.detalle-tarifas {
-  padding: 16px 24px;
-  background: #f8f6f2;
-  margin: 0 16px 16px;
-  border-radius: 8px;
+.modal-overlay-reserva {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
 }
 
-.detalle-tarifas h4 {
-  font-size: 11px;
-  font-weight: 700;
-  color: #8a9bb2;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+.modal-overlay-reserva.active {
+  display: flex;
 }
 
-.tarifa-fila {
+.modal-caja-reserva {
+  background: white;
+  border-radius: 14px;
+  width: 92%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.modal-reserva-header {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
-  color: #4b5563;
-  padding: 4px 0;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid #e6e2da;
 }
 
-.tarifa-fila.destacada {
-  background: #eef2f6;
-  padding: 4px 8px;
-  border-radius: 4px;
-  margin: 2px 0;
+.modal-reserva-header h2 {
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.tarifa-fila.tu-precio {
-  border-top: 2px solid #4a1d6e;
-  padding-top: 10px;
-  margin-top: 6px;
-  font-size: 15px;
-}
-
-.tarifa-fila.tu-precio strong {
-  color: #4a1d6e;
-}
-
-/* --- Etiqueta de perfil en la tarjeta --- */
-.etiqueta-perfil {
-  font-size: 9px;
-  font-weight: 600;
+.btn-cerrar-reserva {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
   color: #8a9bb2;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  background: #f5f3ec;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-bottom: 2px;
 }
 
-.precio-anterior {
+#modal-reserva-contenido {
+  padding: 18px 22px;
+}
+
+.label-paso {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #6b7280;
+}
+
+.lista-espacios-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-espacio-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: #f8f6f2;
+  border: 1.5px solid #e6e2da;
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.item-espacio-modal:hover {
+  border-color: #4a1d6e;
+}
+
+.item-espacio-modal strong {
+  font-size: 14px;
+}
+
+.item-espacio-modal span {
   font-size: 12px;
   color: #8a9bb2;
-  text-decoration: line-through;
+}
+
+.campo-reserva {
+  margin-bottom: 14px;
+}
+
+.campo-reserva label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.campo-reserva input,
+.campo-reserva select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e6e2da;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fcfbf9;
+}
+
+.campo-reserva input:focus {
+  outline: none;
+  border-color: #4a1d6e;
+}
+
+.campo-reserva-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn-verificar,
+.btn-confirmar-reserva {
+  width: 100%;
+  background: #4a1d6e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 6px;
+}
+
+.btn-verificar:hover,
+.btn-confirmar-reserva:hover {
+  background: #361552;
+}
+
+.btn-agregar-acompanante {
+  width: 100%;
+  background: #f0e8f5;
+  color: #4a1d6e;
+  border: 1.5px dashed #c9b8d8;
+  border-radius: 8px;
+  padding: 9px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 14px;
+}
+
+.btn-agregar-acompanante:hover {
+  background: #e8dcf0;
+}
+
+.caja-disponible {
+  background: #e6f5ec;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 14px 0;
+  font-size: 13px;
+}
+
+.caja-disponible strong {
+  color: #0a7e3d;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.caja-no-disponible {
+  background: #fde8e8;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 14px 0;
+  font-size: 13px;
+  color: #b3261e;
+}
+
+.caja-no-disponible ul {
+  margin: 6px 0 0 18px;
+}
+
+.lista-acompanantes-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding-right: 4px;
+}
+
+.fila-acompanante {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.fila-acompanante input {
+  padding: 8px 10px;
+  border: 1px solid #e6e2da;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.fila-acompanante input:focus {
+  outline: none;
+  border-color: #4a1d6e;
+}
+
+.btn-quitar-acomp {
+  background: #fde8e8;
+  color: #b3261e;
+  border: none;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.texto-vacio-sm {
+  color: #8a9bb2;
+  font-size: 13px;
 }
 
 /* ============================================================
@@ -575,106 +816,11 @@ body {
   }
 
   .servicios-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 
   .page-header h1 {
     font-size: 24px;
   }
-
-  .search-container {
-    max-width: 100%;
-  }
 }
-/* ============================================================
-   ENTIDAD PRESTADORA
-   ============================================================ */
-.detalle-entidad {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 24px 16px;
-  border-bottom: 1px solid #ede9e0;
-}
-
-.detalle-entidad .entidad-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #8a9bb2;
-}
-
-.detalle-entidad .entidad-nombre {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a1d6e;
-  background: #f0e8f5;
-  padding: 4px 14px;
-  border-radius: 20px;
-}
-/* ============================================================================
-   MODAL DE RESERVA DE ESPACIO (movido aquí desde Mis Solicitudes)
-   ============================================================================ */
-.modal-overlay-reserva {
-  position: fixed; inset: 0; background: rgba(26,26,46,.55);
-  display: flex; align-items: center; justify-content: center; z-index: 200;
-}
-.modal-caja-reserva { background: white; border-radius: 14px; width: 92%; max-width: 480px; max-height: 88vh; overflow-y: auto; }
-.modal-reserva-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #e6e2da; }
-.modal-reserva-header h2 { font-size: 16px; font-weight: 700; }
-.btn-cerrar-reserva { background: none; border: none; font-size: 16px; cursor: pointer; color: #8a9bb2; }
-
-#modal-reserva-contenido { padding: 18px 22px; }
-.label-paso { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #6b7280; }
-
-.lista-espacios-modal { display: flex; flex-direction: column; gap: 10px; }
-.item-espacio-modal {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  background: #f8f6f2; border: 1.5px solid #e6e2da; border-radius: 10px;
-  padding: 12px 14px; cursor: pointer; font-family: inherit; text-align: left; width: 100%;
-}
-.item-espacio-modal:hover { border-color: #4a1d6e; }
-.item-espacio-modal strong { font-size: 14px; }
-.item-espacio-modal span { font-size: 12px; color: #8a9bb2; }
-
-.campo-reserva { margin-bottom: 14px; }
-.campo-reserva label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
-.campo-reserva input, .campo-reserva select {
-  width: 100%; padding: 10px 12px; border: 1px solid #e6e2da; border-radius: 8px;
-  font-size: 14px; font-family: inherit; background: #fcfbf9;
-}
-.campo-reserva input:focus { outline: none; border-color: #4a1d6e; }
-.campo-reserva-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-.btn-verificar, .btn-confirmar-reserva {
-  width: 100%; background: #4a1d6e; color: white; border: none; border-radius: 8px;
-  padding: 12px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 6px;
-}
-.btn-verificar:hover, .btn-confirmar-reserva:hover { background: #361552; }
-
-.caja-disponible { background: #e6f5ec; border-radius: 10px; padding: 14px; margin: 14px 0; font-size: 13px; }
-.caja-disponible strong { color: #0a7e3d; display: block; margin-bottom: 6px; }
-.caja-no-disponible { background: #fde8e8; border-radius: 10px; padding: 14px; margin: 14px 0; font-size: 13px; color: #b3261e; }
-.caja-no-disponible ul { margin: 6px 0 0 18px; }
-
-/* --- Lista dinámica de acompañantes, con scroll si crece mucho --- */
-.lista-acompanantes-scroll {
-  display: flex; flex-direction: column; gap: 8px;
-  max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 4px;
-}
-.fila-acompanante { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 8px; align-items: center; }
-.fila-acompanante input {
-  padding: 8px 10px; border: 1px solid #e6e2da; border-radius: 8px; font-size: 13px; font-family: inherit;
-}
-.fila-acompanante input:focus { outline: none; border-color: #4a1d6e; }
-.btn-quitar-acomp {
-  background: #fde8e8; color: #b3261e; border: none; border-radius: 6px;
-  width: 28px; height: 28px; cursor: pointer; font-size: 12px; flex-shrink: 0;
-}
-.btn-agregar-acompanante {
-  width: 100%; background: #f0e8f5; color: #4a1d6e; border: 1.5px dashed #c9b8d8; border-radius: 8px;
-  padding: 9px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; margin-bottom: 14px;
-}
-.btn-agregar-acompanante:hover { background: #e8dcf0; }
-
-.texto-vacio-sm { color: #8a9bb2; font-size: 13px; }

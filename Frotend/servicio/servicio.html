@@ -36,6 +36,15 @@
 
   
 
+  <div style="max-width:1200px; margin:0 auto 20px auto; padding: 0 20px; display:flex; align-items:center; gap:12px;">
+    <label style="font-weight:600; color:#334155;">Filtrar por sede:</label>
+    <select id="filtro-sede" onchange="filtrarPorSede()" style="padding:8px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; min-width:200px;">
+      <option value="">Todas las sedes</option>
+      <option value="Montalban">Montalbán</option>
+      <option value="Guayana">Guayana</option>
+    </select>
+  </div>
+
   <div class="catalogo-layout">
     <!-- Contenedor de servicios -->
     <div id="catalogo-dinamico">
@@ -55,7 +64,8 @@
   </div>
 </main>
 
-<script src="../shared/api.js"></script>
+<script src="../shared/aviso.js"></script>
+  <script src="../shared/api.js"></script>
 <script src="../shared/navbar.js"></script>
 <script src="servicio.js"></script>
 </body>

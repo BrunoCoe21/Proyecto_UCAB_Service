@@ -1,3 +1,4 @@
+
 // estudiante.js - Versión con depuración y formato sencillo
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -160,7 +161,7 @@ function llenarTrayectoria(trayectoria) {
   tbody.innerHTML = ''; 
 
   if (!trayectoria || trayectoria.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No hay historial registrado.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay historial registrado.</td></tr>';
     return;
   }
 

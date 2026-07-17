@@ -21,7 +21,8 @@ exports.obtenerPerfil = async (req, res) => {
 
     const usuario = await sequelize.query(
       `SELECT cedula_identidad, primer_nombre, primer_apellido, correo_institucional,
-              numero_telefono, estado_cuenta
+              numero_telefono, estado_cuenta, intentos_fallidos_auth,
+              estatus_verificacion_dos_pasos, ult_fecha_cambio_cont, ultima_conexion
        FROM usuario WHERE cedula_identidad = :cedula LIMIT 1`,
       { replacements: { cedula }, type: QueryTypes.SELECT }
     );
@@ -59,5 +60,36 @@ exports.obtenerPerfil = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener perfil de empleado:', error);
     res.status(500).json({ error: 'No se pudo obtener el perfil.' });
+  }
+};
+
+
+
+// ----------------------------------------------------------------------------
+//  GET /api/empleados/:cedula/trayectoria
+//  Devuelve TODOS los periodos de vinculacion del empleado, con un detalle
+//  breve por rol (escalafon si fue docente, cargo si fue administrativo).
+// ----------------------------------------------------------------------------
+exports.obtenerTrayectoria = async (req, res) => {
+  try {
+    const { cedula } = req.params;
+    const trayectoria = await sequelize.query(
+      `SELECT p.fecha_inicio, p.fecha_finalizacion, p.rol_activo,
+              CASE
+                WHEN p.rol_activo = 'docente' THEN d.escalafon_docente
+                WHEN p.rol_activo = 'personal_administrativo' THEN pa.cargo
+                ELSE NULL
+              END AS detalle
+       FROM periodo_vinculacion p
+       LEFT JOIN docente d                  ON d.cedula_identidad  = p.cedula_identidad AND p.rol_activo='docente'
+       LEFT JOIN personal_administrativo pa ON pa.cedula_identidad = p.cedula_identidad AND p.rol_activo='personal_administrativo'
+       WHERE p.cedula_identidad = :cedula
+       ORDER BY p.fecha_inicio DESC`,
+      { replacements: { cedula }, type: QueryTypes.SELECT }
+    );
+    res.json({ trayectoria });
+  } catch (error) {
+    console.error('Error al obtener trayectoria:', error);
+    res.status(500).json({ error: 'No se pudo obtener la trayectoria.' });
   }
 };
