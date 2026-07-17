@@ -74,6 +74,7 @@ function cambiarOficina() {
 //  Lista los pasos pendientes/en proceso de la oficina elegida.
 // ----------------------------------------------------------------------------
 async function cargarPasos(nombreOficina) {
+  window._oficinaActiva = nombreOficina;
   const cont = document.getElementById('lista-pasos');
   cont.innerHTML = '<p class="texto-vacio">Cargando pasos...</p>';
 
@@ -152,8 +153,8 @@ function tarjetaPaso(p) {
 async function cambiarEstado(idSolicitud, numPaso, nuevoEstado) {
   try {
     await API.request(`/gestion/pasos/${idSolicitud}/${numPaso}`, 'PUT', { estado_paso: nuevoEstado });
-    const oficina = document.getElementById('select-oficina').value;
-    await cargarPasos(oficina);
+    const oficina = window._oficinaActiva || (document.getElementById('select-oficina') && document.getElementById('select-oficina').value);
+    if (oficina) await cargarPasos(oficina);
   } catch (error) {
     alert('No se pudo actualizar el paso: ' + error.message);
   }
