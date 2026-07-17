@@ -94,17 +94,25 @@ function tarjetaFactura(f) {
     anulada: 'estado-anulada'
   }[f.estatus] || 'estado-pendiente';
 
-  // QA: mientras el folio no esté pagado se muestra el NÚMERO DE FOLIO;
-  // el número de control de la factura solo se revela cuando está pagada.
-  const identificadorVisible = f.estatus === 'pagada'
+  // 🔥 NUEVO: mostrar el NÚMERO DE FOLIO mientras esté pendiente/parcial
+  const identificadorVisible = (f.estatus === 'pagada' || f.estatus === 'parcial')
     ? f.num_control
     : (f.numero_folio || f.num_control);
+
+  // 🔥 NUEVO: indicador visual de pago pendiente
+  const tienePagoPendiente = f.tiene_pago_pendiente || false;
+
+  let badgePagoPendiente = '';
+  if (tienePagoPendiente && f.estatus !== 'pagada') {
+    badgePagoPendiente = `<span class="badge-pago-pendiente">⏳ Verificando</span>`;
+  }
 
   return `
     <div class="item-factura" data-numcontrol="${f.num_control}">
       <div class="item-factura-top">
         <span class="item-control">${identificadorVisible}</span>
         <span class="badge-estado ${estadoClase}">${f.estatus.toUpperCase()}</span>
+        ${badgePagoPendiente}
       </div>
       <p class="item-concepto">${f.concepto || 'Aranceles universitarios'}</p>
       <div class="item-factura-bottom">
@@ -117,6 +125,7 @@ function tarjetaFactura(f) {
 
 // ----------------------------------------------------------------------------
 //  Carga el detalle de una factura: líneas de cargo + abonos + totales.
+//  🔥 MODIFICADO: muestra correctamente el estado del pago pendiente
 // ----------------------------------------------------------------------------
 async function cargarDetalle(numControl) {
   const cont = document.getElementById('detalle-factura');
@@ -149,18 +158,40 @@ async function cargarDetalle(numControl) {
           </div>
         `).join('');
 
-    const botonPagar = factura.estatus !== 'pagada'
-      ? `<button class="btn-pagar" onclick="irAPagar('${factura.num_control}')">Pagar esta factura</button>`
-      : '<div class="sello-pagada">✓ Factura pagada</div>';
+    // 🔥 NUEVO: verificar si hay un pago pendiente
+    const tienePagoPendiente = factura.tiene_pago_pendiente || false;
+
+    // 🔥 NUEVO: estado de la factura con mensaje explicativo
+    let estadoFacturaHtml = '';
+    if (factura.estatus === 'pagada') {
+      estadoFacturaHtml = '<div class="sello-pagada">✓ Factura pagada</div>';
+    } else if (tienePagoPendiente) {
+      estadoFacturaHtml = `
+        <div class="sello-verificacion">
+          <span class="icono-verificacion">⏳</span>
+          <div>
+            <strong>Pago en verificacion</strong>
+            <p>El personal de Caja esta verificando tu pago. Esto puede tomar hasta 24 horas.</p>
+          </div>
+        </div>
+      `;
+    } else if (factura.estatus === 'pendiente' || factura.estatus === 'parcial') {
+      estadoFacturaHtml = `
+        <button class="btn-pagar" onclick="irAPagar('${factura.num_control}')">
+          Pagar esta factura
+        </button>
+      `;
+    }
+
+    // 🔥 NUEVO: número de control visible siempre (para facturas pagadas o no)
+    const numControlVisible = factura.num_control;
 
     cont.innerHTML = `
       <div class="detalle-header">
         <div>
-          <!-- QA: el número de control solo se muestra si la factura está
-               pagada; mientras tanto se muestra el número de folio. -->
-          <span class="detalle-control">${factura.estatus === 'pagada' ? factura.num_control : factura.numero_folio}</span>
-          ${factura.estatus !== 'pagada' ? '<p class="detalle-fecha">N° de control disponible al completar el pago</p>' : ''}
+          <span class="detalle-control">${numControlVisible}</span>
           <p class="detalle-fecha">Emitida el ${formatearFecha(factura.fecha_emision)}</p>
+          <p class="detalle-folio">Folio: ${factura.numero_folio}</p>
         </div>
         <span class="badge-estado ${'estado-' + factura.estatus}">${factura.estatus.toUpperCase()}</span>
       </div>
@@ -185,7 +216,7 @@ async function cargarDetalle(numControl) {
         ${filasAbonos}
       </div>
 
-      ${botonPagar}
+      ${estadoFacturaHtml}
     `;
 
   } catch (error) {

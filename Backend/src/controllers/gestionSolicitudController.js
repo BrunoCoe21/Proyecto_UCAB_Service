@@ -3,12 +3,6 @@
 // ----------------------------------------------------------------------------
 //  Para DOCENTE y PERSONAL_ADMINISTRATIVO (son EMPLEADOS). Permite ver los
 //  pasos de actividad pendientes/en proceso de una OFICINA y avanzarlos.
-//
-//  DISEÑO (QA v2): oficina_responsable.responsable_asignado y
-//  paso_actividad.responsable_asignado ahora son INTEGER FK hacia
-//  empleado(cedula_identidad). El filtrado "mis oficinas" y "mis pasos"
-//  compara CÉDULAS, no nombres, y hay un trigger en la BD que valida que
-//  la cédula asignada exista en la tabla empleado.
 // ============================================================================
 
 const sequelize = require('../config/database');
@@ -16,13 +10,6 @@ const { QueryTypes } = require('sequelize');
 
 // ----------------------------------------------------------------------------
 //  Sincroniza solicitud.estado_general según el estado real de sus pasos.
-//  No existe ningún trigger en la base que haga esto solo, así que se llama
-//  explícitamente cada vez que un paso cambia de estado (aquí y también
-//  desde reservaController al completar el paso de reserva).
-//  Regla acordada:
-//    - Si TODOS los pasos están 'completado'      -> solicitud 'cerrada'
-//    - Si AL MENOS UNO está 'en proceso'           -> solicitud 'en proceso'
-//    - En cualquier otro caso (todos 'pendiente')  -> solicitud 'abierta'
 // ----------------------------------------------------------------------------
 async function sincronizarEstadoSolicitud(idSolicitud, transaction) {
   const pasos = await sequelize.query(
@@ -41,11 +28,11 @@ async function sincronizarEstadoSolicitud(idSolicitud, transaction) {
     { replacements: { nuevoEstado, idSolicitud }, type: QueryTypes.UPDATE, transaction }
   );
 }
-exports.sincronizarEstadoSolicitud = sincronizarEstadoSolicitud;   // se reutiliza en reservaController
+exports.sincronizarEstadoSolicitud = sincronizarEstadoSolicitud;
 
 // ----------------------------------------------------------------------------
 //  GET /api/gestion/oficinas
-//  Lista las oficinas existentes, para que el empleado elija con cuál trabajar.
+//  Lista las oficinas existentes.
 // ----------------------------------------------------------------------------
 exports.listarOficinas = async (req, res) => {
   try {
@@ -66,8 +53,8 @@ exports.listarOficinas = async (req, res) => {
 
 // ----------------------------------------------------------------------------
 //  GET /api/gestion/pasos/:nombreOficina
-//  Pasos de actividad de una oficina, con datos de la solicitud y el
-//  solicitante, para que el empleado tenga contexto completo.
+//  Pasos de actividad de una oficina.
+//  🔥 MODIFICADO: el paso "Pago pendiente" SOLO aparece si el usuario ya pagó
 // ----------------------------------------------------------------------------
 exports.listarPasosPorOficina = async (req, res) => {
   try {
@@ -79,19 +66,40 @@ exports.listarPasosPorOficina = async (req, res) => {
               s.estado_general AS estado_solicitud, s.codigo_servicio,
               u.primer_nombre, u.primer_apellido, u.cedula_identidad,
               se.descripcion_detallada AS servicio_nombre,
-              -- ¿hay un paso anterior sin completar? (mismo cálculo que el trigger)
               EXISTS (
                 SELECT 1 FROM paso_actividad ant
                 WHERE ant.id_solicitud = p.id_solicitud
                   AND ant.num_paso < p.num_paso
                   AND ant.estado_paso <> 'completado'
-              ) AS bloqueado_por_anterior
+              ) AS bloqueado_por_anterior,
+              -- 🔥 NUEVO: verificar si existe un pago para esta solicitud
+              EXISTS (
+                SELECT 1 FROM pago pag
+                JOIN factura f ON f.num_control = pag.num_control
+                JOIN folio_consumo fc ON fc.numero_folio = f.numero_folio
+                WHERE fc.id_solicitud = s.id_solicitud
+                  AND pag.estatus IN ('pendiente', 'confirmado')
+              ) AS tiene_pago
        FROM paso_actividad p
        JOIN solicitud s ON s.id_solicitud = p.id_solicitud
        JOIN usuario u   ON u.cedula_identidad = s.cedula_identidad
        LEFT JOIN servicio se ON se.codigo_servicio = s.codigo_servicio
        WHERE p.nombre_oficina = :nombreOficina
          AND p.estado_paso <> 'completado'
+         -- 🔥 REGLA: el paso "Pago pendiente" SOLO se muestra si el usuario ya pagó
+         AND (
+           p.nombre_paso <> 'Pago pendiente'
+           OR (
+             p.nombre_paso = 'Pago pendiente'
+             AND EXISTS (
+               SELECT 1 FROM pago pag
+               JOIN factura f ON f.num_control = pag.num_control
+               JOIN folio_consumo fc ON fc.numero_folio = f.numero_folio
+               WHERE fc.id_solicitud = s.id_solicitud
+                 AND pag.estatus IN ('pendiente', 'confirmado')
+             )
+           )
+         )
        ORDER BY p.fecha_inicio ASC`,
       { replacements: { nombreOficina }, type: QueryTypes.SELECT }
     );
@@ -107,12 +115,8 @@ exports.listarPasosPorOficina = async (req, res) => {
 //  PUT /api/gestion/pasos/:idSolicitud/:numPaso
 //  Cambia el estado de un paso ('en proceso' o 'completado').
 //
-//  CORRECCIÓN: el trigger de la base (fn_paso_actividad_control) solo
-//  rechaza COMPLETAR un paso si hay uno anterior sin completar; no impedía
-//  poner un paso en 'en proceso' aunque el anterior tampoco estuviera
-//  completado, lo que permitía tener dos pasos consecutivos "en proceso" a
-//  la vez (caso real visto en SOL-001). Esta validación se agrega aquí, del
-//  lado del backend, antes de tocar la base.
+//  🔥 NUEVO: VALIDAR QUE EL USUARIO HAYA PAGADO ANTES DE PERMITIR MODIFICAR
+//  EL PASO "Pago pendiente".
 // ----------------------------------------------------------------------------
 exports.actualizarEstadoPaso = async (req, res) => {
   const t = await sequelize.transaction();
@@ -125,7 +129,41 @@ exports.actualizarEstadoPaso = async (req, res) => {
       return res.status(400).json({ error: 'Estado no válido. Use "en proceso" o "completado".' });
     }
 
-    // Bloquea tanto "iniciar" como "completar" si hay un paso anterior sin completar.
+    // 🔥 VALIDACIÓN 1: VERIFICAR QUE EL PASO EXISTA
+    const pasoInfo = await sequelize.query(
+      `SELECT nombre_paso FROM paso_actividad
+       WHERE id_solicitud = :idSolicitud AND num_paso = :numPaso
+       LIMIT 1`,
+      { replacements: { idSolicitud, numPaso }, type: QueryTypes.SELECT, transaction: t }
+    );
+
+    if (pasoInfo.length === 0) {
+      await t.rollback();
+      return res.status(404).json({ error: 'Paso no encontrado.' });
+    }
+
+    // 🔥 VALIDACIÓN 2: Si el paso es "Pago pendiente", verificar que exista un pago
+    if (pasoInfo[0].nombre_paso === 'Pago pendiente') {
+      const pagoExistente = await sequelize.query(
+        `SELECT COUNT(*) as total FROM pago p
+         JOIN factura f ON f.num_control = p.num_control
+         JOIN folio_consumo fc ON fc.numero_folio = f.numero_folio
+         WHERE fc.id_solicitud = :idSolicitud
+           AND p.estatus IN ('pendiente', 'confirmado')`,
+        { replacements: { idSolicitud }, type: QueryTypes.SELECT, transaction: t }
+      );
+
+      const tienePago = Number(pagoExistente[0].total) > 0;
+
+      if (!tienePago) {
+        await t.rollback();
+        return res.status(403).json({
+          error: 'No se puede modificar el paso "Pago pendiente" porque el usuario aún no ha realizado el pago. Espera a que el usuario pague primero.'
+        });
+      }
+    }
+
+    // VALIDACIÓN 3: Bloquea si hay un paso anterior sin completar.
     const anteriorSinCompletar = await sequelize.query(
       `SELECT 1 FROM paso_actividad
        WHERE id_solicitud = :idSolicitud AND num_paso < :numPaso AND estado_paso <> 'completado'`,
@@ -153,8 +191,6 @@ exports.actualizarEstadoPaso = async (req, res) => {
 
   } catch (error) {
     await t.rollback();
-    // El trigger de la base devuelve un mensaje claro si hay un paso anterior
-    // sin completar; ese mensaje llega tal cual hasta el frontend.
     console.error('Error al actualizar paso:', error);
     res.status(400).json({ error: error.message || 'No se pudo actualizar el paso.' });
   }
@@ -162,8 +198,7 @@ exports.actualizarEstadoPaso = async (req, res) => {
 
 // ----------------------------------------------------------------------------
 //  GET /api/gestion/solicitud/:idSolicitud
-//  Detalle completo de una solicitud con TODOS sus pasos (incluye los ya
-//  completados), para ver el avance completo del trámite.
+//  Detalle completo de una solicitud con TODOS sus pasos.
 // ----------------------------------------------------------------------------
 exports.obtenerSolicitudCompleta = async (req, res) => {
   try {
@@ -201,17 +236,13 @@ exports.obtenerSolicitudCompleta = async (req, res) => {
 };
 
 // ----------------------------------------------------------------------------
-//  PUT /api/gestion/oficinas/:nombreOficina/responsable   (reporte QA)
-//  Asigna explícitamente un responsable (empleado) a la oficina. El nombre
-//  del responsable se toma del TOKEN del empleado autenticado ("asignarme"),
-//  para que quede trazado quién atiende cada oficina.
+//  PUT /api/gestion/oficinas/:nombreOficina/responsable
 // ----------------------------------------------------------------------------
 exports.asignarResponsable = async (req, res) => {
   try {
     const { nombreOficina } = req.params;
     const cedula = req.usuario.cedula;
 
-    // QA v2: la BD valida con trigger que la cédula sea de un empleado real.
     const empleado = await sequelize.query(
       `SELECT 1 FROM empleado WHERE cedula_identidad = :cedula LIMIT 1`,
       { replacements: { cedula }, type: QueryTypes.SELECT }
@@ -233,10 +264,7 @@ exports.asignarResponsable = async (req, res) => {
 };
 
 // ----------------------------------------------------------------------------
-//  GET /api/gestion/mis-oficinas   (reporte QA)
-//  Oficinas donde el empleado autenticado figura como responsable asignado.
-//  Si tiene al menos una, el frontend restringe "Pasos por Atender" SOLO a
-//  esas oficinas (el personal ya no ve los pasos de oficinas ajenas).
+//  GET /api/gestion/mis-oficinas
 // ----------------------------------------------------------------------------
 exports.misOficinas = async (req, res) => {
   try {
