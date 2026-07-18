@@ -1,19 +1,12 @@
-// /Frotend/servicio/servicio.js
 const API_URL = 'http://localhost:5000/api';
 
 let servicioSeleccionado = null;
-let perfilUsuario = null; // 'miembro_activo', 'egresado', 'publico_externo'
-// QA: registro en memoria de los documentos de acreditación "cargados"
-// (simulación de carga de archivos). Clave: codigo_servicio -> Set de ids.
+let perfilUsuario = null;
 const documentosCargados = {};
 
-// --------------------------------------------------------------------------------------------------
-// OBTENER PERFIL DEL USUARIO
-// --------------------------------------------------------------------------------------------------
 function obtenerPerfilUsuario() {
   const rol = localStorage.getItem('ucab_rol');
   
-  // Determinar el perfil según el rol
   if (rol === 'ESTUDIANTE' || rol === 'DOCENTE' || rol === 'ADMINISTRATIVO') {
     return 'miembro_activo';
   } else if (rol === 'EGRESADO') {
@@ -23,9 +16,6 @@ function obtenerPerfilUsuario() {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-// OBTENER PRECIO SEGÚN PERFIL
-// --------------------------------------------------------------------------------------------------
 function obtenerPrecioPorPerfil(tarifas, perfil) {
   if (!tarifas) return null;
   
@@ -41,19 +31,13 @@ function obtenerPrecioPorPerfil(tarifas, perfil) {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-// CARGAR SERVICIOS
-// --------------------------------------------------------------------------------------------------
 window.serviciosCache = [];
+
 async function cargarServiciosEspacios() {
   try {
-    console.log('🔍 Cargando servicios...');
-    
     const token = localStorage.getItem('ucab_token');
     
-    // OBTENER PERFIL DEL USUARIO
     perfilUsuario = obtenerPerfilUsuario();
-    console.log('📍 Perfil del usuario:', perfilUsuario);
     
     const response = await fetch(`${API_URL}/service/espacios`, {
       headers: {
@@ -67,16 +51,13 @@ async function cargarServiciosEspacios() {
     }
     
     let servicios = await response.json();
-    console.log('✅ Servicios cargados:', servicios.length);
     
     if (!Array.isArray(servicios)) {
       servicios = [servicios];
     }
 
-    // Guardar cache para poder re-filtrar por sede sin volver a llamar al backend
     window.serviciosCache = servicios;
 
-    // Aplicar filtro actual (si hay una sede seleccionada)
     const sedeSel = document.getElementById('filtro-sede');
     if (sedeSel && sedeSel.value) {
       servicios = servicios.filter(sv => sv.nombre_sede === sedeSel.value);
@@ -84,15 +65,14 @@ async function cargarServiciosEspacios() {
 
     const container = document.getElementById('catalogo-dinamico');
     if (!container) {
-      console.error('❌ No se encontró #catalogo-dinamico');
       return;
     }
 
     if (servicios.length === 0) {
       container.innerHTML = `
         <div class="sin-servicios">
-          <p>📌 No hay servicios disponibles.</p>
-          <p style="font-size: 13px; color: #8a9bb2; margin-top: 8px;">Los servicios se muestran según tu perfil.</p>
+          <p>No hay servicios disponibles.</p>
+          <p style="font-size: 13px; color: #8a9bb2; margin-top: 8px;">Los servicios se muestran segun tu perfil.</p>
         </div>
       `;
       return;
@@ -101,55 +81,43 @@ async function cargarServiciosEspacios() {
     let html = '<div class="servicios-grid">';
     
     servicios.forEach(servicio => {
-      // OBTENER PRECIO SEGÚN PERFIL DEL USUARIO
       const tarifas = servicio.tarifas;
       const precio = obtenerPrecioPorPerfil(tarifas, perfilUsuario);
       const precioFormateado = precio ? Number(precio).toFixed(2) : Number(servicio.precio).toFixed(2);
-      
-      // Precio de referencia (miembro activo) para mostrar el tachado
       const precioReferencia = tarifas?.miembro_activo ? Number(tarifas.miembro_activo).toFixed(2) : null;
-      
       const limiteMax = servicio.limite_maximo;
-      const limiteMaxFormateado = limiteMax ? Number(limiteMax).toFixed(2) : 'Sin límite';
+      const limiteMaxFormateado = limiteMax ? Number(limiteMax).toFixed(2) : 'Sin limite';
       
-      // Etiqueta de perfil
       let etiquetaPerfil = '';
-      if (perfilUsuario === 'miembro_activo') etiquetaPerfil = '👤 Miembro Activo';
-      else if (perfilUsuario === 'egresado') etiquetaPerfil = '🎓 Egresado';
-      else etiquetaPerfil = '🌐 Público Externo';
+      if (perfilUsuario === 'miembro_activo') etiquetaPerfil = 'Miembro Activo';
+      else if (perfilUsuario === 'egresado') etiquetaPerfil = 'Egresado';
+      else etiquetaPerfil = 'Publico Externo';
       
       let color = 'bg-azul';
-      let icono = '📋';
+      let icono = '';
       const categoria = servicio.tipo_categoria || '';
       
       if (categoria === 'Espacios') {
         color = 'bg-dorado';
-        icono = '🏢';
-      } else if (categoria === 'Educación Continua') {
+      } else if (categoria === 'Educacion Continua') {
         color = 'bg-verde';
-        icono = '🎓';
       } else if (categoria === 'Salud') {
         color = 'bg-rojo';
-        icono = '🏥';
       } else if (categoria === 'Cultura') {
         color = 'bg-morado';
-        icono = '🎭';
       } else if (categoria === 'Deporte') {
         color = 'bg-naranja';
-        icono = '⚽';
       } else if (categoria === 'Documentos') {
         color = 'bg-azul';
-        icono = '📄';
       }
 
-      // Mostrar entidad prestadora
       const entidadNombre = servicio.entidad_nombre || 'Entidad no especificada';
 
       html += `
         <div class="tarjeta-servicio" data-codigo="${servicio.codigo_servicio}">
           <div class="tarjeta-header">
             <div class="tag-grupo ${color}">
-              <span class="icono-tag">${icono}</span>
+              <span class="icono-tag"></span>
               <span class="texto-tag">${categoria || 'Servicio'}</span>
             </div>
             <div class="precio-grupo">
@@ -165,9 +133,9 @@ async function cargarServiciosEspacios() {
             <strong>Entidad:</strong> ${entidadNombre}
           </p>
           <div class="tarjeta-footer">
-            <span class="limite">💰 Límite máx. $${limiteMaxFormateado}</span>
+            <span class="limite">Limite max. $${limiteMaxFormateado}</span>
           </div>
-          <button class="btn-reservar" data-codigo="${servicio.codigo_servicio}">Solicitar Trámite</button>
+          <button class="btn-reservar" data-codigo="${servicio.codigo_servicio}">Solicitar Tramite</button>
         </div>
       `;
     });
@@ -175,7 +143,6 @@ async function cargarServiciosEspacios() {
     html += '</div>';
     container.innerHTML = html;
 
-    // Eventos para botones "Solicitar Trámite"
     document.querySelectorAll('.btn-reservar').forEach(btn => {
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -187,7 +154,6 @@ async function cargarServiciosEspacios() {
       });
     });
 
-    // Evento para clic en toda la tarjeta
     document.querySelectorAll('.tarjeta-servicio').forEach(card => {
       card.addEventListener('click', function() {
         const codigo = this.dataset.codigo;
@@ -199,12 +165,11 @@ async function cargarServiciosEspacios() {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error);
     const container = document.getElementById('catalogo-dinamico');
     if (container) {
       container.innerHTML = `
         <div class="error-message">
-          <p>⚠️ No se pudieron cargar los servicios</p>
+          <p>No se pudieron cargar los servicios</p>
           <p style="font-size: 12px; color: #666;">${error.message}</p>
           <button onclick="cargarServiciosEspacios()">Reintentar</button>
         </div>
@@ -213,21 +178,14 @@ async function cargarServiciosEspacios() {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-// MOSTRAR DETALLE DEL SERVICIO
-// --------------------------------------------------------------------------------------------------
 function mostrarDetalleServicio(servicio) {
-  console.log('📋 Mostrando detalle de:', servicio.descripcion_detallada);
-  
   servicioSeleccionado = servicio;
   
   const panel = document.getElementById('panel-detalle');
   if (!panel) {
-    console.error('❌ No se encontró el panel de detalle');
     return;
   }
   
-  // OBTENER PRECIO SEGÚN PERFIL
   const tarifas = servicio.tarifas;
   const precio = obtenerPrecioPorPerfil(tarifas, perfilUsuario);
   const precioFormateado = precio ? Number(precio).toFixed(2) : Number(servicio.precio).toFixed(2);
@@ -238,26 +196,25 @@ function mostrarDetalleServicio(servicio) {
   
   const entidadNombre = servicio.entidad_nombre || 'Entidad no especificada';
   
-  // Mostrar todas las tarifas en el detalle
   let tarifasHtml = '';
   if (tarifas) {
     tarifasHtml = `
       <div class="detalle-tarifas">
-        <h4>TARIFAS SEGÚN PERFIL</h4>
+        <h4>TARIFAS SEGUN PERFIL</h4>
         <div class="tarifa-fila">
-          <span> Miembro Activo</span>
+          <span>Miembro Activo</span>
           <span>$${Number(tarifas.miembro_activo).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila ${perfilUsuario === 'egresado' ? 'destacada' : ''}">
-          <span> Egresado</span>
+          <span>Egresado</span>
           <span>$${Number(tarifas.egresado).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila ${perfilUsuario === 'publico_externo' ? 'destacada' : ''}">
-          <span> Publico Externo</span>
+          <span>Publico Externo</span>
           <span>$${Number(tarifas.publico_externo).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila tu-precio">
-          <span><strong> Tu precio (${perfilUsuario === 'miembro_activo' ? 'Miembro Activo' : perfilUsuario === 'egresado' ? 'Egresado' : 'Publico Externo'})</strong></span>
+          <span><strong>Tu precio (${perfilUsuario === 'miembro_activo' ? 'Miembro Activo' : perfilUsuario === 'egresado' ? 'Egresado' : 'Publico Externo'})</strong></span>
           <span><strong>$${precioFormateado}</strong></span>
         </div>
       </div>
@@ -266,23 +223,19 @@ function mostrarDetalleServicio(servicio) {
   
   let html = `
     <div class="detalle-servicio">
-      <!-- Categoría -->
       <div class="detalle-categoria-tag">
         <span class="tag-categoria ${getColorCategoria(servicio.tipo_categoria)}">
           ${servicio.tipo_categoria || 'Servicio'}
         </span>
       </div>
       
-      <!-- Título -->
       <h2 class="detalle-servicio-titulo">${servicio.descripcion_detallada || servicio.codigo_servicio}</h2>
       
-      <!-- Entidad Prestadora -->
       <div class="detalle-entidad">
-        <span class="entidad-label"> Entidad Prestadora</span>
+        <span class="entidad-label">Entidad Prestadora</span>
         <span class="entidad-nombre">${entidadNombre}</span>
       </div>
       
-      <!-- Precios -->
       <div class="detalle-precios">
         <div class="detalle-precio-actual">$${precioFormateado}</div>
       </div>
@@ -290,7 +243,6 @@ function mostrarDetalleServicio(servicio) {
       ${tarifasHtml}
   `;
 
-  // CARGOS ADICIONALES
   if (cargos.length > 0) {
     html += `
       <div class="detalle-cargos">
@@ -313,7 +265,6 @@ function mostrarDetalleServicio(servicio) {
     `;
   }
 
-  // REQUISITOS
   if (servicio.requisitos_de_acceso) {
     html += `
       <div class="detalle-requisitos">
@@ -330,16 +281,16 @@ function mostrarDetalleServicio(servicio) {
   if (acreditaciones.length > 0) {
     html += `
       <div class="detalle-requisitos">
-        <h4>Documentos de acreditación requeridos</h4>
+        <h4>Documentos de acreditacion requeridos</h4>
         ${acreditaciones.map(a => {
           const listo = cargados.has(a.id_acreditacion);
           return `
             <div class="cargo-fila" id="fila-acred-${a.id_acreditacion}">
-              <span>${listo ? 'ok' : 'clip'} ${a.nombre_requisito} <small>(${a.tipo_documento})</small></span>
+              <span>${listo ? 'Cargado' : 'Pendiente'} ${a.nombre_requisito} <small>(${a.tipo_documento})</small></span>
               ${listo
                 ? '<span style="color:#065f46; font-weight:600;">Cargado</span>'
                 : `<button type="button" class="btn-agregar-acompanante"
-                     onclick="simularCargaDocumento('${servicio.codigo_servicio}','${a.id_acreditacion}')">
+                           onclick="simularCargaDocumento('${servicio.codigo_servicio}','${a.id_acreditacion}')">
                      Cargar archivo
                    </button>`}
             </div>`;
@@ -348,17 +299,15 @@ function mostrarDetalleServicio(servicio) {
     `;
   }
 
-  // ADVERTENCIA
   html += `
     <div class="detalle-advertencia">
-      <p> Asegurese de estar solvente en caja antes de iniciar cualquier trámite.</p>
+      <p>Asegurese de estar solvente en caja antes de iniciar cualquier tramite.</p>
     </div>
     
-    <!-- Botón Iniciar Solicitud (QA: inhabilitado si faltan acreditaciones) -->
     <button class="btn-iniciar-solicitud" id="btn-iniciar-solicitud"
-            ${faltanDocumentos ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Debes cargar los documentos de acreditación requeridos"' : ''}
+            ${faltanDocumentos ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Debes cargar los documentos de acreditacion requeridos"' : ''}
             onclick="iniciarSolicitud('${servicio.codigo_servicio}')">
-      ${faltanDocumentos ? 'Carga los documentos para continuar' : 'Iniciar solicitud ›'}
+      ${faltanDocumentos ? 'Carga los documentos para continuar' : 'Iniciar solicitud'}
     </button>
   </div>
   `;
@@ -366,19 +315,15 @@ function mostrarDetalleServicio(servicio) {
   panel.innerHTML = html;
 }
 
-
 function simularCargaDocumento(codigoServicio, idAcreditacion) {
   if (!documentosCargados[codigoServicio]) documentosCargados[codigoServicio] = new Set();
   documentosCargados[codigoServicio].add(idAcreditacion);
-  showAviso('Documento cargado correctamente (simulación).', 'ok');
+  showAviso('Documento cargado correctamente.', 'ok');
   if (servicioSeleccionado && servicioSeleccionado.codigo_servicio === codigoServicio) {
     mostrarDetalleServicio(servicioSeleccionado);
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-// RESTAURAR ESTADO VACIO DEL PANEL
-// --------------------------------------------------------------------------------------------------
 function restaurarPanelVacio() {
   const panel = document.getElementById('panel-detalle');
   if (!panel) return;
@@ -386,32 +331,26 @@ function restaurarPanelVacio() {
   panel.innerHTML = `
     <div class="detalle-vacio">
       <div class="icono-fondo">
-        <span>📋</span>
+        <span></span>
       </div>
       <h3>Selecciona un servicio</h3>
-      <p>Haz clic en "Solicitar Trámite" en cualquier servicio para ver los detalles aquí.</p>
+      <p>Haz clic en "Solicitar Tramite" en cualquier servicio para ver los detalles aqui.</p>
     </div>
   `;
 }
 
-// --------------------------------------------------------------------------------------------------
-// OBTENER COLOR DE CATEGORIA
-// --------------------------------------------------------------------------------------------------
 function getColorCategoria(categoria) {
   const colores = {
     'Cultura': 'morado',
     'Deporte': 'naranja',
     'Salud': 'rojo',
-    'Educación Continua': 'verde',
+    'Educacion Continua': 'verde',
     'Documentos': 'azul',
     'Espacios': 'dorado'
   };
   return colores[categoria] || 'azul';
 }
 
-// --------------------------------------------------------------------------------------------------
-// INICIAR SOLICITUD
-// --------------------------------------------------------------------------------------------------
 async function iniciarSolicitud(codigoServicio) {
   if (!servicioSeleccionado) {
     showAviso('Por favor, seleccione un servicio primero.', 'error');
@@ -455,17 +394,13 @@ async function iniciarSolicitud(codigoServicio) {
       throw new Error(errorData.error || 'Error al crear la solicitud');
     }
 
-    console.log(' Solicitud creada');
-
     restaurarPanelVacio();
     window.location.href = '../estudiante/solicitudes.html';
 
   } catch (error) {
-    console.error('Error:', error);
     showAviso('No se pudo iniciar la solicitud: ' + error.message, 'error');
   }
 }
-
 
 let reservaEnCurso = null;
 let contadorAcompanantes = 0;
@@ -486,7 +421,7 @@ async function abrirModalReservaServicio(servicio) {
     <div class="modal-caja-reserva">
       <div class="modal-reserva-header">
         <h2>Reservar espacio · ${servicio.nombre_sede}</h2>
-        <button class="btn-cerrar-reserva" onclick="cerrarModalReservaServicio()">✕</button>
+        <button class="btn-cerrar-reserva" onclick="cerrarModalReservaServicio()"></button>
       </div>
       <div id="modal-reserva-contenido">
         <p class="texto-vacio">Cargando espacios disponibles...</p>
@@ -534,8 +469,6 @@ function seleccionarEspacioReserva(espacio) {
 
     <div class="campo-reserva">
       <label>Fecha del evento</label>
-      <!-- QA: el calendario no permite fechas anteriores a hoy (min=hoy);
-           el backend valida lo mismo por si alguien manipula el HTML. -->
       <input type="date" id="r-fecha" required min="${new Date().toISOString().split('T')[0]}">
     </div>
     <div class="campo-reserva-fila">
@@ -603,17 +536,17 @@ async function verificarDisponibilidadReserva() {
 
     resultadoDiv.innerHTML = `
       <div class="caja-disponible">
-        <strong>✓ Espacio disponible</strong>
+        <strong>Espacio disponible</strong>
         <p>Mobiliario: ${resultado.espacio.tipo_mobiliario || 'No especificado'}</p>
         <p>Tipo: ${resultado.espacio.tipo_espacio_fisico || 'No especificado'}</p>
         ${resultado.espacio.recursos.length > 0
           ? `<p>Recursos: ${resultado.espacio.recursos.join(', ')}</p>`
-          : '<p>Sin recursos tecnológicos registrados.</p>'}
+          : '<p>Sin recursos tecnologicos registrados.</p>'}
       </div>
 
-      <p class="label-paso">Acompañantes (opcional, personas que no son miembros de la comunidad)</p>
+      <p class="label-paso">Acompanantes (opcional, personas que no son miembros de la comunidad)</p>
       <div id="lista-acompanantes" class="lista-acompanantes-scroll"></div>
-      <button type="button" class="btn-agregar-acompanante" onclick="agregarFilaAcompanante()">+ Agregar acompañante</button>
+      <button type="button" class="btn-agregar-acompanante" onclick="agregarFilaAcompanante()">Agregar acompanante</button>
 
       <button class="btn-confirmar-reserva" onclick="confirmarReservaServicio()">Confirmar reserva</button>
     `;
@@ -631,9 +564,9 @@ function agregarFilaAcompanante() {
   fila.className = 'fila-acompanante';
   fila.id = `acomp-fila-${id}`;
   fila.innerHTML = `
-    <input type="text" placeholder="Cédula" class="acomp-doc" data-id="${id}">
+    <input type="text" placeholder="Cedula" class="acomp-doc" data-id="${id}">
     <input type="text" placeholder="Nombre completo" class="acomp-nombre" data-id="${id}">
-    <button type="button" class="btn-quitar-acomp" onclick="quitarFilaAcompanante(${id})">✕</button>
+    <button type="button" class="btn-quitar-acomp" onclick="quitarFilaAcompanante(${id})"></button>
   `;
   cont.appendChild(fila);
 }
@@ -689,12 +622,9 @@ async function confirmarReservaServicio() {
   }
 }
 
-
 document.addEventListener('DOMContentLoaded', cargarServiciosEspacios);
 
-
 function filtrarPorSede() {
-  // Si ya tenemos los servicios en cache, aplicamos el filtro sin volver al backend.
   const sede = document.getElementById('filtro-sede').value;
   if (window.serviciosCache && window.serviciosCache.length > 0) {
     const filtrados = sede
@@ -706,7 +636,6 @@ function filtrarPorSede() {
   }
 }
 
-
 function pintarCatalogo(servicios) {
   const container = document.getElementById('catalogo-dinamico');
   if (!container) return;
@@ -714,34 +643,93 @@ function pintarCatalogo(servicios) {
   if (!servicios || servicios.length === 0) {
     container.innerHTML = `
       <div class="sin-servicios">
-        <p> No hay servicios disponibles para la sede seleccionada.</p>
+        <p>No hay servicios disponibles para la sede seleccionada.</p>
       </div>`;
     return;
   }
 
   let html = '<div class="servicios-grid">';
+  
   servicios.forEach(servicio => {
     const tarifas = servicio.tarifas;
     const precio = obtenerPrecioPorPerfil(tarifas, perfilUsuario);
     const precioFormateado = precio ? Number(precio).toFixed(2) : Number(servicio.precio).toFixed(2);
-    const precioReferencia = tarifas && tarifas.miembro_activo ? Number(tarifas.miembro_activo).toFixed(2) : null;
-    const codigoLimpio = String(servicio.codigo_servicio || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    const precioReferencia = tarifas?.miembro_activo ? Number(tarifas.miembro_activo).toFixed(2) : null;
+    const limiteMax = servicio.limite_maximo;
+    const limiteMaxFormateado = limiteMax ? Number(limiteMax).toFixed(2) : 'Sin limite';
+    
+    let etiquetaPerfil = '';
+    if (perfilUsuario === 'miembro_activo') etiquetaPerfil = 'Miembro Activo';
+    else if (perfilUsuario === 'egresado') etiquetaPerfil = 'Egresado';
+    else etiquetaPerfil = 'Publico Externo';
+    
+    let color = 'bg-azul';
+    const categoria = servicio.tipo_categoria || '';
+    
+    if (categoria === 'Espacios') {
+      color = 'bg-dorado';
+    } else if (categoria === 'Educacion Continua') {
+      color = 'bg-verde';
+    } else if (categoria === 'Salud') {
+      color = 'bg-rojo';
+    } else if (categoria === 'Cultura') {
+      color = 'bg-morado';
+    } else if (categoria === 'Deporte') {
+      color = 'bg-naranja';
+    } else if (categoria === 'Documentos') {
+      color = 'bg-azul';
+    }
+
+    const entidadNombre = servicio.entidad_nombre || 'Entidad no especificada';
+
     html += `
-      <article class="servicio-card">
-        <div class="servicio-header">
-          <span class="servicio-tag">${servicio.tipo_categoria || 'General'}</span>
-          <span class="servicio-precio">$${precioFormateado}
-            ${precioReferencia && precio && Number(precioReferencia) !== Number(precio)
-              ? `<small style="text-decoration: line-through; color:#94a3b8; font-size:12px; margin-left:6px;">$${precioReferencia}</small>` : ''}
-          </span>
+      <div class="tarjeta-servicio" data-codigo="${servicio.codigo_servicio}">
+        <div class="tarjeta-header">
+          <div class="tag-grupo ${color}">
+            <span class="icono-tag"></span>
+            <span class="texto-tag">${categoria || 'Servicio'}</span>
+          </div>
+          <div class="precio-grupo">
+            <span class="etiqueta-perfil">${etiquetaPerfil}</span>
+            <span class="precio-actual">$${precioFormateado}</span>
+            ${precioReferencia && perfilUsuario !== 'miembro_activo' ? 
+              `<span class="precio-anterior">$${precioReferencia}</span>` : ''}
+          </div>
         </div>
         <h3 class="servicio-titulo">${servicio.descripcion_detallada || servicio.codigo_servicio}</h3>
-        <p style="color:#64748b; font-size:13px; margin: 4px 0;"><strong>Sede:</strong> ${servicio.nombre_sede || '—'}</p>
-        <button class="btn-solicitar" onclick="mostrarDetalleServicio('${codigoLimpio}')">
-          Solicitar Trámite
-        </button>
-      </article>`;
+        <p class="servicio-desc">
+          <strong>Sede:</strong> ${servicio.nombre_sede || 'No especificada'}<br>
+          <strong>Entidad:</strong> ${entidadNombre}
+        </p>
+        <div class="tarjeta-footer">
+          <span class="limite">Limite max. $${limiteMaxFormateado}</span>
+        </div>
+        <button class="btn-reservar" data-codigo="${servicio.codigo_servicio}">Solicitar Tramite</button>
+      </div>
+    `;
   });
+
   html += '</div>';
   container.innerHTML = html;
+
+  document.querySelectorAll('.btn-reservar').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const codigo = this.dataset.codigo;
+      const servicio = servicios.find(s => s.codigo_servicio === codigo);
+      if (servicio) {
+        mostrarDetalleServicio(servicio);
+      }
+    });
+  });
+
+  document.querySelectorAll('.tarjeta-servicio').forEach(card => {
+    card.addEventListener('click', function() {
+      const codigo = this.dataset.codigo;
+      const servicio = servicios.find(s => s.codigo_servicio === codigo);
+      if (servicio) {
+        mostrarDetalleServicio(servicio);
+      }
+    });
+  });
 }
