@@ -1,4 +1,4 @@
-// shared/api.js - Cliente API Real de Comunicación con el Servidor Express
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 const API = {
@@ -22,7 +22,7 @@ const API = {
     window.location.href = '../login/login.html';
   },
 
-  // Petición HTTP Fetch Estricta conectada a PostgreSQL
+  // Peticion HTTP Fetch Estricta conectada a PostgreSQL
   async request(endpoint, method = 'GET', data = null) {
     const token = localStorage.getItem('ucab_token');
     const headers = {

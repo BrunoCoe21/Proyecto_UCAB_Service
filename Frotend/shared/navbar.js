@@ -1,4 +1,4 @@
-// shared/navbar.js - Renderizado de Sidebar Dinámico
+
 document.addEventListener('DOMContentLoaded', () => {
   verificarSeguridadRuta();
   inyectarSidebar();
@@ -13,15 +13,11 @@ function verificarSeguridadRuta() {
     return;
   }
 
-  // QA: docentes y administrativos ahora también acceden a Servicios,
-  // Mis Solicitudes y Estado de Cuenta (viven en /estudiante/). Solo el
-  // PERFIL de estudiante (estudiante.html) sigue reservado a estudiante/egresado.
+
   const rolesComunidad = ['ESTUDIANTE', 'EGRESADO', 'DOCENTE', 'ADMINISTRATIVO'];
   if (rutaActual.includes('/estudiante/estudiante.html') && rolActivo !== 'ESTUDIANTE' && rolActivo !== 'EGRESADO') elAccesoEsInvalido();
   else if (rutaActual.includes('/estudiante/') && !rolesComunidad.includes(rolActivo)) elAccesoEsInvalido();
   if (rutaActual.includes('/cajero/') && rolActivo !== 'CAJERO') elAccesoEsInvalido();
-  // CORRECCIÓN: antes solo dejaba pasar a 'ADMINISTRATIVO'; un DOCENTE también
-  // usa la carpeta /administrativo/ (comparten el mismo perfil de empleado).
   if (rutaActual.includes('/administrativo/') && rolActivo !== 'ADMINISTRATIVO' && rolActivo !== 'DOCENTE') elAccesoEsInvalido();
   if (rutaActual.includes('/admin/') && rolActivo !== 'ADMIN') elAccesoEsInvalido();
 }
@@ -129,7 +125,7 @@ function inyectarSidebar() {
     </div>
   `;
 
-  // Asegurar que el body tenga el diseño para Sidebar
+
   body.classList.add('layout-sidebar');
   body.insertBefore(sidebarContainer, body.firstChild);
 }
@@ -138,7 +134,7 @@ function marcarActivo(nombreArchivo) {
   return window.location.pathname.includes(nombreArchivo) ? 'active-link' : '';
 }
 
-// Retorna directo al login.html
+
 window.cerrarSesionGlobal = async function() {
   try {
     const token = localStorage.getItem('ucab_token');
@@ -165,7 +161,6 @@ window.cerrarSesionGlobal = async function() {
   } catch (error) {
     console.warn('Error al cerrar sesion:', error);
   } finally {
-    // Limpiar localStorage y redirigir al login
     localStorage.clear();
     window.location.href = '../login/login.html';
   }

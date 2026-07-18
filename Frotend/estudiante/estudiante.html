@@ -37,10 +37,7 @@
         <div class="badge-estado" id="perfil-estado-cuenta">✓ Cuenta Activa</div>
 
         <div class="roles-box mt-3">
-          <h3 class="titulo-pequeno">Roles Activos — Período Vigente</h3>
-          <!-- QA: el rol principal ya NO está cableado como "Estudiante Activo";
-               lo calcula el JS según el periodo de vinculación vigente
-               (Estudiante / Egresado / Docente...). -->
+          <h3 class="titulo-pequeno">Roles Activos — Periodo Vigente</h3>
           <div class="rol-item">
             <span class="punto-azul"></span> <span id="rol-principal">Cargando...</span>
           </div>
@@ -50,7 +47,6 @@
           <div class="rol-item" id="rol-becado" style="display:none;">
             <span class="punto-azul"></span> Becado · <span id="rol-tipo-beca">---</span>
           </div>
-          <!-- QA: atributos específicos de becario / preparador, debajo del avatar -->
           <div id="atributos-rol-extra" style="margin-top:8px; font-size:12px; color:#6b7280; text-align:left;"></div>
         </div>
       </div>
@@ -59,69 +55,60 @@
     <!-- COLUMNA DERECHA -->
     <section class="columna-derecha">
 
-      <!-- PESTAÑA 1: DATOS PERSONALES -->
+      <!-- DATOS PERSONALES -->
       <div id="datos-personales" class="tab-content active">
         <div class="tarjeta-blanca">
           <h3 class="titulo-seccion">Datos de Registro Obligatorios</h3>
           <div class="grid-datos">
             <div class="dato-box">
-              <span class="icono">🪪</span>
               <div class="dato-info">
                 <span class="etiqueta">Cédula de Identidad</span>
                 <span class="valor" id="dato-cedula">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">🎂</span>
               <div class="dato-info">
                 <span class="etiqueta">Fecha de Nacimiento</span>
                 <span class="valor" id="dato-fecha-nac">--/--/----</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">👤</span>
               <div class="dato-info">
                 <span class="etiqueta">Nombres completos</span>
                 <span class="valor" id="dato-nombres">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">👤</span>
               <div class="dato-info">
                 <span class="etiqueta">Apellidos completos</span>
                 <span class="valor" id="dato-apellidos">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">⚧</span>
               <div class="dato-info">
                 <span class="etiqueta">Sexo</span>
                 <span class="valor" id="dato-sexo">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">📞</span>
               <div class="dato-info">
                 <span class="etiqueta">Teléfono personal</span>
                 <span class="valor" id="dato-telefono">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">✉️</span>
               <div class="dato-info">
                 <span class="etiqueta">Correo institucional</span>
                 <span class="valor" id="dato-correo">---</span>
               </div>
             </div>
             <div class="dato-box">
-              <span class="icono">📍</span>
               <div class="dato-info">
                 <span class="etiqueta">Sede</span>
                 <span class="valor" id="dato-sede">---</span>
               </div>
             </div>
             <div class="dato-box full-width">
-              <span class="icono">🏠</span>
               <div class="dato-info">
                 <span class="etiqueta">Dirección de habitación</span>
                 <span class="valor" id="dato-direccion">---</span>
@@ -153,14 +140,14 @@
         </div>
       </div>
 
-      <!-- PESTAÑA 2: TRAYECTORIA -->
+      <!-- TRAYECTORIA -->
       <div id="trayectoria" class="tab-content">
         <div class="tarjeta-blanca">
           <div class="header-con-icono">
             <span class="icono-grande">🎓</span>
             <div>
-              <h3 class="titulo-seccion mb-0" style="margin-bottom: 2px;">Historial de Períodos de Vinculación</h3>
-              <p class="sub-etiqueta">Expediente único — múltiples períodos históricos y activos (fecha inicio / fecha fin)</p>
+              <h3 class="titulo-seccion mb-0" style="margin-bottom: 2px;">Historial de Periodos de Vinculacion</h3>
+              <p class="sub-etiqueta">Expediente unico — multiples períodos historicos y activos (fecha inicio / fecha fin)</p>
             </div>
           </div>
 
@@ -168,31 +155,31 @@
             <table class="tabla-historial">
               <thead>
                 <tr>
-                  <th>PERÍODO</th>
+                  <th>PERIODO</th>
                   <th>ROL</th>
                   <th>FECHA INICIO</th>
                   <th>FECHA FIN</th>
-                  <th>ÍNDICE</th>
+                  <th>INDICE</th>
                   <th>BECA</th>
                 </tr>
               </thead>
               <tbody id="tbody-trayectoria">
-                <!-- Se llena con JS, mientras tanto vacío -->
+                <!-- Se llena con JS, mientras tanto vacio -->
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- PESTAÑA 3: SEGURIDAD -->
+      <!-- SEGURIDAD -->
       <div id="seguridad" class="tab-content">
         <div class="seguridad-grid">
 
-          <!-- Parámetros de Seguridad -->
+          <!-- Parametros de Seguridad -->
           <div class="tarjeta-blanca padding-reducido">
             <div class="header-con-icono">
               <span class="icono-dorado">🛡️</span>
-              <h3 class="titulo-seccion mb-0">Parámetros de Seguridad</h3>
+              <h3 class="titulo-seccion mb-0">Parametros de Seguridad</h3>
             </div>
             <ul class="lista-seguridad">
               <li>
@@ -200,11 +187,11 @@
                 <span class="badge-activo" id="seg-estado-cuenta">---</span>
               </li>
               <li>
-                <span class="etiqueta-lista">MFA (Verificación en 2 pasos)</span>
+                <span class="etiqueta-lista">MFA (Verificacion en 2 pasos)</span>
                 <span class="badge-azul" id="seg-mfa">---</span>
               </li>
               <li>
-                <span class="etiqueta-lista">Última fecha de cambio de contraseña</span>
+                <span class="etiqueta-lista">Ultima fecha de cambio de contraseña</span>
                 <span class="valor-lista" id="seg-ultima-pass">---</span>
               </li>
               <li>
@@ -212,44 +199,37 @@
                 <span class="valor-lista" id="seg-intentos">---</span>
               </li>
             </ul>
-            <!-- QA: botón de cambio de contraseña. La fecha del cambio la
-                 registra el backend/trigger automáticamente en usuario. -->
             <button id="btn-cambiar-pass" class="tab-btn" style="margin-top:12px; width:100%;"
-                    onclick="abrirCambioContrasena()">🔑 Cambiar contraseña</button>
+                    onclick="abrirCambioContrasena()">Cambiar contraseña</button>
           </div>
 
-          <!-- Auditoría de Sesión Actual -->
+          <!-- Auditoria de Sesión Actual -->
           <div class="tarjeta-blanca padding-reducido">
             <div class="header-con-icono">
-              <span class="icono-dorado">🌐</span>
-              <h3 class="titulo-seccion mb-0">Auditoría de Sesión Actual</h3>
+              <h3 class="titulo-seccion mb-0">Auditoria de Sesion Actual</h3>
             </div>
             <ul class="lista-auditoria">
               <li>
-                <span class="icono-pequeno">🌐</span>
                 <div class="auditoria-info">
                   <span class="etiqueta-lista">IP de origen</span>
                   <span class="valor-lista" id="audit-ip">---</span>
                 </div>
               </li>
               <li>
-                <span class="icono-pequeno">📍</span>
                 <div class="auditoria-info">
-                  <span class="etiqueta-lista">Geolocalización aproximada</span>
+                  <span class="etiqueta-lista">Geolocalizacion aproximada</span>
                   <span class="valor-lista" id="audit-geo">---</span>
                 </div>
               </li>
               <li>
-                <span class="icono-pequeno">📱</span>
                 <div class="auditoria-info">
                   <span class="etiqueta-lista">UUID del dispositivo</span>
                   <span class="valor-lista monospaciado" id="audit-uuid">---</span>
                 </div>
               </li>
               <li>
-                <span class="icono-pequeno">🕒</span>
                 <div class="auditoria-info">
-                  <span class="etiqueta-lista">Última conexión registrada(UTC)</span>
+                  <span class="etiqueta-lista">Ultima conexion registrada(UTC)</span>
                   <span class="valor-lista" id="audit-ultima-conexion">---</span>
                 </div>
               </li>
@@ -263,7 +243,6 @@
   </div>
 </main>
 
-<!-- Scripts compartidos y propio -->
 <script src="../shared/api.js"></script>
 <script src="../shared/navbar.js"></script>
 <script src="estudiante.js"></script>

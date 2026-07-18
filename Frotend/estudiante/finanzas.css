@@ -1,7 +1,4 @@
-/* ============================================================================
-   finanzas.css · Modulo de Finanzas (Estado de Cuenta + Pasarela de Pago)
-   Reusa la paleta del resto del portal: fondo crema, morado UCAB, acentos.
-   ============================================================================ */
+
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -214,10 +211,6 @@ body {
   gap: 8px;
 }
 .resumen-saldo { font-weight: 700; color: var(--primary); font-size: 18px; }
-
-/* ============================================================
-   🔥 GRID DE MÉTODOS DE PAGO - CORREGIDO
-   ============================================================ */
 .grid-metodos {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

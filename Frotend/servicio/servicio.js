@@ -7,9 +7,9 @@ let perfilUsuario = null; // 'miembro_activo', 'egresado', 'publico_externo'
 // (simulación de carga de archivos). Clave: codigo_servicio -> Set de ids.
 const documentosCargados = {};
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // OBTENER PERFIL DEL USUARIO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function obtenerPerfilUsuario() {
   const rol = localStorage.getItem('ucab_rol');
   
@@ -23,9 +23,9 @@ function obtenerPerfilUsuario() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // OBTENER PRECIO SEGÚN PERFIL
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function obtenerPrecioPorPerfil(tarifas, perfil) {
   if (!tarifas) return null;
   
@@ -41,9 +41,9 @@ function obtenerPrecioPorPerfil(tarifas, perfil) {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // CARGAR SERVICIOS
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 window.serviciosCache = [];
 async function cargarServiciosEspacios() {
   try {
@@ -213,9 +213,9 @@ async function cargarServiciosEspacios() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // MOSTRAR DETALLE DEL SERVICIO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function mostrarDetalleServicio(servicio) {
   console.log('📋 Mostrando detalle de:', servicio.descripcion_detallada);
   
@@ -245,19 +245,19 @@ function mostrarDetalleServicio(servicio) {
       <div class="detalle-tarifas">
         <h4>TARIFAS SEGÚN PERFIL</h4>
         <div class="tarifa-fila">
-          <span>👤 Miembro Activo</span>
+          <span> Miembro Activo</span>
           <span>$${Number(tarifas.miembro_activo).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila ${perfilUsuario === 'egresado' ? 'destacada' : ''}">
-          <span>🎓 Egresado</span>
+          <span> Egresado</span>
           <span>$${Number(tarifas.egresado).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila ${perfilUsuario === 'publico_externo' ? 'destacada' : ''}">
-          <span>🌐 Público Externo</span>
+          <span> Publico Externo</span>
           <span>$${Number(tarifas.publico_externo).toFixed(2)}</span>
         </div>
         <div class="tarifa-fila tu-precio">
-          <span><strong>💰 Tu precio (${perfilUsuario === 'miembro_activo' ? 'Miembro Activo' : perfilUsuario === 'egresado' ? 'Egresado' : 'Público Externo'})</strong></span>
+          <span><strong> Tu precio (${perfilUsuario === 'miembro_activo' ? 'Miembro Activo' : perfilUsuario === 'egresado' ? 'Egresado' : 'Publico Externo'})</strong></span>
           <span><strong>$${precioFormateado}</strong></span>
         </div>
       </div>
@@ -278,7 +278,7 @@ function mostrarDetalleServicio(servicio) {
       
       <!-- Entidad Prestadora -->
       <div class="detalle-entidad">
-        <span class="entidad-label">🏢 Entidad Prestadora</span>
+        <span class="entidad-label"> Entidad Prestadora</span>
         <span class="entidad-nombre">${entidadNombre}</span>
       </div>
       
@@ -323,10 +323,6 @@ function mostrarDetalleServicio(servicio) {
     `;
   }
 
-  // QA — ACREDITACIONES: si el servicio exige documentos (tablas requiere y
-  // acreditacion_requisito), se muestra un botón que SIMULA la carga de cada
-  // archivo y el botón "Iniciar solicitud" queda INHABILITADO hasta que
-  // todos los documentos estén cargados.
   const acreditaciones = servicio.acreditaciones || [];
   const cargados = documentosCargados[servicio.codigo_servicio] || new Set();
   const faltanDocumentos = acreditaciones.some(a => !cargados.has(a.id_acreditacion));
@@ -339,11 +335,11 @@ function mostrarDetalleServicio(servicio) {
           const listo = cargados.has(a.id_acreditacion);
           return `
             <div class="cargo-fila" id="fila-acred-${a.id_acreditacion}">
-              <span>${listo ? '✅' : '📎'} ${a.nombre_requisito} <small>(${a.tipo_documento})</small></span>
+              <span>${listo ? 'ok' : 'clip'} ${a.nombre_requisito} <small>(${a.tipo_documento})</small></span>
               ${listo
                 ? '<span style="color:#065f46; font-weight:600;">Cargado</span>'
                 : `<button type="button" class="btn-agregar-acompanante"
-                           onclick="simularCargaDocumento('${servicio.codigo_servicio}','${a.id_acreditacion}')">
+                     onclick="simularCargaDocumento('${servicio.codigo_servicio}','${a.id_acreditacion}')">
                      Cargar archivo
                    </button>`}
             </div>`;
@@ -355,14 +351,14 @@ function mostrarDetalleServicio(servicio) {
   // ADVERTENCIA
   html += `
     <div class="detalle-advertencia">
-      <p>⚠️ Asegúrese de estar solvente en caja antes de iniciar cualquier trámite.</p>
+      <p> Asegurese de estar solvente en caja antes de iniciar cualquier trámite.</p>
     </div>
     
     <!-- Botón Iniciar Solicitud (QA: inhabilitado si faltan acreditaciones) -->
     <button class="btn-iniciar-solicitud" id="btn-iniciar-solicitud"
             ${faltanDocumentos ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Debes cargar los documentos de acreditación requeridos"' : ''}
             onclick="iniciarSolicitud('${servicio.codigo_servicio}')">
-      ${faltanDocumentos ? '🔒 Carga los documentos para continuar' : 'Iniciar solicitud ›'}
+      ${faltanDocumentos ? 'Carga los documentos para continuar' : 'Iniciar solicitud ›'}
     </button>
   </div>
   `;
@@ -370,9 +366,7 @@ function mostrarDetalleServicio(servicio) {
   panel.innerHTML = html;
 }
 
-// QA: simulación de carga de archivos de acreditación. Marca el documento
-// como cargado y repinta el panel; cuando todos están cargados, el botón
-// "Iniciar solicitud" se habilita.
+
 function simularCargaDocumento(codigoServicio, idAcreditacion) {
   if (!documentosCargados[codigoServicio]) documentosCargados[codigoServicio] = new Set();
   documentosCargados[codigoServicio].add(idAcreditacion);
@@ -382,9 +376,9 @@ function simularCargaDocumento(codigoServicio, idAcreditacion) {
   }
 }
 
-// ============================================================
-// RESTAURAR ESTADO VACÍO DEL PANEL
-// ============================================================
+// --------------------------------------------------------------------------------------------------
+// RESTAURAR ESTADO VACIO DEL PANEL
+// --------------------------------------------------------------------------------------------------
 function restaurarPanelVacio() {
   const panel = document.getElementById('panel-detalle');
   if (!panel) return;
@@ -400,9 +394,9 @@ function restaurarPanelVacio() {
   `;
 }
 
-// ============================================================
-// OBTENER COLOR DE CATEGORÍA
-// ============================================================
+// --------------------------------------------------------------------------------------------------
+// OBTENER COLOR DE CATEGORIA
+// --------------------------------------------------------------------------------------------------
 function getColorCategoria(categoria) {
   const colores = {
     'Cultura': 'morado',
@@ -415,18 +409,9 @@ function getColorCategoria(categoria) {
   return colores[categoria] || 'azul';
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // INICIAR SOLICITUD
-// ============================================================
-// CAMBIO DE FLUJO (acordado): si el servicio es de categoría Cultura o
-// Deporte, requiere reservar un espacio, así que en vez de crear la
-// solicitud directo se abre el modal de reserva (definido más abajo). Ese
-// modal crea la solicitud Y la reserva juntas al confirmar.
-//
-// CORRECCIÓN: se quitó 'estado_general: EN PROCESO' del body — ese valor en
-// mayúsculas no coincidía con los que usa el resto de la base ('abierta',
-// 'en proceso', 'cerrada'). Ahora el backend siempre decide el estado
-// inicial ('abierta'), en minúsculas, de forma consistente.
+// --------------------------------------------------------------------------------------------------
 async function iniciarSolicitud(codigoServicio) {
   if (!servicioSeleccionado) {
     showAviso('Por favor, seleccione un servicio primero.', 'error');
@@ -470,24 +455,17 @@ async function iniciarSolicitud(codigoServicio) {
       throw new Error(errorData.error || 'Error al crear la solicitud');
     }
 
-    console.log('✅ Solicitud creada');
+    console.log(' Solicitud creada');
 
     restaurarPanelVacio();
     window.location.href = '../estudiante/solicitudes.html';
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error:', error);
     showAviso('No se pudo iniciar la solicitud: ' + error.message, 'error');
   }
 }
 
-// ============================================================================
-//  MODAL DE RESERVA DE ESPACIO (movido aquí desde Mis Solicitudes, acordado)
-//  Paso A: elegir espacio de la sede del servicio
-//  Paso B: fecha/hora/personas + botón "Verificar disponibilidad"
-//  Paso C: si está disponible, lista dinámica de acompañantes (0 a N, con
-//          scroll si crece mucho) + botón "Confirmar"
-// ============================================================================
 
 let reservaEnCurso = null;
 let contadorAcompanantes = 0;
@@ -645,10 +623,6 @@ async function verificarDisponibilidadReserva() {
   }
 }
 
-// Lista dinámica de acompañantes: cada clic agrega una fila (cédula + nombre).
-// Sin límite duro (no existe en la base de datos); la lista tiene scroll
-// propio (max-height en el CSS) para que no crezca indefinidamente en
-// pantalla aunque se agreguen varios.
 function agregarFilaAcompanante() {
   contadorAcompanantes++;
   const id = contadorAcompanantes;
@@ -715,15 +689,10 @@ async function confirmarReservaServicio() {
   }
 }
 
-// ============================================================
-// INICIALIZAR
-// ============================================================
+
 document.addEventListener('DOMContentLoaded', cargarServiciosEspacios);
 
-// ----------------------------------------------------------------------------
-//  Filtro por sede — vuelve a pintar el catálogo con el subconjunto elegido.
-//  Usa el cache en memoria (no llama al backend de nuevo).
-// ----------------------------------------------------------------------------
+
 function filtrarPorSede() {
   // Si ya tenemos los servicios en cache, aplicamos el filtro sin volver al backend.
   const sede = document.getElementById('filtro-sede').value;
@@ -737,9 +706,7 @@ function filtrarPorSede() {
   }
 }
 
-// ----------------------------------------------------------------------------
-//  Pinta el catálogo con la lista de servicios que reciba.
-// ----------------------------------------------------------------------------
+
 function pintarCatalogo(servicios) {
   const container = document.getElementById('catalogo-dinamico');
   if (!container) return;
@@ -747,7 +714,7 @@ function pintarCatalogo(servicios) {
   if (!servicios || servicios.length === 0) {
     container.innerHTML = `
       <div class="sin-servicios">
-        <p>📌 No hay servicios disponibles para la sede seleccionada.</p>
+        <p> No hay servicios disponibles para la sede seleccionada.</p>
       </div>`;
     return;
   }

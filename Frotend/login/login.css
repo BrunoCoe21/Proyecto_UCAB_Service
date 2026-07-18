@@ -217,3 +217,131 @@ label {
   display: none;
 }
 .alerta-banner.error { display: block; background: #ffdad6; color: #ba1a1a; border: 1px solid #ffb4ab; }
+
+.modal-2fa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-2fa-overlay.abierto {
+  display: flex;
+}
+
+.modal-2fa {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 28px 24px;
+  width: 92%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.modal-2fa h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+  color: #1a1a2e;
+}
+
+.modal-2fa p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+.modal-2fa .codigo-demo {
+  background: #fef3c7;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #92400e;
+  letter-spacing: 4px;
+  font-family: monospace;
+  margin-bottom: 18px;
+}
+
+.modal-2fa input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e6e2da;
+  border-radius: 8px;
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 6px;
+  font-family: monospace;
+  outline: none;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.modal-2fa input:focus {
+  border-color: #4a1d6e;
+}
+
+.modal-2fa .error {
+  color: #b3261e;
+  font-size: 13px;
+  margin-bottom: 12px;
+  display: none;
+}
+
+.modal-2fa .error.visible {
+  display: block;
+}
+
+.modal-2fa .botones {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-2fa .botones button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.modal-2fa .botones .cancelar {
+  background: #eef0f7;
+  color: #4b5563;
+}
+
+.modal-2fa .botones .cancelar:hover {
+  background: #e2e4ec;
+}
+
+.modal-2fa .botones .verificar {
+  background: #4a1d6e;
+  color: #fff;
+}
+
+.modal-2fa .botones .verificar:hover {
+  background: #361552;
+}
+
+.modal-2fa .botones .verificar:disabled {
+  background: #b0a8b8;
+  cursor: not-allowed;
+}
+
+.modal-2fa .loading {
+  display: none;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.modal-2fa .loading.activo {
+  display: block;
+}

@@ -634,7 +634,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* --- RESPONSIVE --- */
+
 @media (max-width: 480px) {
     .modal-postulacion {
         max-width: 95%;

@@ -1,14 +1,13 @@
 
-// estudiante.js - Versión con depuración y formato sencillo
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // --- OBTENER SESIÓN ---
+  // --- OBTENER SESION ---
   const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
   const token = localStorage.getItem('ucab_token');
 
 
   if (!usuario || !token) {
-    console.error('❌ No hay sesión activa. Redirigiendo al login...');
+    console.error(' No hay sesion activa. Redirigiendo al login...');
     window.location.href = '../login/login.html';
     return;
   }
@@ -26,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const cedula = usuario.cedula || usuario.cedula_identidad;
     if (!cedula) {
-      console.error('❌ No se encontró la cédula en usuario:', usuario);
+      console.error(' No se encontro la cedula en usuario:', usuario);
       return;
     }
 
@@ -40,15 +39,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error en la respuesta:', errorText);
       throw new Error(`Error ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    // Llenar todos los campos del perfil
+    
     llenarPerfil(data, usuario);
     llenarTrayectoria(data.trayectoria);
-    llenarRolesActivos(data);       // QA: rol real + atributos becario/preparador
+    llenarRolesActivos(data);       
     llenarSeguridad(data, usuario);
 
 
@@ -57,10 +55,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    console.error('💥 Error al cargar el perfil:', error);
+    console.error('Error al cargar el perfil:', error);
   }
 
-  // --- LÓGICA DE PESTAÑAS ---
+  // --- LOGICA DE PESTAÑAS ---
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -71,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// --- FUNCIÓN QUE LLENA TODOS LOS CAMPOS DEL PERFIL ---
+// --- FUNCION QUE LLENA TODOS LOS CAMPOS DEL PERFIL ---
 function llenarPerfil(data, usuarioSesion) {
 
   // ----- COLUMNA IZQUIERDA (Identidad) -----
@@ -155,7 +153,7 @@ function llenarPerfil(data, usuarioSesion) {
   document.getElementById('resumen-semestre-anio').textContent = 'Período Activo';
 }
 
-// --- FUNCIÓN PARA LLENAR LA TRAYECTORIA ---
+// --- FUNCION PARA LLENAR LA TRAYECTORIA ---
 function llenarTrayectoria(trayectoria) {
   const tbody = document.getElementById('tbody-trayectoria');
   tbody.innerHTML = ''; 
@@ -176,8 +174,6 @@ function llenarTrayectoria(trayectoria) {
     const textoBeca = esBecado ? p.condicion_beca : 'No posee';
     const badgeBecaClass = esBecado ? 'badge-azul' : 'badge-cerrado'; 
     
-    // QA: se eliminó la columna "Estado" (el estado ya se deduce de la
-    // fecha de fin: si dice "Vigente", el periodo está activo).
     tr.innerHTML = `
       <td class="fw-bold">${anioInicio}</td>
       <td>${p.rol_activo.toUpperCase()}</td>
@@ -190,14 +186,11 @@ function llenarTrayectoria(trayectoria) {
   });
 }
 
-// ============================================================
-// 🔒 SECCIÓN DE SEGURIDAD - CON FORMATO SENCILLO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
+// SECCION DE SEGURIDAD 
+// --------------------------------------------------------------------------------------------------
 function llenarSeguridad(data, usuarioSesion) {
   
-  // ============================================================
-  // 1. Parámetros de Seguridad
-  // ============================================================
   
   const estadoCuenta = data.estado_cuenta || 'activa';
   const estadoElem = document.getElementById('seg-estado-cuenta');
@@ -223,9 +216,6 @@ function llenarSeguridad(data, usuarioSesion) {
     }
   }
 
-  // Intentos fallidos (QA): el login exitoso los resetea a 0 en la base,
-  // así que aquí se muestran los intentos PREVIOS a esta sesión (los guarda
-  // login.js antes del reseteo) más los que la base tenga registrados ahora.
   const intentosElem = document.getElementById('seg-intentos');
   if (intentosElem) {
     const actuales = parseInt(data.intentos_fallidos_auth) || 0;
@@ -235,9 +225,9 @@ function llenarSeguridad(data, usuarioSesion) {
       : (previos > 0 ? `0 (hubo ${previos} antes de este inicio de sesión)` : '0');
   }
 
-  // ============================================================
-  // 2. Auditoría de Sesión Actual
-  // ============================================================
+  // --------------------------------------------------------------------------------------------------
+  //  Auditoria de Sesion Actual
+  // --------------------------------------------------------------------------------------------------
   
   let sesionData = null;
   try {
@@ -264,7 +254,7 @@ function llenarSeguridad(data, usuarioSesion) {
     if (uuidElem) uuidElem.textContent = sesionData.identificador_dispositivo || sesionData.dispositivo || 'No disponible';
   }
 
-  // ÚLTIMA CONEXIÓN 
+  // ULTIMA CONEXION 
   const conexionElem = document.getElementById('audit-ultima-conexion');
   if (conexionElem) {
     let fechaParaMostrar = null;
@@ -286,12 +276,6 @@ function llenarSeguridad(data, usuarioSesion) {
 
 }
 
-// ============================================================
-// QA: ROLES ACTIVOS DINÁMICOS + ATRIBUTOS DE BECARIO/PREPARADOR/EGRESADO
-// El rol principal se toma del periodo de vinculación VIGENTE (fecha_fin
-// nula); ya no queda cableado "Estudiante Activo" cuando el usuario es
-// egresado. Los atributos específicos se pintan debajo del avatar.
-// ============================================================
 function llenarRolesActivos(data) {
   const rolElem = document.getElementById('rol-principal');
   const vigente = (data.trayectoria || []).find(p => !p.fecha_finalizacion);
@@ -325,9 +309,7 @@ function llenarRolesActivos(data) {
   }
   if (extra) extra.innerHTML = html;
 
-  // Si el usuario es EGRESADO puro (sin fila de estudiante), la tarjeta de
-  // "Atributos del Rol Activo" muestra sus datos de egresado en vez de
-  // promedios de estudiante vacíos.
+
   if (data.egresado && data.promedio == null) {
     document.getElementById('resumen-promedio').textContent = data.egresado.indice_academico_final;
     document.getElementById('resumen-promedio-nivel').textContent = 'Índice académico final';
@@ -340,10 +322,10 @@ function llenarRolesActivos(data) {
   }
 }
 
-// ============================================================
-// QA: CAMBIO DE CONTRASEÑA (usa /api/auth/cambiar-contrasena;
-// la fecha del cambio la guarda la base automáticamente)
-// ============================================================
+// --------------------------------------------------------------------------------------------------
+// CAMBIO DE CONTRASEÑA (usa /api/auth/cambiar-contrasena;
+// --------------------------------------------------------------------------------------------------
+
 async function abrirCambioContrasena() {
   const actual = prompt('Contraseña actual:');
   if (!actual) return;
@@ -364,6 +346,6 @@ async function abrirCambioContrasena() {
     const fechaElem = document.getElementById('seg-ultima-pass');
     if (fechaElem) fechaElem.textContent = new Date().toLocaleString('es-VE');
   } catch (error) {
-    alert('❌ ' + error.message);
+    alert(' Error : ' + error.message);
   }
 }

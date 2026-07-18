@@ -1,8 +1,3 @@
-// ============================================================================
-//  bolsa_trabajo.js  ·  UCAB-Services  ·  Bolsa de Trabajo (Egresados)
-//  Consume los endpoints de /api/vacantes definidos en vacanteController.
-//  VERSIÓN CON FILTRO POR PERFIL BUSCADO
-// ============================================================================
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -13,11 +8,11 @@ let vacanteSeleccionada = null;
 let usuario = null;
 let token = null;
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  INICIALIZACIÓN
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Obtener sesión
+  // Obtener sesion
   usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
   token = localStorage.getItem('ucab_token');
 
@@ -26,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 2. Verificar que sea egresado
+  // Verificar que sea egresado
   const roles = usuario.roles || [];
   if (!roles.includes('egresado')) {
     alert('Acceso restringido a egresados.');
@@ -34,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 3. Configurar evento del filtro
+  // Configurar evento del filtro
   const filtroSelect = document.getElementById('filtro-perfil');
   filtroSelect.addEventListener('change', aplicarFiltro);
 
@@ -44,9 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cargarVacantes();
 });
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  OBTENER PERFIL DEL EGRESADO (índice académico)
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 async function cargarPerfilEgresado() {
   try {
     const cedula = usuario.cedula || usuario.cedula_identidad;
@@ -63,9 +58,9 @@ async function cargarPerfilEgresado() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  OBTENER POSTULACIONES DEL USUARIO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 async function cargarPostulaciones() {
   try {
     const cedula = usuario.cedula || usuario.cedula_identidad;
@@ -81,9 +76,9 @@ async function cargarPostulaciones() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  CARGAR VACANTES Y POBLAR FILTRO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 async function cargarVacantes() {
   const container = document.getElementById('lista-vacantes');
   try {
@@ -96,20 +91,17 @@ async function cargarVacantes() {
     if (!Array.isArray(vacantes) || vacantes.length === 0) {
       container.innerHTML = `
         <div class="sin-vacantes">
-          <p>📌 No hay oportunidades laborales disponibles en este momento.</p>
+          <p> No hay oportunidades laborales disponibles en este momento.</p>
           <p style="font-size: 13px; color: #8a9bb2; margin-top: 8px;">Vuelve más tarde.</p>
         </div>
       `;
-      // Limpiar el select del filtro
       const select = document.getElementById('filtro-perfil');
       select.innerHTML = '<option value="todos">Todos</option>';
       return;
     }
 
-    // 1. Poblar el select con los perfiles únicos
     poblarFiltro(vacantes);
 
-    // 2. Mostrar todas las vacantes inicialmente (filtro = 'todos')
     vacantesFiltradas = [...vacantes];
     renderizarVacantes(vacantesFiltradas, 'todos');
 
@@ -117,7 +109,7 @@ async function cargarVacantes() {
     console.error('Error:', error);
     container.innerHTML = `
       <div class="error-message">
-        <p>⚠️ No se pudieron cargar las vacantes</p>
+        <p> ERRROR: No se pudieron cargar las vacantes</p>
         <p style="font-size: 13px; color: #666;">${error.message}</p>
         <button onclick="cargarVacantes()">Reintentar</button>
       </div>
@@ -125,9 +117,9 @@ async function cargarVacantes() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  POBLAR EL SELECT CON PERFILES ÚNICOS
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function poblarFiltro(vacantes) {
   const select = document.getElementById('filtro-perfil');
   // Limpiar opciones existentes, mantener solo "Todos"
@@ -140,7 +132,7 @@ function poblarFiltro(vacantes) {
     }
   });
 
-  // Ordenar alfabéticamente
+  // Ordenar alfabeticamente
   const perfilesOrdenados = Array.from(perfiles).sort((a, b) => a.localeCompare(b));
   perfilesOrdenados.forEach(perfil => {
     const option = document.createElement('option');
@@ -150,9 +142,9 @@ function poblarFiltro(vacantes) {
   });
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  APLICAR FILTRO (al cambiar el select)
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function aplicarFiltro() {
   const select = document.getElementById('filtro-perfil');
   const perfilSeleccionado = select.value;
@@ -194,9 +186,9 @@ function aplicarFiltro() {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  RENDERIZAR TARJETAS DE VACANTES
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function renderizarVacantes(vacantesMostrar, perfilSeleccionado) {
   const container = document.getElementById('lista-vacantes');
 
@@ -234,13 +226,11 @@ function renderizarVacantes(vacantesMostrar, perfilSeleccionado) {
   html += '</div>';
   container.innerHTML = html;
 
-  // Si no hay vacante seleccionada, no hacemos nada
-  // Si hay vacante seleccionada pero no está en el filtro, ya se limpió en aplicarFiltro
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  MOSTRAR DETALLE DE UNA VACANTE
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function mostrarDetalle(vacante) {
   vacanteSeleccionada = vacante;
   const panel = document.getElementById('panel-detalle');
@@ -255,22 +245,22 @@ function mostrarDetalle(vacante) {
 
       ${vacante.contactos ? `
         <div class="detalle-contacto">
-          <strong>📞 Contacto:</strong> ${vacante.contactos}
+          <strong> Contacto:</strong> ${vacante.contactos}
         </div>
       ` : ''}
 
       <div class="detalle-seccion">
-        <h4>📋 Responsabilidades</h4>
+        <h4> Responsabilidades</h4>
         <p>${vacante.responsabilidad || 'No especificadas'}</p>
       </div>
 
       <div class="detalle-seccion">
-        <h4>🎯 Perfil buscado</h4>
+        <h4> Perfil buscado</h4>
         <p class="perfil-buscado">${vacante.perfil_buscado || 'No especificado'}</p>
       </div>
 
       <div class="detalle-seccion">
-        <h4>✨ Beneficios</h4>
+        <h4> Beneficios</h4>
         <p>${vacante.beneficios || 'No especificados'}</p>
       </div>
 
@@ -305,9 +295,9 @@ function mostrarDetalle(vacante) {
   panel.innerHTML = html;
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // POSTULARSE A UNA VACANTE - CON MODAL PERSONALIZADO
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 async function postularse(idVacante) {
     // Obtener la vacante seleccionada
     const vacante = vacantesFiltradas.find(v => v.id_vacante === idVacante);
@@ -393,9 +383,9 @@ async function postularse(idVacante) {
     }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  UTILIDAD: FORMATEAR FECHA
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function formatearFecha(fechaStr) {
   if (!fechaStr) return 'Fecha no disponible';
   const fecha = new Date(fechaStr);
@@ -408,9 +398,9 @@ function formatearFecha(fechaStr) {
   return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 //  EVENTO DE CLIC EN TARJETAS (delegación)
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   // Delegación de eventos para las tarjetas
   document.getElementById('lista-vacantes').addEventListener('click', (e) => {
@@ -424,9 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // MODAL DE POSTULACIÓN - Funciones
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 
 /**
  * Muestra un modal personalizado para el resultado de la postulación
@@ -444,24 +434,21 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
     const detalleEl = document.getElementById('modal-detalle');
     const btnPrincipal = document.getElementById('modal-btn-principal');
 
-    // Configurar según el tipo
+    // Configurar segun el tipo
     const config = {
         exito: {
-            icono: '✅',
             clase: 'exito',
             btnClase: 'exito',
             btnTexto: 'Continuar',
             subtitulo: '¡Postulación registrada!'
         },
         error: {
-            icono: '❌',
             clase: 'error',
             btnClase: 'error',
             btnTexto: 'Intentar de nuevo',
             subtitulo: 'No se pudo completar la postulación'
         },
         warning: {
-            icono: '⚠️',
             clase: 'warning',
             btnClase: 'warning',
             btnTexto: 'Entendido',
@@ -480,17 +467,15 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
     subtituloEl.textContent = cfg.subtitulo;
     mensajeEl.textContent = mensaje;
 
-    // Configurar botón
+    // Configurar boton
     btnPrincipal.textContent = cfg.btnTexto;
     btnPrincipal.className = `btn-modal-postulacion ${cfg.btnClase}`;
     
-    // Configurar evento del botón según el tipo
+    // Configurar evento del boton segun el tipo
     btnPrincipal.onclick = function() {
         cerrarModalPostulacion();
         if (tipo === 'exito') {
-            // Redirigir a mis postulaciones o recargar
             setTimeout(() => {
-                // Recargar las postulaciones del usuario
                 const select = document.getElementById('filtro-perfil');
                 const perfil = select ? select.value : 'todos';
                 aplicarFiltro();
@@ -520,17 +505,14 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
     });
 }
 
-/**
- * Cierra el modal de postulación
- */
+//Cierra el modal de postulacion
 function cerrarModalPostulacion() {
     const modal = document.getElementById('modal-postulacion');
     modal.classList.remove('abierto');
 }
 
-/**
- * Cierra el modal haciendo clic fuera de él
- */
+
+ // Cierra el modal haciendo clic afuera 
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('modal-postulacion');
     if (modal && modal.classList.contains('abierto')) {

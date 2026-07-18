@@ -1,11 +1,3 @@
-// ============================================================================
-//  gestion.js  ·  Gestión de Solicitudes y Pasos (docente / administrativo)
-//  QA: el botón Completar queda BLOQUEADO mientras el paso esté 'pendiente'
-//  (primero hay que Iniciarlo) y el personal solo ve las oficinas de las que
-//  es responsable asignado, si tiene alguna.
-//  Filtra por OFICINA (FK real), no por persona (responsable_asignado es
-//  texto libre sin FK y siempre NULL en los datos reales del proyecto).
-// ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
@@ -15,9 +7,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await cargarOficinas();
 });
 
-// ----------------------------------------------------------------------------
-//  Llena el selector de oficinas. Recuerda la última oficina elegida.
-// ----------------------------------------------------------------------------
 async function cargarOficinas() {
   const select = document.getElementById('select-oficina');
   try {
@@ -78,9 +67,9 @@ async function cargarPasos(nombreOficina) {
   }
 }
 
-// QA: asignación explícita de responsables por oficina.
+// asignacion de responsables por oficina.
 async function asignarmeOficina(nombreOficina) {
-  if (!confirm(`¿Asignarte como responsable de "${nombreOficina}"? A partir de ahora solo verás los pasos de tus oficinas.`)) return;
+  if (!confirm(`¿Asignarte como responsable de "${nombreOficina}"? A partir de ahora solo veras los pasos de tus oficinas.`)) return;
   try {
     await API.request(`/gestion/oficinas/${encodeURIComponent(nombreOficina)}/responsable`, 'PUT', {});
     showAviso('Asignación registrada.', 'ok');
@@ -124,8 +113,7 @@ function tarjetaPaso(p) {
 }
 
 // ----------------------------------------------------------------------------
-//  Cambia el estado de un paso. Si la base rechaza (paso anterior pendiente),
-//  el mensaje del trigger se muestra tal cual.
+//  Cambia el estado de un paso. Si la base rechaza (paso anterior pendiente)
 // ----------------------------------------------------------------------------
 async function cambiarEstado(idSolicitud, numPaso, nuevoEstado) {
   try {

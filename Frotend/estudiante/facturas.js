@@ -1,8 +1,4 @@
-// ============================================================================
-//  facturas.js  ·  Estado de Cuenta del estudiante
-//  Carga las facturas reales desde la API. Muestra el detalle de cada una.
-//  NO tiene botones de pago - solo consulta.
-// ============================================================================
+
 
 let facturasCache = [];
 
@@ -20,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ----------------------------------------------------------------------------
-//  Trae las facturas del estudiante y arma la lista + el banner de saldo total.
+//  Trae las facturas del estudiante y arma la lista 
 // ----------------------------------------------------------------------------
 async function cargarFacturas(cedula) {
   const lista = document.getElementById('lista-facturas');
@@ -35,17 +31,17 @@ async function cargarFacturas(cedula) {
       return;
     }
 
-    // Saldo pendiente total (solo facturas que no están pagadas)
+   
     const saldoTotal = facturas
       .filter(f => f.estatus !== 'pagada')
       .reduce((sum, f) => sum + Number(f.saldo), 0);
 
     pintarBanner(saldoTotal);
 
-    // Lista de tarjetas de factura
+
     lista.innerHTML = facturas.map(f => tarjetaFactura(f)).join('');
 
-    // Listeners para seleccionar una factura
+
     document.querySelectorAll('.item-factura').forEach(el => {
       el.addEventListener('click', () => {
         document.querySelectorAll('.item-factura').forEach(x => x.classList.remove('seleccionada'));
@@ -54,7 +50,7 @@ async function cargarFacturas(cedula) {
       });
     });
 
-    // Abrir la primera automáticamente
+
     const primera = document.querySelector('.item-factura');
     if (primera) {
       primera.classList.add('seleccionada');
@@ -88,10 +84,8 @@ function tarjetaFactura(f) {
     anulada: 'estado-anulada'
   }[f.estatus] || 'estado-pendiente';
 
-  // Mostrar número de control
   const identificador = f.num_control;
 
-  // Indicador de pago pendiente de verificación
   const tienePagoPendiente = f.tiene_pago_pendiente || false;
 
   let badgePagoPendiente = '';
@@ -121,10 +115,7 @@ function tarjetaFactura(f) {
   `;
 }
 
-// ----------------------------------------------------------------------------
-//  Carga el detalle de una factura: líneas de cargo + abonos + totales.
-//  🔥 NO tiene botón de pago - solo muestra información.
-// ----------------------------------------------------------------------------
+
 async function cargarDetalle(numControl) {
   const cont = document.getElementById('detalle-factura');
   cont.innerHTML = '<p class="texto-vacio">Cargando detalle...</p>';
@@ -236,7 +227,6 @@ async function cargarDetalle(numControl) {
   }
 }
 
-// Formatea una fecha ISO a algo legible en español
 function formatearFecha(fecha) {
   if (!fecha) return '--';
   const d = new Date(fecha);

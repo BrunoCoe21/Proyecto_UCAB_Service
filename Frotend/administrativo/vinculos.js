@@ -1,6 +1,4 @@
-// ============================================================================
-//  vinculos.js  ·  Gestión de Vínculos Familiares (docente / administrativo)
-// ============================================================================
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
@@ -12,13 +10,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ----------------------------------------------------------------------------
-//  Lista todos los vínculos familiares en la tabla.
+//  Lista todos los vinculos familiares en la tabla.
 // ----------------------------------------------------------------------------
 async function cargarVinculos() {
   const cuerpo = document.getElementById('tabla-body');
   try {
     const vinculos = await API.request('/vinculos');
-    window._vinculosCache = vinculos;   // cache para el botón Editar (por ci)
+    window._vinculosCache = vinculos; 
 
     if (vinculos.length === 0) {
       cuerpo.innerHTML = '<tr><td colspan="7" class="texto-vacio">No hay familiares registrados.</td></tr>';
@@ -106,7 +104,7 @@ function cerrarModal() {
   document.getElementById('modal-vinculo').style.display = 'none';
 }
 
-// Muestra/oculta los campos propios de cada subtipo según lo elegido
+// Muestra/oculta los campos propios de cada subtipo segun lo elegido
 function cambiarSubtipo() {
   const valor = document.getElementById('f-subtipo').value;
   document.getElementById('campos-menor').style.display = (valor === 'menor') ? 'block' : 'none';
@@ -114,7 +112,7 @@ function cambiarSubtipo() {
 }
 
 // ----------------------------------------------------------------------------
-//  Enviar el formulario: crea o edita según el modo.
+//  Enviar el formulario: crea o edita según el modo
 // ----------------------------------------------------------------------------
 async function guardarVinculo(e) {
   e.preventDefault();
@@ -142,8 +140,6 @@ async function guardarVinculo(e) {
     cerrarModal();
     await cargarVinculos();
   } catch (error) {
-    // Aquí llegan tal cual los mensajes del trigger de la base, por ejemplo:
-    // "El registrador X debe ser docente o personal administrativo."
     showAviso('No se pudo guardar: ' + error.message, 'error');
   }
 }
@@ -154,8 +150,6 @@ async function guardarVinculo(e) {
 async function inactivar(ci) {
   if (!confirm('¿Confirma dar de baja a este familiar? Esto cierra su vínculo, no lo elimina.')) return;
   try {
-    // NOTA: se usa PUT en vez de PATCH porque shared/api.js (el cliente HTTP
-    // compartido del proyecto) solo soporta GET, POST y PUT por ahora.
     await API.request(`/vinculos/${ci}/inactivar`, 'PUT');
     await cargarVinculos();
   } catch (error) {

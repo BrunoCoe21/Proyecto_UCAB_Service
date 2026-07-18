@@ -1,6 +1,3 @@
-// ============================================================================
-//  empleado.js  ·  Perfil del empleado (docente o administrativo)
-// ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   const usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
@@ -9,7 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const cedula = usuario.cedula || usuario.cedula_identidad;
 
-  // Avatar e identidad basica (mientras carga la API)
   if (usuario.nombre) {
     document.getElementById('perfil-avatar').textContent = usuario.nombre.charAt(0).toUpperCase();
     document.getElementById('perfil-nombre').textContent = usuario.nombre;
@@ -17,9 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await cargarPerfil(cedula);
 
-  // ============================================================
-  // TABS
-  // ============================================================
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -50,14 +44,11 @@ async function cargarPerfil(cedula) {
       estadoBadge.className = 'badge-estado badge-inactiva';
     }
 
-    // Rol + datos laborales
     pintarInfoLaboral(docente, administrativo);
 
-    // Trayectoria y seguridad
     await cargarTrayectoria(usuario.cedula_identidad);
     pintarSeguridad(usuario);
 
-    // Vinculacion
     const contVinc = document.getElementById('info-vinculacion');
     if (vinculacion) {
       contVinc.className = '';
@@ -81,8 +72,7 @@ function pintarInfoLaboral(docente, administrativo) {
 
   if (docente) {
     rolEl.textContent = 'Docente';
-    
-    // Formatear carga horaria sin decimales
+  
     let cargaHoraria = docente.carga_horaria_semanal;
     if (cargaHoraria !== null && cargaHoraria !== undefined) {
       cargaHoraria = Number(cargaHoraria).toFixed(0);
@@ -98,7 +88,6 @@ function pintarInfoLaboral(docente, administrativo) {
   } else if (administrativo) {
     rolEl.textContent = 'Personal Administrativo';
     
-    // Formatear carga horaria sin decimales
     let cargaHoraria = administrativo.carga_horaria;
     if (cargaHoraria !== null && cargaHoraria !== undefined) {
       cargaHoraria = Number(cargaHoraria).toFixed(0);
@@ -122,9 +111,9 @@ function formatearFecha(fecha) {
   return new Date(fecha).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // TRAYECTORIA - Historial de periodos de vinculacion
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 async function cargarTrayectoria(cedula) {
   const tbody = document.getElementById('tbody-trayectoria-emp');
   try {
@@ -147,9 +136,9 @@ async function cargarTrayectoria(cedula) {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // SEGURIDAD
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function pintarSeguridad(usuario) {
   // Estado de la cuenta
   const estadoElem = document.getElementById('seg-estado-cuenta');
@@ -183,9 +172,9 @@ function pintarSeguridad(usuario) {
       : (previos > 0 ? `0 (hubo ${previos} antes de este inicio de sesion)` : '0');
   }
 
-  // ============================================================
+  // --------------------------------------------------------------------------------------------------
   // Auditoria de Sesion Actual
-  // ============================================================
+  // --------------------------------------------------------------------------------------------------
   let sesionData = null;
   try {
     const sesionGuardada = localStorage.getItem('ucab_sesion_actual');
@@ -215,9 +204,9 @@ function pintarSeguridad(usuario) {
   }
 }
 
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 // CAMBIO DE CONTRASENA (modal)
-// ============================================================
+// --------------------------------------------------------------------------------------------------
 function abrirCambioContrasena() {
   document.getElementById('clave-actual').value = '';
   document.getElementById('clave-nueva').value = '';

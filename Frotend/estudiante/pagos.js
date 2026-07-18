@@ -1,7 +1,4 @@
-// ============================================================================
-//  pagos.js  ·  Pasarela de pago del estudiante
-//  Flujo en pasos: elegir factura -> elegir método -> llenar datos -> confirmar.
-// ============================================================================
+
 
 const TASA_BCV = 38.50;
 
@@ -27,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ----------------------------------------------------------------------------
-//  PASO 0 — Lista de facturas que aún tienen saldo.
+//  Lista de facturas que aun tienen saldo.
 // ----------------------------------------------------------------------------
 async function cargarFacturasPendientes(cedula) {
   const cont = document.getElementById('lista-facturas-pago');
@@ -230,9 +227,9 @@ function camposPorMetodo(metodo) {
   }
 }
 
-// ============================================================================
+// -----------------------------------------------------------------------------------------------
 //  enviarPago - CON MODAL DE CONFIRMACIÓN PARA PAGOS PRESENCIALES
-// ============================================================================
+// -------------------------------------------------------------------------------------------------
 async function enviarPago(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-confirmar');
@@ -258,13 +255,11 @@ async function enviarPago(e) {
       }
     );
 
-    // Si el pago fue presencial, mostrar modal informativo
     if (esPresencial) {
       mostrarModalPresencial(resp);
       return;
     }
 
-    // Pagos virtuales: confirmación normal
     mostrarPaso('paso-confirmado');
     const f = resp.factura;
     document.getElementById('mensaje-confirmado').innerHTML =
@@ -278,11 +273,10 @@ async function enviarPago(e) {
   }
 }
 
-// ============================================================================
+// --------------------------------------------------------------------------------------------------
 //  MODAL PARA PAGOS PRESENCIALES
-// ============================================================================
+// --------------------------------------------------------------------------------------------------
 function mostrarModalPresencial(resp) {
-  // Crear el modal si no existe
   let modal = document.getElementById('modal-pago-presencial');
   if (!modal) {
     modal = document.createElement('div');
@@ -375,7 +369,6 @@ function mostrarModalPresencial(resp) {
 function cerrarModalPresencial() {
   const modal = document.getElementById('modal-pago-presencial');
   if (modal) modal.classList.remove('abierto');
-  // Redirigir a Mis Solicitudes
   window.location.href = '../estudiante/solicitudes.html';
 }
 

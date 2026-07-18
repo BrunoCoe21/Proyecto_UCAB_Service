@@ -1,18 +1,5 @@
-// ============================================================================
-//  shared/aviso.js  —  helper de avisos modales (reemplazo de alert())
-// ============================================================================
-//  Uso:
-//    showAviso('Mensaje')                    // aviso neutral
-//    showAviso('Cargado con éxito', 'ok')    // verde
-//    showAviso('No se pudo guardar', 'error') // rojo
-//    showAviso('¿Estás seguro?', 'confirmar', () => {...})  // con callback si OK
-//
-//  El modal se crea perezosamente la primera vez. Devuelve una Promise para
-//  poder hacer:   await showAviso('Guardado', 'ok');
-// ============================================================================
 
 (function () {
-  // ---- inyectar CSS una sola vez ------------------------------------------
   const css = `
     .aviso-backdrop {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
@@ -45,7 +32,7 @@
   style.textContent = css;
   document.head.appendChild(style);
 
-  // ---- construir DOM ------------------------------------------------------
+
   const backdrop = document.createElement('div');
   backdrop.className = 'aviso-backdrop';
   backdrop.innerHTML = `
@@ -64,14 +51,13 @@
 
   function cerrar() { backdrop.classList.remove('abierto'); }
 
-  // Click fuera de la caja cierra
+
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) cerrar(); });
-  // Escape cierra
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && backdrop.classList.contains('abierto')) cerrar();
   });
 
-  // ---- API pública --------------------------------------------------------
+
   window.showAviso = function (mensaje, tipo = 'info', onConfirmar = null) {
     return new Promise((resolve) => {
       cajaEl.className = 'aviso-caja ' + tipo;

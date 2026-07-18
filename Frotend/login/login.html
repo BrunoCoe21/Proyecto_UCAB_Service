@@ -53,6 +53,21 @@
       </form>
     </div>
 
+      <div id="modal-2fa" class="modal-2fa-overlay">
+      <div class="modal-2fa">
+        <h2> Verificacion en dos pasos</h2>
+        <p>Ingresa el código de 6 dígitos enviado a tu correo.</p>
+        <div class="codigo-demo" id="modal-2fa-codigo-demo">------</div>
+        <div class="error" id="modal-2fa-error">Código incorrecto</div>
+        <input type="text" id="modal-2fa-input" maxlength="6" placeholder="• • • • • •">
+        <div class="botones">
+          <button class="cancelar" id="modal-2fa-cancelar">Cancelar</button>
+          <button class="verificar" id="modal-2fa-verificar">Verificar</button>
+        </div>
+        <div class="loading" id="modal-2fa-loading">Verificando...</div>
+      </div>
+    </div>
+
     <footer class="login-footer">
       <div class="footer-links">
         <a href="#">Soporte Técnico</a>

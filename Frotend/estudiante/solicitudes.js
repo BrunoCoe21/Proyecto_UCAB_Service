@@ -1,6 +1,4 @@
-// ============================================================================
-//  solicitudes.js  ·  Mis Solicitudes (estudiante)
-// ============================================================================
+
 
 let solicitudesCache = [];
 
@@ -65,9 +63,6 @@ function claseEstado(estado) {
   return { clase: 'estado-abierta', texto: 'ABIERTA' };
 }
 
-// ============================================================================
-//  cargarDetalle - CON BLOQUEO DEL BOTÓN DE PAGO
-// ============================================================================
 async function cargarDetalle(idSolicitud) {
   const cont = document.getElementById('detalle-solicitud');
   cont.innerHTML = '<p class="texto-vacio">Cargando detalle...</p>';
@@ -77,12 +72,6 @@ async function cargarDetalle(idSolicitud) {
       await API.request(`/solicitudes/${idSolicitud}/detalle`);
 
     const estadoInfo = claseEstado(solicitud.estado_general);
-
-    // ================================================================
-    // 🔥 VALIDACIÓN PARA BLOQUEAR EL BOTÓN DE PAGO
-    // ================================================================
-    
-    // Buscar el paso "Pago pendiente"
     const pasoPago = pasos.find(p => p.nombre_paso === 'Pago pendiente');
     const existePasoPago = pasoPago !== undefined;
     const pasoPagoCompletado = pasoPago ? pasoPago.estado_paso === 'completado' : false;
@@ -100,10 +89,8 @@ async function cargarDetalle(idSolicitud) {
       puedePagar = false;
     }
 
-    // 🔥 OBTENER si la factura tiene un pago pendiente (BLOQUEA EL BOTÓN)
     const tienePagoPendiente = factura ? factura.tiene_pago_pendiente || false : false;
 
-    // 🔥 SI hay pago pendiente, el botón NO debe mostrarse
     const botonPagoHabilitado = puedePagar && !tienePagoPendiente && !hayPasosPreviosPendientes;
 
     console.log('=== DEBUG ===');
@@ -204,9 +191,6 @@ function formatearFechaHora(fecha) {
   return new Date(fecha).toLocaleString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-// ============================================================================
-//  CAJA DE FACTURA - CON BLOQUEO DEL BOTÓN
-// ============================================================================
 function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, tienePagoPendiente) {
   
   // 📌 ESTADO 1: Factura pagada
@@ -219,7 +203,6 @@ function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, ti
     `;
   }
 
-  // 📌 ESTADO 2: Pago en proceso de verificación (presencial pendiente)
   if (tienePagoPendiente) {
     return `
       <div class="caja-factura caja-factura-en-proceso">
@@ -235,7 +218,6 @@ function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, ti
     `;
   }
 
-  // 📌 ESTADO 3: Pasos previos pendientes → bloqueado
   if (hayPasosPreviosPendientes) {
     return `
       <div class="caja-factura caja-factura-bloqueada">
@@ -250,7 +232,6 @@ function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, ti
     `;
   }
 
-  // 📌 ESTADO 4: Todo correcto → mostrar botón de pago (SOLO si está habilitado)
   if (botonPagoHabilitado) {
     return `
       <div class="caja-factura caja-factura-pendiente">
@@ -263,7 +244,6 @@ function cajaFactura(factura, botonPagoHabilitado, hayPasosPreviosPendientes, ti
     `;
   }
 
-  // 📌 ESTADO 5: Bloqueado por otro motivo (no debería pasar)
   return `
     <div class="caja-factura caja-factura-bloqueada">
       <div>
