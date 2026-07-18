@@ -1,15 +1,10 @@
-// src/controllers/serviceController.js
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
-// ============================================================
-// GET /api/service/espacios
-// ============================================================
 exports.getServiciosEspacios = async (req, res) => {
   try {
-    console.log('🔍 Ejecutando getServiciosEspacios...');
+    console.log('Ejecutando getServiciosEspacios...');
 
-    // 1. Obtener TODOS los servicios con su entidad prestadora
     const servicios = await sequelize.query(
       `SELECT 
          s.codigo_servicio,
@@ -26,13 +21,12 @@ exports.getServiciosEspacios = async (req, res) => {
       { type: QueryTypes.SELECT }
     );
 
-    console.log('📦 Servicios encontrados:', servicios.length);
+    console.log('Servicios encontrados:', servicios.length);
 
     if (!servicios || servicios.length === 0) {
       return res.json([]);
     }
 
-    // 2. Obtener los límites por categoría y sede
     const limites = await sequelize.query(
       `SELECT tipo_categoria, nombre_sede, monto_limt_max
        FROM limite_categoria_sede`,
@@ -45,7 +39,6 @@ exports.getServiciosEspacios = async (req, res) => {
       limitesMap[key] = parseFloat(l.monto_limt_max);
     });
 
-    // 3. Obtener cargos adicionales
     const cargos = await sequelize.query(
       `SELECT codigo_servicio, nombre_concepto, monto, tipo_suplemento
        FROM cargo_adicional`,
@@ -64,7 +57,6 @@ exports.getServiciosEspacios = async (req, res) => {
       });
     });
 
-    // 4. Obtener historial de tarifas
     const historialTarifas = await sequelize.query(
       `SELECT codigo_servicio, 
               tarifa_miembro_activo, 
@@ -85,8 +77,6 @@ exports.getServiciosEspacios = async (req, res) => {
       };
     });
 
-    // 4b. Acreditaciones requeridas por servicio (reporte QA: el frontend
-    //     bloquea "Iniciar solicitud" hasta simular la carga del documento).
     const acreditaciones = await sequelize.query(
       `SELECT r.codigo_servicio, ar.id_acreditacion, ar.nombre_requisito, ar.tipo_documento
        FROM requiere r
@@ -103,7 +93,6 @@ exports.getServiciosEspacios = async (req, res) => {
       });
     });
 
-    // 5. Obtener pasos de actividad
     const pasosActividad = await sequelize.query(
       `SELECT 
          p.id_solicitud,
@@ -141,7 +130,6 @@ exports.getServiciosEspacios = async (req, res) => {
       pasosMap[codigo] = pasos;
     }
 
-    // 6. Obtener espacios físicos por sede
     const serviciosConEspacios = await Promise.all(servicios.map(async (serv) => {
       const espacios = await sequelize.query(
         `SELECT 
@@ -183,11 +171,11 @@ exports.getServiciosEspacios = async (req, res) => {
       };
     }));
 
-    console.log('✅ Respuesta enviada con', serviciosConEspacios.length, 'servicios');
+    console.log('Respuesta enviada con', serviciosConEspacios.length, 'servicios');
     res.json(serviciosConEspacios);
 
   } catch (error) {
-    console.error('❌ Error al obtener servicios:', error);
+    console.error('Error al obtener servicios:', error);
     res.status(500).json({ 
       error: 'Error interno del servidor.',
       detalle: error.message 
@@ -195,9 +183,6 @@ exports.getServiciosEspacios = async (req, res) => {
   }
 };
 
-// ============================================================
-// GET /api/service/
-// ============================================================
 exports.getAllServicios = async (req, res) => {
   try {
     const servicios = await sequelize.query(
@@ -218,14 +203,11 @@ exports.getAllServicios = async (req, res) => {
 
     res.json(servicios);
   } catch (error) {
-    console.error('❌ Error al obtener todos los servicios:', error);
+    console.error('Error al obtener todos los servicios:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
 
-// ============================================================
-// GET /api/service/:codigo/detalle
-// ============================================================
 exports.getDetalleServicio = async (req, res) => {
   try {
     const { codigo } = req.params;
@@ -319,7 +301,7 @@ exports.getDetalleServicio = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error al obtener detalle del servicio:', error);
+    console.error('Error al obtener detalle del servicio:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

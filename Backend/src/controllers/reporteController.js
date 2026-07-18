@@ -2,9 +2,7 @@
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
-// ============================================================
-// 1. REPORTE DE SOLICITUDES
-// ============================================================
+
 exports.reporteSolicitudes = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -18,9 +16,7 @@ exports.reporteSolicitudes = async (req, res) => {
   }
 };
 
-// ============================================================
-// 2. REPORTE DE ESTADO DE CUENTA
-// ============================================================
+
 exports.reporteEstadoCuenta = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -34,9 +30,6 @@ exports.reporteEstadoCuenta = async (req, res) => {
   }
 };
 
-// ============================================================
-// 3. REPORTE DE INGRESOS POR SERVICIO
-// ============================================================
 exports.reporteIngresosServicio = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -50,9 +43,7 @@ exports.reporteIngresosServicio = async (req, res) => {
   }
 };
 
-// ============================================================
-// 4. REPORTE DE OCUPACIÓN DE ESPACIOS
-// ============================================================
+
 exports.reporteOcupacionEspacios = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -66,9 +57,7 @@ exports.reporteOcupacionEspacios = async (req, res) => {
   }
 };
 
-// ============================================================
-// 5. REPORTE DE POSTULACIONES
-// ============================================================
+
 exports.reportePostulaciones = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -82,9 +71,7 @@ exports.reportePostulaciones = async (req, res) => {
   }
 };
 
-// ============================================================
-// 6. REPORTE DE RECURRENCIA DE MIEMBROS
-// ============================================================
+
 exports.reporteRecurrencia = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -98,9 +85,6 @@ exports.reporteRecurrencia = async (req, res) => {
   }
 };
 
-// ============================================================
-// 7. REPORTE DE BECARIOS
-// ============================================================
 exports.reporteBecarios = async (req, res) => {
   try {
     const data = await sequelize.query(
@@ -114,9 +98,6 @@ exports.reporteBecarios = async (req, res) => {
   }
 };
 
-// ============================================================
-// 8. REPORTE DE PAGOS POR MÉTODO
-// ============================================================
 exports.reportePagosMetodo = async (req, res) => {
   try {
     const data = await sequelize.query(

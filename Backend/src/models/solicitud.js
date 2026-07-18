@@ -5,15 +5,15 @@ const sequelize = require('../config/database');
 const Solicitud = sequelize.define('solicitud', {
   id_solicitud: { 
     type: DataTypes.STRING(30), 
-    primaryKey: true // Código como 'SOL-001' 
+    primaryKey: true 
   },
   cedula_identidad: { 
     type: DataTypes.INTEGER, 
-    allowNull: false // Llave foránea hacia usuario 
+    allowNull: false 
   },
   codigo_servicio: { 
     type: DataTypes.STRING(20), 
-    allowNull: false // Llave foránea hacia servicio 
+    allowNull: false 
   },
   estado_general: { 
     type: DataTypes.STRING(25), 

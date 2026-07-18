@@ -1,14 +1,10 @@
-// ============================================================================
-//  src/routes/pagoRoutes.js  ·  UCAB-Services  ·  MÓDULO DE FINANZAS
-//  Se monta en app.js como:  app.use('/api/facturas', pagoRoutes);
-//  Por eso las rutas de abajo cuelgan de /api/facturas.
-// ============================================================================
+
 const express = require('express');
 const router = express.Router();
 const pagoController = require('../controllers/pagoController');
 const { verificarToken, exigirRol } = require('../middleware/auth');
 
-// Estado de cuenta del estudiante: todas sus facturas con saldo y estatus.
+// Estado de cuenta del estudiante
 //   GET /api/facturas/estudiante/:cedula
 router.get('/estudiante/:cedula',
   verificarToken,
@@ -16,17 +12,14 @@ router.get('/estudiante/:cedula',
   pagoController.obtenerFacturasEstudiante
 );
 
-// Saldo de la billetera TAI del miembro (tabla posee) — reporte QA.
-//   GET /api/facturas/billetera/:cedula
-//   (Se registra ANTES de '/:numControl/detalle' para que 'billetera' no sea
-//    capturado como si fuera un número de control.)
+
 router.get('/billetera/:cedula',
   verificarToken,
   exigirRol('estudiante', 'egresado', 'docente', 'administrativo'),
   pagoController.obtenerBilleteraTai
 );
 
-// Detalle de una factura: líneas de cargo + abonos realizados.
+// Detalle de una factura
 //   GET /api/facturas/:numControl/detalle
 router.get('/:numControl/detalle',
   verificarToken,
@@ -34,7 +27,7 @@ router.get('/:numControl/detalle',
   pagoController.obtenerDetalleFactura
 );
 
-// Registrar un pago contra una factura (pasarela).
+// Registrar un pago contra una factura 
 //   POST /api/facturas/:numControl/pagar
 router.post('/:numControl/pagar',
   verificarToken,

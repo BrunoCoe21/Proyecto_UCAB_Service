@@ -36,9 +36,9 @@ exports.crearEspacioFisico = async (req, res) => {
   } catch (error) {
     console.error(error);
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ mensaje: 'Ya existe un espacio con ese identificador en esta edificación' });
+      return res.status(400).json({ mensaje: 'Ya existe un espacio con ese identificador en esta edificacion' });
     }
-    res.status(500).json({ mensaje: 'Error al crear espacio físico' });
+    res.status(500).json({ mensaje: 'Error al crear espacio fisico' });
   }
 };
 
@@ -55,7 +55,7 @@ exports.listarEspaciosFisicos = async (req, res) => {
     res.json(espacios);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: 'Error al listar espacios físicos' });
+    res.status(500).json({ mensaje: 'Error al listar espacios fisicos' });
   }
 };
 

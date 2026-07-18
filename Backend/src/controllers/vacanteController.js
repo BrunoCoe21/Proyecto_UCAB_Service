@@ -1,17 +1,6 @@
-// ============================================================================
-//  src/controllers/vacanteController.js  ·  UCAB-Services  ·  BOLSA DE TRABAJO
-//  VERSIÓN CON FUNCIÓN SQL postular_egresado()
-//  La función valida: título vs perfil, disponibilidad, duplicados.
-// ============================================================================
-
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
-// ----------------------------------------------------------------------------
-//  GET /api/vacantes
-//  Lista las vacantes disponibles, con el nombre de la organización externa
-//  que las publicó.
-// ----------------------------------------------------------------------------
 exports.listarVacantes = async (req, res) => {
   try {
     const vacantes = await sequelize.query(
@@ -31,10 +20,6 @@ exports.listarVacantes = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/vacantes/:idVacante
-//  Detalle completo de una vacante puntual.
-// ----------------------------------------------------------------------------
 exports.obtenerVacante = async (req, res) => {
   try {
     const { idVacante } = req.params;
@@ -58,11 +43,6 @@ exports.obtenerVacante = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/vacantes/mias/:cedula
-//  Las postulaciones ya hechas por este egresado (para marcar "Postulado" en
-//  la lista y no dejar postular dos veces a la misma vacante).
-// ----------------------------------------------------------------------------
 exports.misPostulaciones = async (req, res) => {
   try {
     const { cedula } = req.params;
@@ -83,11 +63,6 @@ exports.misPostulaciones = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/vacantes/perfil/:cedula
-//  Datos del egresado para mostrar en el encabezado de la bolsa de trabajo
-//  (índice académico final, título, año de graduación).
-// ----------------------------------------------------------------------------
 exports.perfilEgresado = async (req, res) => {
   try {
     const { cedula } = req.params;
@@ -106,18 +81,11 @@ exports.perfilEgresado = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  POST /api/vacantes/:idVacante/postular
-//  Registra la postulación usando la función SQL postular_egresado().
-//  La función valida: título vs perfil, disponibilidad, duplicados.
-//  Retorna JSON { success, message }.
-// ----------------------------------------------------------------------------
 exports.postularse = async (req, res) => {
   try {
     const { idVacante } = req.params;
     const cedula = req.usuario.cedula;
 
-    // Llamar a la función SQL
     const result = await sequelize.query(
       `SELECT postular_egresado(:cedula, :idVacante) AS resultado`,
       {
@@ -128,16 +96,14 @@ exports.postularse = async (req, res) => {
 
     const jsonResult = result[0]?.resultado;
     if (!jsonResult) {
-      throw new Error('No se recibió respuesta de la función.');
+      throw new Error('No se recibio respuesta de la funcion.');
     }
 
-    // El resultado es un JSON, lo parseamos
     const parsed = typeof jsonResult === 'string' ? JSON.parse(jsonResult) : jsonResult;
 
     if (parsed.success) {
       return res.json({ mensaje: parsed.message });
     } else {
-      // Mapear errores a códigos HTTP según el mensaje
       const msg = parsed.message;
       if (msg.includes('Ya te has postulado')) {
         return res.status(409).json({ error: msg });
@@ -154,12 +120,11 @@ exports.postularse = async (req, res) => {
       if (msg.includes('Egresado no encontrado')) {
         return res.status(404).json({ error: msg });
       }
-      // Cualquier otro error
       return res.status(500).json({ error: msg });
     }
 
   } catch (error) {
     console.error('Error al postularse:', error);
-    res.status(500).json({ error: 'No se pudo registrar la postulación.' });
+    res.status(500).json({ error: 'No se pudo registrar la postulacion.' });
   }
 };

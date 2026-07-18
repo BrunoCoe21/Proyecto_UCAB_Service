@@ -1,77 +1,45 @@
-
-Esto es la modificacion para la postulacion
------------------------------------------------------------
--- eliminamos la restricción antigua
-
 ALTER TABLE postula DROP CONSTRAINT chk_estado_post;
-
--- Actualizamos los registros existentes
 
 UPDATE postula
 SET estado_postulacion = CASE estado_postulacion
-    WHEN 'Recibida'     THEN 'postularse'              
-    WHEN 'En Revision'  THEN 'postularse'             
-    WHEN 'Aceptada'     THEN 'postularse'               
-    WHEN 'Rechazada'    THEN 'postularse'              
-    ELSE estado_postulacion   -- por si hay algún otro valor no contemplado
+    WHEN 'Recibida'     THEN 'postularse'
+    WHEN 'En Revision'  THEN 'postularse'
+    WHEN 'Aceptada'     THEN 'postularse'
+    WHEN 'Rechazada'    THEN 'postularse'
+    ELSE estado_postulacion
 END
 WHERE estado_postulacion IN ('Recibida','En Revision','Aceptada','Rechazada');
-
---Creamos la nueva restricción con los valores que necesitamos
 
 ALTER TABLE postula
 ADD CONSTRAINT chk_estado_post
 CHECK (estado_postulacion IN ('postulado', 'postularse'));
 
------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
---Modificacion de los insert de oportunidad laboral
-
--- Actualizar perfil_buscado para VAC-001
 UPDATE oportunidad_laboral
 SET perfil_buscado = 'Ingeniero informatico'
 WHERE id_vacante = 'VAC-001';
 
--- Actualizar perfil_buscado para VAC-002
 UPDATE oportunidad_laboral
 SET perfil_buscado = 'Prof edu fisica'
 WHERE id_vacante = 'VAC-002';
 
--- Actualizar perfil_buscado para VAC-003
 UPDATE oportunidad_laboral
 SET perfil_buscado = 'Ingeniero informatico'
 WHERE id_vacante = 'VAC-003';
 
--- Actualizar perfil_buscado para VAC-004
 UPDATE oportunidad_laboral
 SET perfil_buscado = 'Ingeniero informatico'
 WHERE id_vacante = 'VAC-004';
 
--- Actualizar perfil_buscado para VAC-005
 UPDATE oportunidad_laboral
 SET perfil_buscado = 'Prof edu fisica'
 WHERE id_vacante = 'VAC-005';
 
---------------------------------------------------------------------------------
-
--- nuevos insert de organizaciones externas y oportunidades laborales
-
--- ========================================================================
--- 1. ENTIDADES PRESTADORAS (padre)
--- ========================================================================
 INSERT INTO entidad_prestadora (nombre) VALUES
 ('Soluciones Tecnológicas C.A.'),
 ('Ingeniería y Construcción del Sur S.A.'),
 ('Consultoría Administrativa Integral C.A.'),
 ('Redes y Comunicaciones del Caribe C.A.');
 
--- ========================================================================
--- 2. ORGANIZACIONES EXTERNAS (hijos)
---    (los id_entidad generados dependerán del orden; los obtendremos con
---     subconsultas para mayor robustez)
--- ========================================================================
 INSERT INTO organizacion_externa (id_entidad, rif, razon_social, contactos, fecha_de_vencimiento)
 VALUES
 (
@@ -103,13 +71,9 @@ VALUES
     '2026-11-01'
 );
 
--- ========================================================================
--- 3. OPORTUNIDADES LABORALES (10 vacantes)
--- ========================================================================
 INSERT INTO oportunidad_laboral
   (id_vacante, id_entidad, cargo_solicitado, responsabilidad, estatus_vacante, beneficios, perfil_buscado, fecha_oferta)
 VALUES
--- Vacante 1: Ingeniero informático (Org: Soluciones Tecnológicas)
 (
     'VAC-006',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Soluciones Tecnológicas C.A.'),
@@ -120,7 +84,6 @@ VALUES
     'Ingeniero informatico',
     '2026-06-01'
 ),
--- Vacante 2: Ingeniero en telecomunicaciones (Org: Redes y Comunicaciones)
 (
     'VAC-007',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Redes y Comunicaciones del Caribe C.A.'),
@@ -131,7 +94,6 @@ VALUES
     'Ingeniero telecomunicacion',
     '2026-06-05'
 ),
--- Vacante 3: Ingeniero mecatrónico (Org: Ingeniería y Construcción del Sur)
 (
     'VAC-008',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Ingeniería y Construcción del Sur S.A.'),
@@ -142,7 +104,6 @@ VALUES
     'Ingeniero mecatronica',
     '2026-06-10'
 ),
--- Vacante 4: Ingeniero civil (Org: Ingeniería y Construcción del Sur)
 (
     'VAC-009',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Ingeniería y Construcción del Sur S.A.'),
@@ -153,7 +114,6 @@ VALUES
     'Ingeniero civil',
     '2026-06-15'
 ),
--- Vacante 5: Licenciado en administración (Org: Consultoría Administrativa)
 (
     'VAC-010',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Consultoría Administrativa Integral C.A.'),
@@ -164,7 +124,6 @@ VALUES
     'Licenciado administracion',
     '2026-06-20'
 ),
--- Vacante 6: Licenciado en letras (Org: Consultoría Administrativa)
 (
     'VAC-011',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Consultoría Administrativa Integral C.A.'),
@@ -175,7 +134,6 @@ VALUES
     'Licenciado letras',
     '2026-07-01'
 ),
--- Vacante 7: Ingeniero industrial (Org: Ingeniería y Construcción del Sur)
 (
     'VAC-012',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Ingeniería y Construcción del Sur S.A.'),
@@ -186,7 +144,6 @@ VALUES
     'Ingeniero Industrial',
     '2026-07-02'
 ),
--- Vacante 8: Ingeniero informático (segunda vacante, Org: Soluciones Tecnológicas)
 (
     'VAC-013',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Soluciones Tecnológicas C.A.'),
@@ -197,7 +154,6 @@ VALUES
     'Ingeniero informatico',
     '2026-07-03'
 ),
--- Vacante 9: Ingeniero industrial (segunda vacante, Org: Redes y Comunicaciones)
 (
     'VAC-014',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Redes y Comunicaciones del Caribe C.A.'),
@@ -208,7 +164,6 @@ VALUES
     'Ingeniero Industrial',
     '2026-07-04'
 ),
--- Vacante 10: Ingeniero en telecomunicaciones (segunda vacante, Org: Redes y Comunicaciones)
 (
     'VAC-015',
     (SELECT id_entidad FROM entidad_prestadora WHERE nombre = 'Redes y Comunicaciones del Caribe C.A.'),
@@ -217,27 +172,10 @@ VALUES
     'disponible',
     'Seguro HCM, bonos de certificación, equipo móvil de alta gama',
     'Ingeniero telecomunicacion',
-    '2026-07-05'  -- antes del 5 de julio (máximo el mismo día)
+    '2026-07-05'
 );
 
-------------------------------------------------------------------------------
---Borramos los datos que tenemos en postula, porque no hay sentiudo en que se tenga datos ya que nosotros debemos de hacer esa accion
-
-DELETE FROM postula;   -- o TRUNCATE postula; (más rápido, pero reinicia secuencias si las hay)
-
-
-----------------------------------------------------------------------------------
--- Meti mas egresados para que haya mas candidatos a las vacantes
-
--- ========================================================================
--- NUEVOS USUARIOS (10) y sus correspondientes EGRESADOS
--- Contraseña en texto plano: 'Clave123' (para bypass de login)
--- Hash bcrypt (para cambio de contraseña): $2b$10$e0MYzXytpOmG5JmJjV0TMOkz4JNwq9iL5L5L5L5L5L5L5L5L5L5
--- ========================================================================
-
--- ========================================================================
--- 1. USUARIOS
--- ========================================================================
+DELETE FROM postula;
 
 INSERT INTO usuario (
     cedula_identidad,
@@ -250,14 +188,13 @@ INSERT INTO usuario (
     direccion_habitacion_detallada,
     numero_telefono,
     correo_institucional,
-    contrasena,          -- guardamos el hash real, no el texto plano
+    contrasena,
     intentos_fallidos_auth,
     estado_cuenta,
     estatus_verificacion_dos_pasos,
     ult_fecha_cambio_cont,
     ultima_conexion
 ) VALUES
--- Usuario 1: Ingeniero Informático
 (
     30000001,
     'Carlos',
@@ -276,7 +213,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 2: Licenciado en Administración
 (
     30000002,
     'María',
@@ -295,7 +231,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 3: Ingeniero Industrial
 (
     30000003,
     'José',
@@ -314,7 +249,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 4: Ingeniero en Telecomunicaciones
 (
     30000004,
     'Ana',
@@ -333,7 +267,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 5: Ingeniero Mecatrónico
 (
     30000005,
     'Luis',
@@ -352,7 +285,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 6: Licenciado en Letras
 (
     30000006,
     'Laura',
@@ -371,7 +303,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 7: Ingeniero Civil
 (
     30000007,
     'Jorge',
@@ -390,7 +321,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 8: Ingeniero Informático (segundo)
 (
     30000008,
     'Patricia',
@@ -409,7 +339,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 9: Ingeniero Industrial (segundo)
 (
     30000009,
     'David',
@@ -428,7 +357,6 @@ INSERT INTO usuario (
     NULL,
     NULL
 ),
--- Usuario 10: Ingeniero en Telecomunicaciones (segundo)
 (
     30000010,
     'Andrea',
@@ -448,10 +376,6 @@ INSERT INTO usuario (
     NULL
 );
 
--- ========================================================================
--- 2. EGRESADOS (uno por cada usuario)
--- ========================================================================
-
 INSERT INTO egresado (
     cedula_identidad,
     indice_academico_final,
@@ -469,18 +393,6 @@ INSERT INTO egresado (
 (30000009, 15.20, 'Ingeniero industrial', 2021),
 (30000010, 17.75, 'Ingeniero telecomunicacion', 2022);
 
---------------------------------------------------------------------------------------------------------------------
-
-
--- Funciono para insertar mediante un funcion datos a la tabla postula
-
--- ============================================================================
---  FUNCIÓN: postular_egresado
---  Valida que el título del egresado coincida con el perfil buscado de la
---  vacante. Si coincide, inserta en postula con estado 'postulado'.
---  Retorna JSON { success: boolean, message: string }
--- ============================================================================
-
 CREATE OR REPLACE FUNCTION postular_egresado(
     p_cedula INTEGER,
     p_id_vacante VARCHAR
@@ -493,7 +405,6 @@ DECLARE
     v_perfil_buscado VARCHAR;
     v_estatus_vacante VARCHAR;
 BEGIN
-    -- 1. Verificar que el egresado existe y obtener su título
     SELECT titulo INTO v_titulo_egresado
     FROM egresado
     WHERE cedula_identidad = p_cedula;
@@ -502,7 +413,6 @@ BEGIN
         RETURN json_build_object('success', false, 'message', 'Egresado no encontrado.');
     END IF;
 
-    -- 2. Verificar que la vacante existe, está disponible y obtener su perfil_buscado
     SELECT perfil_buscado, estatus_vacante
     INTO v_perfil_buscado, v_estatus_vacante
     FROM oportunidad_laboral
@@ -516,12 +426,10 @@ BEGIN
         RETURN json_build_object('success', false, 'message', 'Esta vacante ya no está disponible.');
     END IF;
 
-    -- 3. Validar que el título coincida exactamente con el perfil buscado
     IF v_titulo_egresado != v_perfil_buscado THEN
         RETURN json_build_object('success', false, 'message', 'Usted no cumple con el perfil que se busca.');
     END IF;
 
-    -- 4. Insertar la postulación con estado 'postulado'
     INSERT INTO postula (cedula_identidad, id_vacante, estado_postulacion, fecha_postulacion)
     VALUES (p_cedula, p_id_vacante, 'postulado', CURRENT_DATE);
 
@@ -534,5 +442,3 @@ EXCEPTION
         RETURN json_build_object('success', false, 'message', SQLERRM);
 END;
 $$;
-
-----------------------------------------------------------------------------------'

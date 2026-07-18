@@ -6,7 +6,6 @@ const Estudiante = sequelize.define('estudiante', {
   cedula_identidad: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    // En PostgreSQL esta es tanto PK como FK hacia usuario
   },
   promedio: {
     type: DataTypes.DECIMAL(5, 2),

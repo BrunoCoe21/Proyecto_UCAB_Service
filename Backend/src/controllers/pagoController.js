@@ -1,6 +1,4 @@
-// ============================================================================
-//  src/controllers/pagoController.js  ·  UCAB-Services  ·  MÓDULO DE FINANZAS
-// ============================================================================
+
 
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
@@ -165,7 +163,7 @@ exports.registrarPago = async (req, res) => {
       });
     }
 
-    // 🔥 VALIDACIÓN: Verificar si ya existe un pago PENDIENTE
+    //  VALIDACION: Verificar si ya existe un pago PENDIENTE
     const pagosPendientes = await sequelize.query(
       `SELECT COUNT(*) as total FROM pago
        WHERE num_control = :numControl
@@ -197,7 +195,7 @@ exports.registrarPago = async (req, res) => {
       }
     );
 
-    // 2) Nivel 1: virtual o presencial
+  
     if (esVirtual) {
       await sequelize.query(
         `INSERT INTO pago_virtual (num_control, fecha_movimiento) VALUES (:numControl, :fecha)`,
@@ -210,10 +208,9 @@ exports.registrarPago = async (req, res) => {
       );
     }
 
-    // 3) Nivel 2: método concreto
+    
     await insertarMetodoConcreto(metodo, numControl, fecha, datos, t);
 
-    // 4) Actualización de pasos según tipo de pago
     const facturaActualizada = await sequelize.query(
       `SELECT estatus, numero_folio FROM factura WHERE num_control = :numControl LIMIT 1`,
       { replacements: { numControl }, type: QueryTypes.SELECT, transaction: t }
@@ -231,7 +228,6 @@ exports.registrarPago = async (req, res) => {
     const idSolicitud2 = folioLink.length > 0 ? folioLink[0].id_solicitud : null;
 
     if (esVirtual) {
-      // ✅ PAGOS VIRTUALES: se cierra el paso "Pago pendiente" automáticamente
       if (facturaActualizada[0].estatus === 'pagada' && idSolicitud2) {
         await sequelize.query(
           `UPDATE paso_actividad
@@ -244,10 +240,7 @@ exports.registrarPago = async (req, res) => {
         await sincronizarEstadoSolicitud(idSolicitud2, t);
       }
     }
-    
-    // ✅ PAGOS PRESENCIALES: NO se crea "Verificar pago" - ELIMINADO
-    // ❌ ELIMINADO: ya no se crea el paso "Verificar pago"
-
+  
     await t.commit();
 
     const actualizada = await sequelize.query(
@@ -268,9 +261,6 @@ exports.registrarPago = async (req, res) => {
   }
 };
 
-// ============================================================================
-//  Helper: inserta en la tabla del método concreto
-// ============================================================================
 async function insertarMetodoConcreto(metodo, numControl, fecha, d, t) {
   const base = { numControl, fecha };
 

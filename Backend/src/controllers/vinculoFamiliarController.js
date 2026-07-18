@@ -1,30 +1,8 @@
-// ============================================================================
-//  src/controllers/vinculoFamiliarController.js  ·  UCAB-Services
-// ----------------------------------------------------------------------------
-//  Solo para DOCENTE y PERSONAL_ADMINISTRATIVO (son EMPLEADOS, no el "Admin de
-//  la plataforma" — ese rol no existe como usuario de la app en este proyecto,
-//  es un rol técnico de PostgreSQL para administrar la base de datos).
-//
-//  La base de datos ya impone, vía trigger (fn_vinculo_registrador_valido),
-//  que solo un docente o administrativo con vinculación vigente puede
-//  registrar o editar un vínculo familiar. Por eso este controller no repite
-//  esa validación: simplemente usa la cédula del token como registrador, y si
-//  el trigger la rechaza, el mensaje de error llega tal cual al frontend.
-// ============================================================================
-
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
-// ----------------------------------------------------------------------------
-//  GET /api/vinculos
-//  Lista los vínculos familiares registrados POR EL EMPLEADO AUTENTICADO
-//  (corrección QA: antes todos los empleados veían los vínculos de todos).
-// ----------------------------------------------------------------------------
 exports.listarVinculos = async (req, res) => {
   try {
-    // CORRECCIÓN QA: antes se listaban los vínculos de TODOS los empleados.
-    // Ahora cada empleado solo ve los vínculos que ÉL registró (la relación
-    // "registra" del ER, materializada en la FK cedula_registrador).
     const cedulaRegistrador = req.usuario.cedula;
     const vinculos = await sequelize.query(
       `SELECT v.ci, v.nombre, v.fecha_nac, v.parentesco, v.estado_vinculo,
@@ -52,10 +30,6 @@ exports.listarVinculos = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/vinculos/:ci
-//  Detalle de un vínculo puntual.
-// ----------------------------------------------------------------------------
 exports.obtenerVinculo = async (req, res) => {
   try {
     const { ci } = req.params;
@@ -72,28 +46,14 @@ exports.obtenerVinculo = async (req, res) => {
        WHERE v.ci = :ci LIMIT 1`,
       { replacements: { ci }, type: QueryTypes.SELECT }
     );
-    if (vinculos.length === 0) return res.status(404).json({ error: 'Vínculo no encontrado.' });
+    if (vinculos.length === 0) return res.status(404).json({ error: 'Vinculo no encontrado.' });
     res.json(vinculos[0]);
   } catch (error) {
-    console.error('Error al obtener vínculo:', error);
-    res.status(500).json({ error: 'No se pudo obtener el vínculo.' });
+    console.error('Error al obtener vinculo:', error);
+    res.status(500).json({ error: 'No se pudo obtener el vinculo.' });
   }
 };
 
-// ----------------------------------------------------------------------------
-//  POST /api/vinculos
-//  Registra un familiar nuevo. Body esperado:
-//    {
-//      ci, nombre, fecha_nac, parentesco, fecha_inicio_vinculo,
-//      subtipo: 'menor' | 'mayor_estudiante' | 'sin_subtipo',
-//      // si subtipo = 'menor':
-//      esquema_vacunacion, centro_edu_inic,
-//      // si subtipo = 'mayor_estudiante':
-//      constancia_estudio_ext, certificado_solteria
-//    }
-//  El registrador (cedula_registrador) se toma del TOKEN, nunca del body,
-//  para que nadie pueda registrar un familiar a nombre de otro empleado.
-// ----------------------------------------------------------------------------
 exports.registrarVinculo = async (req, res) => {
   const {
     ci, nombre, fecha_nac, parentesco, fecha_inicio_vinculo,
@@ -112,7 +72,6 @@ exports.registrarVinculo = async (req, res) => {
 
   const t = await sequelize.transaction();
   try {
-    // 1) Entidad fuerte vinculo_familiar (el trigger valida al registrador)
     await sequelize.query(
       `INSERT INTO vinculo_familiar
          (ci, nombre, fecha_nac, parentesco, estado_vinculo, fecha_inicio_vinculo)
@@ -122,7 +81,6 @@ exports.registrarVinculo = async (req, res) => {
         type: QueryTypes.INSERT, transaction: t }
     );
 
-    // QA: se materializa la relación "registra" del ER (empleado -> vínculo)
     await sequelize.query(
       `INSERT INTO registra (ci, cedula_empleado, fecha_registro)
        VALUES (:ci, :cedulaRegistrador, CURRENT_DATE)`,
@@ -130,7 +88,6 @@ exports.registrarVinculo = async (req, res) => {
         type: QueryTypes.INSERT, transaction: t }
     );
 
-    // 2) Subtipo, si aplica (el trigger de disjunción impide que sea ambos)
     if (subtipo === 'menor') {
       await sequelize.query(
         `INSERT INTO carga_menor (ci, esquema_vacunacion, centro_edu_inic)
@@ -146,7 +103,6 @@ exports.registrarVinculo = async (req, res) => {
           type: QueryTypes.INSERT, transaction: t }
       );
     }
-    // subtipo 'sin_subtipo' (ej. cónyuge): no se inserta en ninguna subtabla.
 
     await t.commit();
     res.status(201).json({ mensaje: 'Familiar registrado correctamente.' });
@@ -154,17 +110,10 @@ exports.registrarVinculo = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error('Error al registrar vínculo:', error);
-    // Los mensajes del trigger (registrador inválido, sin vinculación vigente)
-    // llegan aquí de forma legible gracias al RAISE EXCEPTION de la base.
     res.status(400).json({ error: error.message || 'No se pudo registrar el familiar.' });
   }
 };
 
-// ----------------------------------------------------------------------------
-//  PUT /api/vinculos/:ci
-//  Edita los datos básicos de un vínculo (nombre, parentesco, fechas) y los
-//  campos propios de su subtipo, si tiene.
-// ----------------------------------------------------------------------------
 exports.editarVinculo = async (req, res) => {
   const { ci } = req.params;
   const { nombre, parentesco, fecha_nac, subtipo, esquema_vacunacion, centro_edu_inic,
@@ -178,7 +127,7 @@ exports.editarVinculo = async (req, res) => {
     );
     if (existe.length === 0) {
       await t.rollback();
-      return res.status(404).json({ error: 'Vínculo no encontrado.' });
+      return res.status(404).json({ error: 'Vinculo no encontrado.' });
     }
 
     await sequelize.query(
@@ -191,13 +140,6 @@ exports.editarVinculo = async (req, res) => {
         type: QueryTypes.UPDATE, transaction: t }
     );
 
-    // CORRECCIÓN QA (botón Editar / Subtipo): antes solo se actualizaban los
-    // CAMPOS del subtipo existente, pero nunca se podía CAMBIAR el subtipo en
-    // sí (menor <-> mayor estudiante <-> ninguno); ese era el bug reportado.
-    // Ahora, si el body trae 'subtipo', se sincronizan las subtablas: se
-    // elimina la fila del subtipo anterior y se inserta la del nuevo. Los
-    // triggers de la base (disjunción y "subtipo Ninguno" para cónyuge/padre/
-    // madre) siguen vigilando que el cambio sea válido.
     if (subtipo !== undefined) {
       const subtipoActual = await sequelize.query(
         `SELECT (SELECT 1 FROM carga_menor cm WHERE cm.ci = :ci)            AS es_menor,
@@ -227,7 +169,7 @@ exports.editarVinculo = async (req, res) => {
         if (!constancia_estudio_ext || !certificado_solteria) {
           await t.rollback();
           return res.status(400).json({
-            error: 'Para cambiar el subtipo a "Mayor estudiante" son obligatorios la constancia de estudio y el certificado de soltería.'
+            error: 'Para cambiar el subtipo a "Mayor estudiante" son obligatorios la constancia de estudio y el certificado de solteria.'
           });
         }
         await sequelize.query(
@@ -238,7 +180,6 @@ exports.editarVinculo = async (req, res) => {
       }
     }
 
-    // Actualizar campos del subtipo, si la fila existe en alguna subtabla
     if (esquema_vacunacion !== undefined || centro_edu_inic !== undefined) {
       await sequelize.query(
         `UPDATE carga_menor
@@ -261,20 +202,15 @@ exports.editarVinculo = async (req, res) => {
     }
 
     await t.commit();
-    res.json({ mensaje: 'Vínculo actualizado correctamente.' });
+    res.json({ mensaje: 'Vinculo actualizado correctamente.' });
 
   } catch (error) {
     await t.rollback();
-    console.error('Error al editar vínculo:', error);
-    res.status(400).json({ error: error.message || 'No se pudo editar el vínculo.' });
+    console.error('Error al editar vinculo:', error);
+    res.status(400).json({ error: error.message || 'No se pudo editar el vinculo.' });
   }
 };
 
-// ----------------------------------------------------------------------------
-//  PATCH /api/vinculos/:ci/inactivar
-//  "Dar de baja" = poner estado_vinculo en 'inactivo' y cerrar fecha_fin.
-//  No se borra la fila (se conserva el historial).
-// ----------------------------------------------------------------------------
 exports.inactivarVinculo = async (req, res) => {
   try {
     const { ci } = req.params;
@@ -285,11 +221,11 @@ exports.inactivarVinculo = async (req, res) => {
       { replacements: { ci }, type: QueryTypes.UPDATE }
     );
     if (resultado[1] === 0) {
-      return res.status(404).json({ error: 'Vínculo no encontrado o ya estaba inactivo.' });
+      return res.status(404).json({ error: 'Vinculo no encontrado o ya estaba inactivo.' });
     }
-    res.json({ mensaje: 'Vínculo dado de baja correctamente.' });
+    res.json({ mensaje: 'Vinculo dado de baja correctamente.' });
   } catch (error) {
-    console.error('Error al inactivar vínculo:', error);
-    res.status(400).json({ error: error.message || 'No se pudo dar de baja el vínculo.' });
+    console.error('Error al inactivar vinculo:', error);
+    res.status(400).json({ error: error.message || 'No se pudo dar de baja el vinculo.' });
   }
 };

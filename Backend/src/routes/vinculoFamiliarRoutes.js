@@ -1,8 +1,4 @@
-// ============================================================================
-//  src/routes/vinculoFamiliarRoutes.js  ·  UCAB-Services
-//  Se monta en app.js como:  app.use('/api/vinculos', vinculoFamiliarRoutes);
-//  Solo accesible para docente o personal_administrativo (son EMPLEADOS).
-// ============================================================================
+
 const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/vinculoFamiliarController');

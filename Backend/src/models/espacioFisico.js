@@ -35,7 +35,6 @@ const EspacioFisico = sequelize.define('EspacioFisico', {
   timestamps: false,
 });
 
-// ELIMINA LA LÍNEA QUE DICE:
-// EspacioFisico.belongsTo(Edificacion, ...);
+
 
 module.exports = EspacioFisico;

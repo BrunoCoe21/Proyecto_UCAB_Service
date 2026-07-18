@@ -1,4 +1,3 @@
-// src/controllers/usuarioController.js
 const { usuario, estudiante } = require('../models');
 
 exports.loginReal = async (req, res) => {
@@ -8,7 +7,6 @@ exports.loginReal = async (req, res) => {
   console.log('Datos recibidos:', { correo_institucional, cedula_identidad });
 
   try {
-    // 1. Buscar usuario
     console.log('Buscando usuario...');
     const usuarioEncontrado = await usuario.findOne({
       where: {
@@ -20,24 +18,22 @@ exports.loginReal = async (req, res) => {
     console.log('Usuario encontrado:', usuarioEncontrado ? 'SÍ' : 'NO');
     
     if (!usuarioEncontrado) {
-      console.log('❌ Usuario no encontrado');
+      console.log('Usuario no encontrado');
       return res.status(401).json({ 
-        error: 'La combinación de correo institucional y cédula no coincide.' 
+        error: 'La combinacion de correo institucional y cedula no coincide.' 
       });
     }
 
-    // 2. Verificar estado
     console.log('Estado de cuenta:', usuarioEncontrado.estado_cuenta);
     
     if (usuarioEncontrado.estado_cuenta && 
         usuarioEncontrado.estado_cuenta.toLowerCase() !== 'activa') {
-      console.log('❌ Cuenta no activa');
+      console.log('Cuenta no activa');
       return res.status(403).json({ 
         error: 'Tu acceso al ecosistema institucional se encuentra restringido.' 
       });
     }
 
-    // 3. Detectar rol
     let rolDetectado = 'EXTERNO';
     console.log('Buscando en estudiante...');
     
@@ -50,14 +46,13 @@ exports.loginReal = async (req, res) => {
       
       if (esEstudiante) {
         rolDetectado = 'ESTUDIANTE';
-        console.log('✅ Rol detectado: ESTUDIANTE');
+        console.log('Rol detectado: ESTUDIANTE');
       }
     } catch (errorEstudiante) {
-      console.error('⚠️ Error al buscar en estudiante:', errorEstudiante.message);
+      console.error('Error al buscar en estudiante:', errorEstudiante.message);
     }
 
-    // 4. Respuesta exitosa
-    console.log('✅ Login exitoso para:', correo_institucional);
+    console.log('Login exitoso para:', correo_institucional);
     console.log('=== FIN DE LOGIN ===');
 
     return res.status(200).json({
@@ -72,7 +67,7 @@ exports.loginReal = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ ERROR EN LOGIN:');
+    console.error('ERROR EN LOGIN:');
     console.error('Mensaje:', error.message);
     console.error('Stack:', error.stack);
     console.error('SQL:', error.sql || 'No SQL disponible');

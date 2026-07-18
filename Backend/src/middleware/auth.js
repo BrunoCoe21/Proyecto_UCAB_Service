@@ -26,7 +26,7 @@ const exigirRol = (...rolesPermitidos) => {
     const rolesUsuario = req.usuario?.roles || [];
     const tienePermiso = rolesUsuario.some(r => rolesPermitidos.includes(r));
     if (!tienePermiso) {
-      return res.status(403).json({ error: 'No tiene permisos para esta acción.' });
+      return res.status(403).json({ error: 'No tiene permisos para esta accion.' });
     }
     next();
   };
