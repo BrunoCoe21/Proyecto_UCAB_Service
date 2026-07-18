@@ -53,6 +53,37 @@
         </div>
       </aside>
     </div>
+    <!-- ============================================================
+     MODAL DE POSTULACIÓN
+     ============================================================ -->
+      <div id="modal-postulacion" class="modal-postulacion-overlay">
+          <div class="modal-postulacion">
+              <div class="modal-postulacion-header">
+                  <div class="modal-postulacion-icono" id="modal-icono">
+                      ✅
+                  </div>
+                  <h2 class="modal-postulacion-titulo" id="modal-titulo">
+                      Postulación enviada
+                  </h2>
+                  <p class="modal-postulacion-subtitulo" id="modal-subtitulo">
+                      Oportunidad laboral
+                  </p>
+              </div>
+              <div class="modal-postulacion-body">
+                  <p class="modal-postulacion-mensaje" id="modal-mensaje">
+                      Tu postulación ha sido registrada correctamente.
+                  </p>
+                  <div class="modal-postulacion-detalle" id="modal-detalle" style="display:none;">
+                      <!-- Se llena con JS -->
+                  </div>
+                  <div class="modal-postulacion-botones">
+                      <button class="btn-modal-postulacion primario" id="modal-btn-principal" onclick="cerrarModalPostulacion()">
+                          Entendido
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
   </main>
 
   <!-- Scripts compartidos -->

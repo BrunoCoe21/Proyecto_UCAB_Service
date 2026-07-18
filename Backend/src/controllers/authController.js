@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cambia_esta_clave_secreta';
 const SALT_ROUNDS = 10;
 
 // ----------------------------------------------------------------------------
-// Determina el/los rol(es) de un usuario
+// Determina los roles de un usuario
 // ----------------------------------------------------------------------------
 async function obtenerRoles(cedula) {
   const roles = [];
@@ -34,9 +34,9 @@ async function obtenerRoles(cedula) {
   return roles;
 }
 
-// ============================================================
-// 🌐 FUNCIÓN PARA OBTENER IP REAL (INCLUSO EN DESARROLLO)
-// ============================================================
+// ----------------------------------------------------------------------------
+// Funcion para obtener la IP real
+// ----------------------------------------------------------------------------
 async function obtenerIPReal(req) {
   // 1. Intentar obtener IP de la petición
   let ip = req.headers['x-forwarded-for'] ||
@@ -67,7 +67,7 @@ async function obtenerIPReal(req) {
 }
 
 // ----------------------------------------------------------------------------
-// Función para generar UUID basado en IP + User-Agent + timestamp
+// Funcion para generar UUID basado en IP + User-Agent + timestamp
 // ----------------------------------------------------------------------------
 function generarUUID(ip, userAgent) {
   const hashBase = ip + userAgent + Date.now().toString();
@@ -75,23 +75,20 @@ function generarUUID(ip, userAgent) {
   return hash.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5').toUpperCase();
 }
 
-// ============================================================
-// 🌍 GEOLOCALIZACIÓN REAL CON IP-API.COM
-// ============================================================
+// ----------------------------------------------------------------------------
+// Funcion para obtener la geolocalización de una IP
+// ----------------------------------------------------------------------------
 async function obtenerGeolocalizacion(ip) {
-  // Caso 1: Localhost (entorno de desarrollo)
   const esLocal = ip === '::1' || ip === '127.0.0.1' || ip === '0.0.0.0';
   if (esLocal) {
     return 'Localhost (Entorno de desarrollo)';
   }
 
-  // Caso 2: Red local (LAN)
   const esLAN = ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
   if (esLAN) {
     return `Red local (LAN) - ${ip}`;
   }
 
-  // Caso 3: Geolocalización real vía API
   try {
     const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,region,isp`, {
       signal: AbortSignal.timeout(3000)
@@ -122,7 +119,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
     }
 
-    // 1. Buscar el usuario por correo
+   
     const usuarios = await sequelize.query(
       `SELECT cedula_identidad, primer_nombre, primer_apellido,
               correo_institucional, contrasena, estado_cuenta, intentos_fallidos_auth,
@@ -138,15 +135,11 @@ exports.login = async (req, res) => {
     }
     const usuario = usuarios[0];
 
-    // 2. Validar estado de cuenta
+    
     if (usuario.estado_cuenta.toLowerCase() !== 'activa') {
       return res.status(403).json({ error: `La cuenta está ${usuario.estado_cuenta}.` });
     }
 
-    // 3. Verificar contraseña con bcrypt REAL (se eliminó el bypass de
-    //    desarrollo). Requiere que usuario.contrasena tenga un hash bcrypt
-    //    válido — el script 07 / el 02 actualizado cargan el hash real de
-    //    'Clave123' para todos los usuarios de prueba.
     const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
     if (!coincide) {
       await sequelize.query(
@@ -157,12 +150,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
-    // 3b. VERIFICACIÓN EN DOS PASOS (reporte QA): si el usuario tiene MFA
-    //     activado, la contraseña sola NO basta. Se emite un token temporal
-    //     de 5 minutos con alcance '2fa'; el frontend debe llamar a
-    //     /verificar-2fa con el código. Simulación académica: el código se
-    //     muestra en la consola del servidor y se devuelve como codigo_demo
-    //     (en producción se enviaría por correo/SMS y se quitaría del JSON).
     if (usuario.estatus_verificacion_dos_pasos === true) {
       const codigo = String(Math.floor(100000 + Math.random() * 900000));
       const tokenTemporal = jwt.sign(
@@ -173,12 +160,11 @@ exports.login = async (req, res) => {
       return res.json({
         requiere_2fa: true,
         token_temporal: tokenTemporal,
-        codigo_demo: codigo,   // SOLO DEMO ACADÉMICA
+        codigo_demo: codigo,  
         mensaje: 'Verificación en dos pasos requerida.'
       });
     }
 
-    // 4. Login exitoso - Actualizar usuario
     await sequelize.query(
       `UPDATE usuario
        SET intentos_fallidos_auth = 0,
@@ -187,13 +173,11 @@ exports.login = async (req, res) => {
       { replacements: { cedula: usuario.cedula_identidad }, type: QueryTypes.UPDATE }
     );
 
-    // 5. Obtener IP real (INCLUSO EN DESARROLLO)
     const ipReal = await obtenerIPReal(req);
     const userAgent = req.headers['user-agent'] || 'Desconocido';
     const uuid = generarUUID(ipReal, userAgent);
     const geolocalizacion = await obtenerGeolocalizacion(ipReal);
 
-    // 6. Registrar sesión
     await sequelize.query(
       `INSERT INTO sesion (cedula_identidad, fecha_acceso, direccion_ip, identificador_dispositivo, geolocalizacion_aprox)
        VALUES (:cedula, CURRENT_TIMESTAMP, :ip, :dispositivo, :geolocalizacion)`,
@@ -208,8 +192,6 @@ exports.login = async (req, res) => {
       }
     );
 
-
-    // 7. Obtener roles y generar token
     const roles = await obtenerRoles(usuario.cedula_identidad);
     const token = jwt.sign(
       { cedula: usuario.cedula_identidad, roles },
@@ -217,7 +199,6 @@ exports.login = async (req, res) => {
       { expiresIn: '8h' }
     );
 
-    // 8. Respuesta
     return res.json({
       token,
       cedula: usuario.cedula_identidad,
@@ -316,10 +297,7 @@ exports.logout = async (req, res) => {
 };
 
 // ----------------------------------------------------------------------------
-// POST /api/auth/verificar-2fa   (reporte QA: check de validación en el login)
-// Body: { token_temporal, codigo }
-// Valida el código contra el token temporal firmado y, si coincide, completa
-// el login (resetea intentos, registra la sesión y emite el token real).
+// POST /api/auth/verificar-2fa   
 // ----------------------------------------------------------------------------
 exports.verificar2FA = async (req, res) => {
   try {

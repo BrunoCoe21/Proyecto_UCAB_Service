@@ -306,51 +306,91 @@ function mostrarDetalle(vacante) {
 }
 
 // ============================================================
-//  POSTULARSE A UNA VACANTE
+// POSTULARSE A UNA VACANTE - CON MODAL PERSONALIZADO
 // ============================================================
 async function postularse(idVacante) {
-  try {
-    const response = await fetch(`${API_URL}/vacantes/${idVacante}/postular`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Obtener la vacante seleccionada
+    const vacante = vacantesFiltradas.find(v => v.id_vacante === idVacante);
+    const nombreVacante = vacante ? vacante.cargo_solicitado : 'Oportunidad laboral';
+    const empresa = vacante ? vacante.organizacion : '';
 
-    const data = await response.json();
+    try {
+        const response = await fetch(`${API_URL}/vacantes/${idVacante}/postular`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-    if (!response.ok) {
-      if (response.status === 409) {
-        alert('⚠️ Ya te has postulado a esta vacante anteriormente.');
-        await cargarPostulaciones();
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Manejar diferentes tipos de errores
+            if (response.status === 409) {
+                mostrarModalPostulacion(
+                    'warning',
+                    'Ya te has postulado',
+                    'Ya tienes una postulación activa para esta vacante.',
+                    { 'Vacante': nombreVacante, 'Estado': 'Postulación existente' }
+                );
+                return;
+            }
+            if (response.status === 403) {
+                mostrarModalPostulacion(
+                    'error',
+                    'Perfil no compatible',
+                    'Tu perfil no coincide con los requisitos de la vacante.',
+                    { 'Requisito': data.error || 'Verifica el perfil buscado' }
+                );
+                return;
+            }
+            if (response.status === 404) {
+                mostrarModalPostulacion(
+                    'error',
+                    'Vacante no disponible',
+                    'La vacante ya no está disponible o fue cerrada.',
+                    null
+                );
+                return;
+            }
+            throw new Error(data.error || 'Error al postularse');
+        }
+
+        // ✅ ÉXITO - Mostrar modal de éxito
+        mostrarModalPostulacion(
+            'exito',
+            '¡Postulación enviada!',
+            `Tu postulación para "${nombreVacante}" ha sido registrada correctamente.`,
+            {
+                'Empresa': empresa || 'No especificada',
+                'Vacante': nombreVacante,
+                'Estado': 'En revisión'
+            }
+        );
+
+        // Actualizar el estado local
+        postulacionesUsuario.add(idVacante);
+        
         // Re-renderizar manteniendo el filtro actual
         const select = document.getElementById('filtro-perfil');
-        const perfil = select.value;
-        aplicarFiltro(); // esto re-renderiza con el filtro actual
-        return;
-      }
-      throw new Error(data.error || 'Error al postularse');
+        const perfil = select ? select.value : 'todos';
+        aplicarFiltro();
+
+        // Si la vacante seleccionada era la misma, actualizar el detalle
+        if (vacanteSeleccionada && vacanteSeleccionada.id_vacante === idVacante) {
+            mostrarDetalle(vacanteSeleccionada);
+        }
+
+    } catch (error) {
+        console.error('Error al postularse:', error);
+        mostrarModalPostulacion(
+            'error',
+            'Error al postular',
+            'Ocurrió un error inesperado. Por favor, intenta de nuevo.',
+            { 'Detalle': error.message || 'Error desconocido' }
+        );
     }
-
-    alert('✅ Postulación enviada correctamente.');
-
-    // Actualizar el estado local
-    postulacionesUsuario.add(idVacante);
-    // Re-renderizar manteniendo el filtro actual
-    const select = document.getElementById('filtro-perfil');
-    const perfil = select.value;
-    aplicarFiltro();
-
-    // Si la vacante seleccionada era la misma, actualizar el detalle
-    if (vacanteSeleccionada && vacanteSeleccionada.id_vacante === idVacante) {
-      mostrarDetalle(vacanteSeleccionada);
-    }
-
-  } catch (error) {
-    console.error('Error al postularse:', error);
-    alert('❌ No se pudo completar la postulación: ' + error.message);
-  }
 }
 
 // ============================================================
@@ -382,4 +422,120 @@ document.addEventListener('DOMContentLoaded', () => {
       if (vacante) mostrarDetalle(vacante);
     }
   });
+});
+
+// ============================================================
+// MODAL DE POSTULACIÓN - Funciones
+// ============================================================
+
+/**
+ * Muestra un modal personalizado para el resultado de la postulación
+ * @param {string} tipo - 'exito', 'error', 'warning'
+ * @param {string} titulo - Título del modal
+ * @param {string} mensaje - Mensaje principal
+ * @param {Object} detalle - Datos adicionales a mostrar (opcional)
+ */
+function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
+    const modal = document.getElementById('modal-postulacion');
+    const icono = document.getElementById('modal-icono');
+    const tituloEl = document.getElementById('modal-titulo');
+    const subtituloEl = document.getElementById('modal-subtitulo');
+    const mensajeEl = document.getElementById('modal-mensaje');
+    const detalleEl = document.getElementById('modal-detalle');
+    const btnPrincipal = document.getElementById('modal-btn-principal');
+
+    // Configurar según el tipo
+    const config = {
+        exito: {
+            icono: '✅',
+            clase: 'exito',
+            btnClase: 'exito',
+            btnTexto: 'Continuar',
+            subtitulo: '¡Postulación registrada!'
+        },
+        error: {
+            icono: '❌',
+            clase: 'error',
+            btnClase: 'error',
+            btnTexto: 'Intentar de nuevo',
+            subtitulo: 'No se pudo completar la postulación'
+        },
+        warning: {
+            icono: '⚠️',
+            clase: 'warning',
+            btnClase: 'warning',
+            btnTexto: 'Entendido',
+            subtitulo: 'Atención'
+        }
+    };
+
+    const cfg = config[tipo] || config.warning;
+
+    // Asignar icono y estilos
+    icono.textContent = cfg.icono;
+    icono.className = `modal-postulacion-icono ${cfg.clase}`;
+    
+    // Asignar texto
+    tituloEl.textContent = titulo;
+    subtituloEl.textContent = cfg.subtitulo;
+    mensajeEl.textContent = mensaje;
+
+    // Configurar botón
+    btnPrincipal.textContent = cfg.btnTexto;
+    btnPrincipal.className = `btn-modal-postulacion ${cfg.btnClase}`;
+    
+    // Configurar evento del botón según el tipo
+    btnPrincipal.onclick = function() {
+        cerrarModalPostulacion();
+        if (tipo === 'exito') {
+            // Redirigir a mis postulaciones o recargar
+            setTimeout(() => {
+                // Recargar las postulaciones del usuario
+                const select = document.getElementById('filtro-perfil');
+                const perfil = select ? select.value : 'todos';
+                aplicarFiltro();
+            }, 300);
+        }
+    };
+
+    // Mostrar detalle si existe
+    if (detalle) {
+        detalleEl.style.display = 'block';
+        detalleEl.innerHTML = Object.entries(detalle)
+            .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+            .join('');
+    } else {
+        detalleEl.style.display = 'none';
+    }
+
+    // Mostrar modal
+    modal.classList.add('abierto');
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Escape') {
+            cerrarModalPostulacion();
+            document.removeEventListener('keydown', handler);
+        }
+    });
+}
+
+/**
+ * Cierra el modal de postulación
+ */
+function cerrarModalPostulacion() {
+    const modal = document.getElementById('modal-postulacion');
+    modal.classList.remove('abierto');
+}
+
+/**
+ * Cierra el modal haciendo clic fuera de él
+ */
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('modal-postulacion');
+    if (modal && modal.classList.contains('abierto')) {
+        if (e.target === modal) {
+            cerrarModalPostulacion();
+        }
+    }
 });

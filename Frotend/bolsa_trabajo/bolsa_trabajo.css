@@ -451,3 +451,210 @@ body {
         width: 100%;
     }
 }
+/* ============================================================
+   MODAL DE POSTULACIÓN - Personalizado
+   ============================================================ */
+.modal-postulacion-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: modalFadeIn 0.3s ease-out;
+    backdrop-filter: blur(4px);
+}
+
+.modal-postulacion-overlay.abierto {
+    display: flex;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-postulacion {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 92%;
+    max-width: 420px;
+    padding: 0;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+/* --- HEADER --- */
+.modal-postulacion-header {
+    padding: 24px 28px 0;
+    text-align: center;
+}
+
+.modal-postulacion-icono {
+    width: 72px;
+    height: 72px;
+    background: #d1fae5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 36px;
+}
+
+.modal-postulacion-icono.exito {
+    background: #d1fae5;
+}
+
+.modal-postulacion-icono.error {
+    background: #fde8e8;
+}
+
+.modal-postulacion-icono.warning {
+    background: #fef3c7;
+}
+
+.modal-postulacion-titulo {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.modal-postulacion-subtitulo {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+/* --- BODY --- */
+.modal-postulacion-body {
+    padding: 20px 28px 28px;
+}
+
+.modal-postulacion-mensaje {
+    font-size: 15px;
+    color: #4b5563;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.modal-postulacion-detalle {
+    background: #f8f6f2;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.modal-postulacion-detalle p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.modal-postulacion-detalle strong {
+    color: #1a1a2e;
+}
+
+/* --- BOTONES --- */
+.modal-postulacion-botones {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-modal-postulacion {
+    padding: 12px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.btn-modal-postulacion.primario {
+    background: #4a1d6e;
+    color: white;
+}
+
+.btn-modal-postulacion.primario:hover {
+    background: #361552;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 29, 110, 0.25);
+}
+
+.btn-modal-postulacion.secundario {
+    background: #e2e8f0;
+    color: #4b5563;
+}
+
+.btn-modal-postulacion.secundario:hover {
+    background: #cbd5e1;
+}
+
+.btn-modal-postulacion.exito {
+    background: #0a7e3d;
+    color: white;
+}
+
+.btn-modal-postulacion.exito:hover {
+    background: #065f2e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(10, 126, 61, 0.25);
+}
+
+.btn-modal-postulacion.error {
+    background: #b3261e;
+    color: white;
+}
+
+.btn-modal-postulacion.error:hover {
+    background: #8a1a14;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(179, 38, 30, 0.25);
+}
+
+.btn-modal-postulacion.warning {
+    background: #b8860b;
+    color: white;
+}
+
+.btn-modal-postulacion.warning:hover {
+    background: #926e09;
+    transform: translateY(-2px);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 480px) {
+    .modal-postulacion {
+        max-width: 95%;
+    }
+    
+    .modal-postulacion-body {
+        padding: 16px 18px 20px;
+    }
+    
+    .modal-postulacion-header {
+        padding: 18px 18px 0;
+    }
+    
+    .modal-postulacion-icono {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+    }
+    
+    .modal-postulacion-titulo {
+        font-size: 18px;
+    }
+}
