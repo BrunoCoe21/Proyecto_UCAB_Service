@@ -1,5 +1,3 @@
-
-
 * {
   margin: 0;
   padding: 0;
@@ -12,7 +10,6 @@ body {
   color: #1a1a2e;
 }
 
-/* --- CONTENIDO PRINCIPAL --- */
 .catalogo-main {
   flex: 1;
   max-width: 1400px;
@@ -20,7 +17,6 @@ body {
   padding: 20px 30px;
 }
 
-/* --- ENCABEZADO --- */
 .page-header {
   margin-bottom: 24px;
 }
@@ -46,9 +42,48 @@ body {
   margin-top: 6px;
 }
 
-/* --------------------------------------------------------------------------------------------------
-   LAYOUT PRINCIPAL - DOS COLUMNAS
-   -------------------------------------------------------------------------------------------------- */
+.filtro-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 20px;
+  padding: 12px 20px;
+  background: #f5f3ec;
+  border-radius: 10px;
+  border: 1px solid #e8e3d7;
+  max-width: 1200px;
+}
+
+.filtro-container label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.filtro-select {
+  padding: 10px 16px;
+  border: 1px solid #d1cbbc;
+  border-radius: 8px;
+  background: white;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1a1a2e;
+  cursor: pointer;
+  outline: none;
+  min-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.filtro-select:focus {
+  border-color: #4a1d6e;
+  box-shadow: 0 0 0 3px rgba(74, 29, 110, 0.15);
+}
+
+.filtro-select:hover {
+  border-color: #b0a8b8;
+}
+
 .catalogo-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -68,29 +103,23 @@ body {
   }
 }
 
-/* --------------------------------------------------------------------------------------------------
-   GRID DE SERVICIOS - 2 COLUMNAS
-   -------------------------------------------------------------------------------------------------- */
 #catalogo-dinamico {
   width: 100%;
 }
 
 .servicios-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  gap: 24px !important;
-  width: 100% !important;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
   .servicios-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
 }
 
-/* --------------------------------------------------------------------------------------------------
-   TARJETA DE SERVICIO
-   -------------------------------------------------------------------------------------------------- */
 .tarjeta-servicio {
   background: #ffffff;
   border-radius: 14px;
@@ -102,12 +131,70 @@ body {
   transition: all 0.3s ease;
   height: 100%;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease forwards;
+  opacity: 0;
+}
+
+.tarjeta-servicio:nth-child(1) { animation-delay: 0.05s; }
+.tarjeta-servicio:nth-child(2) { animation-delay: 0.10s; }
+.tarjeta-servicio:nth-child(3) { animation-delay: 0.15s; }
+.tarjeta-servicio:nth-child(4) { animation-delay: 0.20s; }
+.tarjeta-servicio:nth-child(5) { animation-delay: 0.25s; }
+.tarjeta-servicio:nth-child(6) { animation-delay: 0.30s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .tarjeta-servicio:hover {
   border-color: #4a1d6e;
   box-shadow: 0 8px 32px rgba(74, 29, 110, 0.10);
   transform: translateY(-4px);
+}
+
+.tarjeta-servicio::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #4a1d6e;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tarjeta-servicio:hover::before {
+  opacity: 1;
+}
+
+.tarjeta-servicio.categoria-cultura::before {
+  background: #6b2b8a;
+}
+
+.tarjeta-servicio.categoria-deporte::before {
+  background: #c97d0e;
+}
+
+.tarjeta-servicio.categoria-salud::before {
+  background: #b3261e;
+}
+
+.tarjeta-servicio.categoria-educacion::before {
+  background: #0a7e3d;
+}
+
+.tarjeta-servicio.categoria-espacios::before {
+  background: #a57c00;
 }
 
 .tarjeta-header {
@@ -117,7 +204,6 @@ body {
   margin-bottom: 14px;
 }
 
-/* --- ETIQUETA DE CATEGORÍA --- */
 .tag-grupo {
   display: flex;
   align-items: center;
@@ -151,7 +237,6 @@ body {
   text-transform: uppercase;
 }
 
-/* --- PRECIOS --- */
 .precio-grupo {
   display: flex;
   flex-direction: column;
@@ -191,7 +276,6 @@ body {
   line-height: 1.3;
 }
 
-
 .servicio-desc {
   font-size: 14px;
   color: #6b7280;
@@ -203,7 +287,6 @@ body {
 .servicio-desc strong {
   color: #1a1a2e;
 }
-
 
 .tarjeta-footer {
   display: flex;
@@ -223,7 +306,6 @@ body {
   border-radius: 20px;
 }
 
-/* --- BOTÓN DE RESERVAR --- */
 .btn-reservar {
   width: 100%;
   padding: 12px;
@@ -242,7 +324,6 @@ body {
   background-color: #361552;
   transform: scale(1.01);
 }
-
 
 .detalle-sidebar .tarjeta-blanca {
   background: #ffffff;
@@ -298,7 +379,6 @@ body {
   max-width: 280px;
   line-height: 1.5;
 }
-
 
 .detalle-servicio {
   padding: 0;
@@ -550,7 +630,6 @@ body {
   background: #361552;
 }
 
-
 .modal-overlay-reserva {
   position: fixed;
   inset: 0;
@@ -785,7 +864,6 @@ body {
   font-size: 13px;
 }
 
-
 @media (max-width: 1024px) {
   .catalogo-layout {
     grid-template-columns: 1fr;
@@ -802,11 +880,23 @@ body {
   }
 
   .servicios-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .page-header h1 {
     font-size: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .filtro-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filtro-select {
+    min-width: unset;
+    width: 100%;
   }
 }
