@@ -4,7 +4,7 @@ const router = express.Router();
 const reporteController = require('../controllers/reporteController');
 const { verificarToken, exigirRol } = require('../middleware/auth');
 
-// ✅ Solo personal administrativo puede ver reportes
+// Solo personal administrativo puede ver reportes
 router.use(verificarToken, exigirRol('administrativo'));
 
 router.get('/solicitudes', reporteController.reporteSolicitudes);

@@ -5,7 +5,7 @@ exports.obtenerPerfil = async (req, res) => {
   try {
     const { cedula } = req.params;
 
-    // 1. Datos básicos del estudiante (tu consulta actual)
+    // 1. Datos basicos del estudiante (tu consulta actual)
     const perfil = await sequelize.query(`
       SELECT u.cedula_identidad, u.primer_nombre, u.primer_apellido, 
              u.fecha_nacimiento, u.sexo, u.numero_telefono, 
@@ -21,11 +21,7 @@ exports.obtenerPerfil = async (req, res) => {
 
     if (perfil.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    // 1b. NUEVO (reporte QA): atributos de EGRESADO, BECARIO y PREPARADOR.
-    //     - El perfil de egresado debe mostrar título/índice/año y conservar
-    //       todo su historial previo como estudiante.
-    //     - Los atributos de becario y preparador se muestran debajo del
-    //       avatar en el frontend.
+
     const egresado = await sequelize.query(`
       SELECT indice_academico_final, titulo, anio_graduacion
       FROM egresado WHERE cedula_identidad = :cedula LIMIT 1
@@ -41,7 +37,6 @@ exports.obtenerPerfil = async (req, res) => {
       FROM preparadores WHERE cedula_identidad = :cedula LIMIT 1
     `, { replacements: { cedula }, type: QueryTypes.SELECT });
 
-    // 2. NUEVO: Historial de Trayectoria
     const trayectoria = await sequelize.query(`
       SELECT 
         p.fecha_inicio, 
@@ -57,7 +52,7 @@ exports.obtenerPerfil = async (req, res) => {
       ORDER BY p.fecha_inicio DESC
     `, { replacements: { cedula }, type: QueryTypes.SELECT });
 
-    // 3. NUEVO: Última sesión del usuario
+  
     const sesionActual = await sequelize.query(`
       SELECT 
         direccion_ip,
@@ -70,7 +65,7 @@ exports.obtenerPerfil = async (req, res) => {
       LIMIT 1
     `, { replacements: { cedula }, type: QueryTypes.SELECT });
 
-    // 4. Combinar todos los datos
+ 
     const respuesta = { 
       ...perfil[0], 
       trayectoria,

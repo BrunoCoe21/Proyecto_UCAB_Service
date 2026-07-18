@@ -1,16 +1,6 @@
-// ============================================================================
-//  src/controllers/gestionSolicitudController.js  ·  UCAB-Services
-// ----------------------------------------------------------------------------
-//  Para DOCENTE y PERSONAL_ADMINISTRATIVO (son EMPLEADOS). Permite ver los
-//  pasos de actividad pendientes/en proceso de una OFICINA y avanzarlos.
-// ============================================================================
-
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
-// ----------------------------------------------------------------------------
-//  Sincroniza solicitud.estado_general según el estado real de sus pasos.
-// ----------------------------------------------------------------------------
 async function sincronizarEstadoSolicitud(idSolicitud, transaction) {
   const pasos = await sequelize.query(
     `SELECT estado_paso FROM paso_actividad WHERE id_solicitud = :idSolicitud`,
@@ -30,10 +20,6 @@ async function sincronizarEstadoSolicitud(idSolicitud, transaction) {
 }
 exports.sincronizarEstadoSolicitud = sincronizarEstadoSolicitud;
 
-// ----------------------------------------------------------------------------
-//  GET /api/gestion/oficinas
-//  Lista las oficinas existentes.
-// ----------------------------------------------------------------------------
 exports.listarOficinas = async (req, res) => {
   try {
     const oficinas = await sequelize.query(
@@ -51,11 +37,6 @@ exports.listarOficinas = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/gestion/pasos/:nombreOficina
-//  Pasos de actividad de una oficina.
-//  🔥 MODIFICADO: el paso "Pago pendiente" SOLO aparece si el usuario ya pagó
-// ----------------------------------------------------------------------------
 exports.listarPasosPorOficina = async (req, res) => {
   try {
     const { nombreOficina } = req.params;
@@ -72,7 +53,6 @@ exports.listarPasosPorOficina = async (req, res) => {
                   AND ant.num_paso < p.num_paso
                   AND ant.estado_paso <> 'completado'
               ) AS bloqueado_por_anterior,
-              -- 🔥 NUEVO: verificar si existe un pago para esta solicitud
               EXISTS (
                 SELECT 1 FROM pago pag
                 JOIN factura f ON f.num_control = pag.num_control
@@ -86,7 +66,6 @@ exports.listarPasosPorOficina = async (req, res) => {
        LEFT JOIN servicio se ON se.codigo_servicio = s.codigo_servicio
        WHERE p.nombre_oficina = :nombreOficina
          AND p.estado_paso <> 'completado'
-         -- 🔥 REGLA: el paso "Pago pendiente" SOLO se muestra si el usuario ya pagó
          AND (
            p.nombre_paso <> 'Pago pendiente'
            OR (
@@ -111,13 +90,6 @@ exports.listarPasosPorOficina = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  PUT /api/gestion/pasos/:idSolicitud/:numPaso
-//  Cambia el estado de un paso ('en proceso' o 'completado').
-//
-//  🔥 NUEVO: VALIDAR QUE EL USUARIO HAYA PAGADO ANTES DE PERMITIR MODIFICAR
-//  EL PASO "Pago pendiente".
-// ----------------------------------------------------------------------------
 exports.actualizarEstadoPaso = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -126,10 +98,9 @@ exports.actualizarEstadoPaso = async (req, res) => {
 
     if (!['en proceso', 'completado'].includes(estado_paso)) {
       await t.rollback();
-      return res.status(400).json({ error: 'Estado no válido. Use "en proceso" o "completado".' });
+      return res.status(400).json({ error: 'Estado no valido. Use "en proceso" o "completado".' });
     }
 
-    // 🔥 VALIDACIÓN 1: VERIFICAR QUE EL PASO EXISTA
     const pasoInfo = await sequelize.query(
       `SELECT nombre_paso FROM paso_actividad
        WHERE id_solicitud = :idSolicitud AND num_paso = :numPaso
@@ -142,7 +113,6 @@ exports.actualizarEstadoPaso = async (req, res) => {
       return res.status(404).json({ error: 'Paso no encontrado.' });
     }
 
-    // 🔥 VALIDACIÓN 2: Si el paso es "Pago pendiente", verificar que exista un pago
     if (pasoInfo[0].nombre_paso === 'Pago pendiente') {
       const pagoExistente = await sequelize.query(
         `SELECT COUNT(*) as total FROM pago p
@@ -163,7 +133,6 @@ exports.actualizarEstadoPaso = async (req, res) => {
       }
     }
 
-    // VALIDACIÓN 3: Bloquea si hay un paso anterior sin completar.
     const anteriorSinCompletar = await sequelize.query(
       `SELECT 1 FROM paso_actividad
        WHERE id_solicitud = :idSolicitud AND num_paso < :numPaso AND estado_paso <> 'completado'`,
@@ -171,10 +140,9 @@ exports.actualizarEstadoPaso = async (req, res) => {
     );
     if (anteriorSinCompletar.length > 0) {
       await t.rollback();
-      return res.status(400).json({ error: 'Hay un paso anterior sin completar; no se puede avanzar este paso todavía.' });
+      return res.status(400).json({ error: 'Hay un paso anterior sin completar; no se puede avanzar este paso todavia.' });
     }
 
-    // Si se marca 'en proceso' por primera vez, registrar fecha_inicio si no la tiene.
     await sequelize.query(
       `UPDATE paso_actividad
        SET estado_paso = :estado_paso,
@@ -183,7 +151,6 @@ exports.actualizarEstadoPaso = async (req, res) => {
       { replacements: { idSolicitud, numPaso, estado_paso }, type: QueryTypes.UPDATE, transaction: t }
     );
 
-    // Mantiene solicitud.estado_general sincronizado con sus pasos.
     await sincronizarEstadoSolicitud(idSolicitud, t);
 
     await t.commit();
@@ -196,10 +163,6 @@ exports.actualizarEstadoPaso = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/gestion/solicitud/:idSolicitud
-//  Detalle completo de una solicitud con TODOS sus pasos.
-// ----------------------------------------------------------------------------
 exports.obtenerSolicitudCompleta = async (req, res) => {
   try {
     const { idSolicitud } = req.params;
@@ -235,9 +198,6 @@ exports.obtenerSolicitudCompleta = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  PUT /api/gestion/oficinas/:nombreOficina/responsable
-// ----------------------------------------------------------------------------
 exports.asignarResponsable = async (req, res) => {
   try {
     const { nombreOficina } = req.params;
@@ -247,7 +207,7 @@ exports.asignarResponsable = async (req, res) => {
       `SELECT 1 FROM empleado WHERE cedula_identidad = :cedula LIMIT 1`,
       { replacements: { cedula }, type: QueryTypes.SELECT }
     );
-    if (empleado.length === 0) return res.status(403).json({ error: 'Tu usuario no está registrado como empleado.' });
+    if (empleado.length === 0) return res.status(403).json({ error: 'Tu usuario no esta registrado como empleado.' });
 
     const resultado = await sequelize.query(
       `UPDATE oficina_responsable SET responsable_asignado = :cedula
@@ -263,9 +223,6 @@ exports.asignarResponsable = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/gestion/mis-oficinas
-// ----------------------------------------------------------------------------
 exports.misOficinas = async (req, res) => {
   try {
     const cedula = req.usuario.cedula;

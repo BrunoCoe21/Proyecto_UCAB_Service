@@ -4,7 +4,7 @@ const Sede = require('../models/sede');
 exports.obtenerSedes = async (req, res) => {
   try {
     const sedes = await Sede.findAll({
-      attributes: ['nombre_sede'], // solo queremos el nombre
+      attributes: ['nombre_sede'], 
       order: [['nombre_sede', 'ASC']],
     });
     res.json(sedes);

@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 
-// Importación de enrutadores modulares
 const authRoutes = require('./routes/authRoutes');
 const usuarioRoutes = require('./routes/usuarioRoutes');
 const estudianteRoutes = require('./routes/estudianteRoutes');
@@ -21,7 +20,6 @@ const reporteRoutes = require('./routes/reporteRoutes');
 
 const app = express();
 
-// Configuración de Middlewares globales
 app.use(cors());
 app.use(express.json());
 

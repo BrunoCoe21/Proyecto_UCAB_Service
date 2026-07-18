@@ -1,28 +1,7 @@
-// ============================================================================
-//  src/controllers/solicitudController.js  ·  UCAB-Services  ·  MIS SOLICITUDES
-// ----------------------------------------------------------------------------
-//  CORRECCIÓN: la función obtenerPorEstudiante() anterior usaba el modelo
-//  Servicio con la columna 'nombre_servicio', que no existe en la base real
-//  (es 'descripcion_detallada'). Esta versión usa sequelize.query directo
-//  para evitar depender de asociaciones de Sequelize que pueden desalinearse
-//  con el esquema real, y porque las consultas de detalle cruzan varias
-//  tablas (solicitud, paso_actividad, oficina_responsable, requiere,
-//  acreditacion_requisito) que se leen más claro en SQL explícito.
-//
-//  NOTA sobre estado_general: en los datos ya cargados existen valores con
-//  distinta capitalización ('abierta', 'en proceso', 'cerrada' desde los
-//  scripts SQL, y 'EN PROCESO' desde el frontend de servicios). Por eso las
-//  comparaciones de estado en este controller son case-insensitive (LOWER).
-// ============================================================================
-
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 const { generarFolioFacturaYPasoPago } = require('./reservaController');
 
-// ----------------------------------------------------------------------------
-//  GET /api/solicitudes/estudiante/:cedula
-//  Lista de tarjetas: una por cada solicitud del usuario.
-// ----------------------------------------------------------------------------
 exports.obtenerPorEstudiante = async (req, res) => {
   try {
     const { cedula } = req.params;
@@ -44,13 +23,6 @@ exports.obtenerPorEstudiante = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  GET /api/solicitudes/:idSolicitud/detalle
-//  Resumen completo de una solicitud: datos generales + último paso con su
-//  oficina/responsable + la línea de tiempo completa de pasos + las
-//  acreditaciones que exige el servicio (informativo, sin registrar
-//  cumplimiento porque la base no tiene tabla para eso).
-// ----------------------------------------------------------------------------
 exports.obtenerDetalle = async (req, res) => {
   try {
     const { idSolicitud } = req.params;
@@ -70,7 +42,6 @@ exports.obtenerDetalle = async (req, res) => {
     }
     const solicitud = solicitudes[0];
 
-    // Línea de tiempo completa de pasos, ordenada
     const pasos = await sequelize.query(
       `SELECT num_paso, nombre_paso, estado_paso, fecha_inicio, fecha_fin,
               nombre_oficina, responsable_asignado, paso_predecesor
@@ -80,13 +51,9 @@ exports.obtenerDetalle = async (req, res) => {
       { replacements: { idSolicitud }, type: QueryTypes.SELECT }
     );
 
-    // Oficina/responsable "actual": el primer paso que no esté completado;
-    // si todos están completados, se muestra el último paso (el más reciente).
     let pasoActual = pasos.find(p => p.estado_paso !== 'completado');
     if (!pasoActual && pasos.length > 0) pasoActual = pasos[pasos.length - 1];
 
-    // Acreditaciones que exige el servicio (solo informativo: qué se necesita,
-    // no si el usuario ya las tiene, porque no existe esa tabla en la base).
     const acreditaciones = await sequelize.query(
       `SELECT ar.id_acreditacion, ar.nombre_requisito, ar.tipo_documento
        FROM requiere r
@@ -95,7 +62,6 @@ exports.obtenerDetalle = async (req, res) => {
       { replacements: { codigoServicio: solicitud.codigo_servicio }, type: QueryTypes.SELECT }
     );
 
-    // Si la solicitud es de un servicio que reserva espacio, traer la reserva
     const reservas = await sequelize.query(
       `SELECT nombre_sede, nombre_edif, num_identificador, fecha_reserva,
               hora_inicio, hora_fin, estado_reserva, cant_personas
@@ -105,7 +71,6 @@ exports.obtenerDetalle = async (req, res) => {
       { replacements: { idSolicitud }, type: QueryTypes.SELECT }
     );
 
-    // Acompañantes registrados para esta solicitud (entidad fuerte, FK a id_solicitud)
     const acompanantes = await sequelize.query(
       `SELECT documento_identidad, nombre
        FROM acompanante
@@ -113,8 +78,6 @@ exports.obtenerDetalle = async (req, res) => {
       { replacements: { idSolicitud }, type: QueryTypes.SELECT }
     );
 
-    // NUEVO: factura asociada a esta solicitud (vía folio_consumo), para
-    // mostrar en Mis Solicitudes el monto pendiente o el enlace a pagar.
     const facturas = await sequelize.query(
       `SELECT f.num_control, f.estatus, f.saldo
        FROM factura f
@@ -143,11 +106,6 @@ exports.obtenerDetalle = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------------------------
-//  Mapeo categoría de servicio -> oficina responsable que atiende el primer
-//  paso. Acordado explícitamente: tu base no tiene una regla automática para
-//  esto, así que se decide aquí, en un solo lugar fácil de ajustar.
-// ----------------------------------------------------------------------------
 const OFICINA_POR_CATEGORIA = {
   'Cultura':            'Direccion de Cultura',
   'Deporte':            'Direccion de Cultura',
@@ -155,17 +113,6 @@ const OFICINA_POR_CATEGORIA = {
   'Salud':              'Rectorado',
 };
 
-// ----------------------------------------------------------------------------
-//  POST /api/solicitudes
-//  Crea una solicitud SIN reserva de espacio (Salud, Educación Continua).
-//
-//  CAMBIO DE FLUJO (acordado): los servicios de Cultura/Deporte ya NO se
-//  crean por aquí. Ahora abren el modal de reserva directamente desde
-//  Servicios, que crea la solicitud y la reserva juntas en una transacción
-//  (ver reservaController.crearSolicitudConReserva). Este endpoint rechaza
-//  explícitamente esos casos para que no quede una solicitud "huérfana" sin
-//  reserva si alguien sigue llamando a esta ruta por error.
-// ----------------------------------------------------------------------------
 exports.crearSolicitud = async (req, res) => {
   const { id_solicitud, cedula_identidad, codigo_servicio } = req.body;
 
@@ -205,10 +152,6 @@ exports.crearSolicitud = async (req, res) => {
       { replacements: { id_solicitud, oficina }, type: QueryTypes.INSERT, transaction: t }
     );
 
-    // NUEVO: si el servicio tiene costo, generar la factura de inmediato y su
-    // paso "Pago pendiente" (num_paso=2), igual que en el flujo de reserva.
-    // Si el servicio es gratuito (precio = 0, como el título de grado), no
-    // tiene sentido generar una factura ni un paso de pago.
     if (Number(precio) > 0) {
       await generarFolioFacturaYPasoPago({
         idSolicitud: id_solicitud, codigoServicio: codigo_servicio, precio,
@@ -222,8 +165,6 @@ exports.crearSolicitud = async (req, res) => {
 
   } catch (error) {
     await t.rollback();
-    // El trigger fn_solicitud_vinculacion_vigente puede rechazar esto si el
-    // usuario no tiene vinculación vigente; ese mensaje llega tal cual aquí.
     console.error('Error al crear solicitud:', error);
     res.status(400).json({ error: error.message || 'No se pudo crear la solicitud.' });
   }

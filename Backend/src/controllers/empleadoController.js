@@ -1,19 +1,13 @@
-// ============================================================================
+
 //  src/controllers/empleadoController.js  ·  UCAB-Services
 // ----------------------------------------------------------------------------
-//  Perfil del EMPLEADO autenticado (docente o personal_administrativo).
-//  Es el equivalente, para estos roles, de lo que estudianteController hace
-//  para los estudiantes: traer los datos básicos + los datos propios del rol.
-// ============================================================================
+
 
 const sequelize = require('../config/database');
 const { QueryTypes } = require('sequelize');
 
 // ----------------------------------------------------------------------------
 //  GET /api/empleados/:cedula
-//  Devuelve los datos del usuario + lo que tenga en docente y/o en
-//  personal_administrativo (un empleado podría tener ambos roles, aunque no
-//  es el caso típico). El frontend pinta lo que venga no nulo.
 // ----------------------------------------------------------------------------
 exports.obtenerPerfil = async (req, res) => {
   try {
@@ -40,7 +34,7 @@ exports.obtenerPerfil = async (req, res) => {
       { replacements: { cedula }, type: QueryTypes.SELECT }
     );
 
-    // Periodo de vinculación vigente (para mostrar "Activo desde...")
+    // Periodo de vinculacion vigente (para mostrar "Activo desde...")
     const vinculacion = await sequelize.query(
       `SELECT fecha_inicio, fecha_finalizacion, rol_activo
        FROM periodo_vinculacion
@@ -67,8 +61,6 @@ exports.obtenerPerfil = async (req, res) => {
 
 // ----------------------------------------------------------------------------
 //  GET /api/empleados/:cedula/trayectoria
-//  Devuelve TODOS los periodos de vinculacion del empleado, con un detalle
-//  breve por rol (escalafon si fue docente, cargo si fue administrativo).
 // ----------------------------------------------------------------------------
 exports.obtenerTrayectoria = async (req, res) => {
   try {

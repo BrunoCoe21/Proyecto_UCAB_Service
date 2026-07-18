@@ -15,7 +15,7 @@ exports.listarEdificaciones = async (req, res) => {
   }
 };
 
-// Crear una nueva edificación
+// Crear una nueva edificacion
 exports.crearEdificacion = async (req, res) => {
   try {
     const { nombre_sede, nombre_edif, direccion_interna } = req.body;
@@ -32,15 +32,15 @@ exports.crearEdificacion = async (req, res) => {
     });
     res.status(201).json(nueva);
   } catch (error) {
-    console.error('Error al crear edificación:', error);
+    console.error('Error al crear edificacion:', error);
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({ mensaje: 'Ya existe una edificación con ese nombre en esa sede' });
+      return res.status(400).json({ mensaje: 'Ya existe una edificacion con ese nombre en esa sede' });
     }
-    res.status(500).json({ mensaje: 'Error al crear edificación' });
+    res.status(500).json({ mensaje: 'Error al crear edificacion' });
   }
 };
 
-// Obtener una edificación por su clave compuesta
+// Obtener una edificacion por su clave compuesta
 exports.obtenerEdificacion = async (req, res) => {
   try {
     const { nombre_sede, nombre_edif } = req.params;
@@ -49,11 +49,11 @@ exports.obtenerEdificacion = async (req, res) => {
       include: [{ model: Sede }],
     });
     if (!edificacion) {
-      return res.status(404).json({ mensaje: 'Edificación no encontrada' });
+      return res.status(404).json({ mensaje: 'Edificacion no encontrada' });
     }
     res.json(edificacion);
   } catch (error) {
-    console.error('Error al obtener edificación:', error);
-    res.status(500).json({ mensaje: 'Error al obtener edificación' });
+    console.error('Error al obtener edificacion:', error);
+    res.status(500).json({ mensaje: 'Error al obtener edificacion' });
   }
 };

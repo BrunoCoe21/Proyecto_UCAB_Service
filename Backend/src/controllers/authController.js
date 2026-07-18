@@ -1,7 +1,4 @@
-// ============================================================================
-// authController.js · UCAB-Services
-// VERSIÓN CORREGIDA - GEOLOCALIZACIÓN REAL + IP REAL EN DESARROLLO
-// ============================================================================
+
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -38,7 +35,7 @@ async function obtenerRoles(cedula) {
 // Funcion para obtener la IP real
 // ----------------------------------------------------------------------------
 async function obtenerIPReal(req) {
-  // 1. Intentar obtener IP de la petición
+  // 1 Intentar obtener IP de la petición
   let ip = req.headers['x-forwarded-for'] ||
            req.headers['x-real-ip'] ||
            req.ip ||
@@ -48,7 +45,7 @@ async function obtenerIPReal(req) {
   
   ip = ip.split(',')[0].trim();
 
-  // 2. Si es localhost, consultar IP pública real
+  // 2 Si es localhost, consultar IP pUblica real
   const esLocal = ip === '::1' || ip === '127.0.0.1' || ip === '0.0.0.0';
   if (esLocal) {
     try {
@@ -59,16 +56,13 @@ async function obtenerIPReal(req) {
         return ip;
       }
     } catch (error) {
-      console.warn('⚠️ No se pudo obtener IP pública, usando localhost');
+      console.warn(' No se pudo obtener IP pública, usando localhost');
     }
   }
 
   return ip;
 }
 
-// ----------------------------------------------------------------------------
-// Funcion para generar UUID basado en IP + User-Agent + timestamp
-// ----------------------------------------------------------------------------
 function generarUUID(ip, userAgent) {
   const hashBase = ip + userAgent + Date.now().toString();
   const hash = crypto.createHash('md5').update(hashBase).digest('hex');
@@ -76,7 +70,7 @@ function generarUUID(ip, userAgent) {
 }
 
 // ----------------------------------------------------------------------------
-// Funcion para obtener la geolocalización de una IP
+// Funcion para obtener la geolocalizaciOn de una IP
 // ----------------------------------------------------------------------------
 async function obtenerGeolocalizacion(ip) {
   const esLocal = ip === '::1' || ip === '127.0.0.1' || ip === '0.0.0.0';
@@ -103,7 +97,7 @@ async function obtenerGeolocalizacion(ip) {
       return `IP pública: ${ip} (ubicación no disponible)`;
     }
   } catch (error) {
-    console.warn('⚠️ API de geolocalización no disponible:', error.message);
+    console.warn(' API de geolocalización no disponible:', error.message);
     return `IP: ${ip} (geolocalización no disponible)`;
   }
 }
@@ -116,7 +110,7 @@ exports.login = async (req, res) => {
     const { correo, contrasena } = req.body;
 
     if (!correo || !contrasena) {
-      return res.status(400).json({ error: 'Correo y contraseña son obligatorios.' });
+      return res.status(400).json({ error: 'Correo y contrasena son obligatorios.' });
     }
 
    
@@ -131,13 +125,13 @@ exports.login = async (req, res) => {
     );
 
     if (usuarios.length === 0) {
-      return res.status(401).json({ error: 'Credenciales inválidas.' });
+      return res.status(401).json({ error: 'Credenciales invalidas.' });
     }
     const usuario = usuarios[0];
 
     
     if (usuario.estado_cuenta.toLowerCase() !== 'activa') {
-      return res.status(403).json({ error: `La cuenta está ${usuario.estado_cuenta}.` });
+      return res.status(403).json({ error: `La cuenta esta ${usuario.estado_cuenta}.` });
     }
 
     const coincide = await bcrypt.compare(contrasena, usuario.contrasena);
@@ -147,7 +141,7 @@ exports.login = async (req, res) => {
          WHERE cedula_identidad = :cedula`,
         { replacements: { cedula: usuario.cedula_identidad }, type: QueryTypes.UPDATE }
       );
-      return res.status(401).json({ error: 'Credenciales inválidas.' });
+      return res.status(401).json({ error: 'Credenciales invalidas.' });
     }
 
     if (usuario.estatus_verificacion_dos_pasos === true) {
@@ -214,7 +208,7 @@ exports.login = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error en login:', err);
+    console.error(' Error en login:', err);
     return res.status(500).json({ 
       error: 'Error interno del servidor.',
       detalle: err.message 
@@ -247,7 +241,7 @@ exports.cambiarContrasena = async (req, res) => {
 
     const coincide = await bcrypt.compare(contrasenaActual, usuarios[0].contrasena);
     if (!coincide) {
-      return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
+      return res.status(401).json({ error: 'La contrasena actual es incorrecta.' });
     }
 
     const nuevoHash = await bcrypt.hash(contrasenaNueva, SALT_ROUNDS);
@@ -258,16 +252,16 @@ exports.cambiarContrasena = async (req, res) => {
       { replacements: { hash: nuevoHash, cedula }, type: QueryTypes.UPDATE }
     );
 
-    return res.json({ mensaje: 'Contraseña actualizada correctamente.' });
+    return res.json({ mensaje: 'Contrasena actualizada correctamente.' });
 
   } catch (err) {
-    console.error('Error al cambiar contraseña:', err);
+    console.error('Error al cambiar contrasena:', err);
     return res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
 
 // ----------------------------------------------------------------------------
-// Utilidad para crear/registrar contraseñas
+// Utilidad para crear/registrar contrasenas
 // ----------------------------------------------------------------------------
 exports.hashearContrasena = async (textoPlano) => {
   return await bcrypt.hash(textoPlano, SALT_ROUNDS);
@@ -287,12 +281,12 @@ exports.logout = async (req, res) => {
     );
 
     return res.json({ 
-      mensaje: 'Sesión cerrada correctamente. Intentos fallidos reiniciados a 0.' 
+      mensaje: 'Sesion cerrada correctamente. Intentos fallidos reiniciados a 0.' 
     });
 
   } catch (err) {
     console.error('❌ Error en logout:', err);
-    return res.status(500).json({ error: 'Error al cerrar sesión.' });
+    return res.status(500).json({ error: 'Error al cerrar sesion.' });
   }
 };
 
@@ -303,20 +297,20 @@ exports.verificar2FA = async (req, res) => {
   try {
     const { token_temporal, codigo } = req.body;
     if (!token_temporal || !codigo) {
-      return res.status(400).json({ error: 'Token temporal y código son obligatorios.' });
+      return res.status(400).json({ error: 'Token temporal y codigo son obligatorios.' });
     }
 
     let datos;
     try {
       datos = jwt.verify(token_temporal, JWT_SECRET);
     } catch {
-      return res.status(401).json({ error: 'La verificación expiró. Inicia sesión de nuevo.' });
+      return res.status(401).json({ error: 'La verificacion expiro. Inicia sesion de nuevo.' });
     }
     if (datos.alcance !== '2fa') {
-      return res.status(401).json({ error: 'Token no válido para verificación en dos pasos.' });
+      return res.status(401).json({ error: 'Token no valido para verificacion en dos pasos.' });
     }
     if (String(codigo).trim() !== datos.codigo) {
-      return res.status(401).json({ error: 'Código de verificación incorrecto.' });
+      return res.status(401).json({ error: 'Codigo de verificacion incorrecto.' });
     }
 
     const usuarios = await sequelize.query(
@@ -359,7 +353,7 @@ exports.verificar2FA = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error en verificar-2fa:', err);
+    console.error(' Error en verificar-2fa:', err);
     return res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };

@@ -1,8 +1,4 @@
-// ============================================================================
-//  src/routes/vacanteRoutes.js  ·  UCAB-Services  ·  BOLSA DE TRABAJO
-//  Se monta en app.js como:  app.use('/api/vacantes', vacanteRoutes);
-//  Todas las rutas exigen rol 'egresado', tal como lo pide el enunciado.
-// ============================================================================
+
 const express = require('express');
 const router = express.Router();
 const vacanteController = require('../controllers/vacanteController');

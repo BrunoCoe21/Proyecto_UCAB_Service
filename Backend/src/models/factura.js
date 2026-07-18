@@ -5,19 +5,19 @@ const sequelize = require('../config/database');
 const Factura = sequelize.define('factura', {
   num_control: { 
     type: DataTypes.STRING(30), 
-    primaryKey: true // Clave natural como 'FAC-001' 
+    primaryKey: true 
   },
   numero_folio: { 
     type: DataTypes.STRING(30), 
-    allowNull: true // Relación opcional con folio_consumo [cite: 583]
+    allowNull: true 
   },
   cedula_identidad: { 
     type: DataTypes.INTEGER, 
-    allowNull: true // Destinatario tipo Usuario [cite: 430]
+    allowNull: true 
   },
   id_entidad: { 
     type: DataTypes.INTEGER, 
-    allowNull: true // Destinatario tipo Organización [cite: 430]
+    allowNull: true 
   },
   saldo: { 
     type: DataTypes.DECIMAL(10, 2), 
@@ -29,7 +29,6 @@ const Factura = sequelize.define('factura', {
     defaultValue: 'PENDIENTE',
     validate: {
       checkSaldoPagado(value) {
-        // Implementación de R14: Pagada implica saldo = 0 
         if (value === 'pagada' && this.saldo > 0) {
           throw new Error('Una factura pagada no puede tener saldo pendiente.');
         }
@@ -40,11 +39,10 @@ const Factura = sequelize.define('factura', {
   tableName: 'factura',
   validate: {
     checkDestinatarioExclusivo() {
-      // Implementación de R12: XOR lógico entre usuario y entidad 
       const tieneUsuario = this.cedula_identidad !== null && this.cedula_identidad !== undefined;
       const tieneEntidad = this.id_entidad !== null && this.id_entidad !== undefined;
       if ((tieneUsuario && tieneEntidad) || (!tieneUsuario && !tieneEntidad)) {
-        throw new Error('La factura debe asociarse a un usuario O a una organización, no a ambos ni a ninguno.');
+        throw new Error('La factura debe asociarse a un usuario O a una organizacion, no a ambos ni a ninguno.');
       }
     }
   }
