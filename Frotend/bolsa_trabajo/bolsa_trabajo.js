@@ -1,18 +1,13 @@
-
 const API_URL = 'http://localhost:5000/api';
 
 let vacantes = [];
 let vacantesFiltradas = [];
-let postulacionesUsuario = new Set(); // ids de vacantes a las que ya se postuló
+let postulacionesUsuario = new Set();
 let vacanteSeleccionada = null;
 let usuario = null;
 let token = null;
 
-// --------------------------------------------------------------------------------------------------
-//  INICIALIZACIÓN
-// --------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
-  // Obtener sesion
   usuario = JSON.parse(localStorage.getItem('ucab_usuario'));
   token = localStorage.getItem('ucab_token');
 
@@ -21,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Verificar que sea egresado
   const roles = usuario.roles || [];
   if (!roles.includes('egresado')) {
     alert('Acceso restringido a egresados.');
@@ -29,19 +23,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Configurar evento del filtro
   const filtroSelect = document.getElementById('filtro-perfil');
   filtroSelect.addEventListener('change', aplicarFiltro);
 
-  // 4. Cargar datos
   await cargarPerfilEgresado();
   await cargarPostulaciones();
   await cargarVacantes();
 });
 
-// --------------------------------------------------------------------------------------------------
-//  OBTENER PERFIL DEL EGRESADO (índice académico)
-// --------------------------------------------------------------------------------------------------
 async function cargarPerfilEgresado() {
   try {
     const cedula = usuario.cedula || usuario.cedula_identidad;
@@ -58,9 +47,6 @@ async function cargarPerfilEgresado() {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-//  OBTENER POSTULACIONES DEL USUARIO
-// --------------------------------------------------------------------------------------------------
 async function cargarPostulaciones() {
   try {
     const cedula = usuario.cedula || usuario.cedula_identidad;
@@ -76,9 +62,6 @@ async function cargarPostulaciones() {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-//  CARGAR VACANTES Y POBLAR FILTRO
-// --------------------------------------------------------------------------------------------------
 async function cargarVacantes() {
   const container = document.getElementById('lista-vacantes');
   try {
@@ -117,12 +100,8 @@ async function cargarVacantes() {
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-//  POBLAR EL SELECT CON PERFILES ÚNICOS
-// --------------------------------------------------------------------------------------------------
 function poblarFiltro(vacantes) {
   const select = document.getElementById('filtro-perfil');
-  // Limpiar opciones existentes, mantener solo "Todos"
   select.innerHTML = '<option value="todos">Todos</option>';
 
   const perfiles = new Set();
@@ -132,7 +111,6 @@ function poblarFiltro(vacantes) {
     }
   });
 
-  // Ordenar alfabeticamente
   const perfilesOrdenados = Array.from(perfiles).sort((a, b) => a.localeCompare(b));
   perfilesOrdenados.forEach(perfil => {
     const option = document.createElement('option');
@@ -142,9 +120,6 @@ function poblarFiltro(vacantes) {
   });
 }
 
-// --------------------------------------------------------------------------------------------------
-//  APLICAR FILTRO (al cambiar el select)
-// --------------------------------------------------------------------------------------------------
 function aplicarFiltro() {
   const select = document.getElementById('filtro-perfil');
   const perfilSeleccionado = select.value;
@@ -160,7 +135,6 @@ function aplicarFiltro() {
   vacantesFiltradas = vacantesAMostrar;
   renderizarVacantes(vacantesAMostrar, perfilMostrado);
 
-  // Si la vacante seleccionada previamente no está en el filtro, limpiar el detalle
   if (vacanteSeleccionada) {
     const existe = vacantesAMostrar.some(v => v.id_vacante === vacanteSeleccionada.id_vacante);
     if (!existe) {
@@ -177,18 +151,11 @@ function aplicarFiltro() {
       }
     }
   } else {
-    // Si no hay selección y hay vacantes, seleccionar la primera
     if (vacantesAMostrar.length > 0) {
-      // No seleccionamos automáticamente para no forzar, pero si el usuario quiere, puede hacer clic.
-      // Opcional: seleccionar la primera
-      // mostrarDetalle(vacantesAMostrar[0]);
     }
   }
 }
 
-// --------------------------------------------------------------------------------------------------
-//  RENDERIZAR TARJETAS DE VACANTES
-// --------------------------------------------------------------------------------------------------
 function renderizarVacantes(vacantesMostrar, perfilSeleccionado) {
   const container = document.getElementById('lista-vacantes');
 
@@ -228,9 +195,6 @@ function renderizarVacantes(vacantesMostrar, perfilSeleccionado) {
 
 }
 
-// --------------------------------------------------------------------------------------------------
-//  MOSTRAR DETALLE DE UNA VACANTE
-// --------------------------------------------------------------------------------------------------
 function mostrarDetalle(vacante) {
   vacanteSeleccionada = vacante;
   const panel = document.getElementById('panel-detalle');
@@ -295,11 +259,7 @@ function mostrarDetalle(vacante) {
   panel.innerHTML = html;
 }
 
-// --------------------------------------------------------------------------------------------------
-// POSTULARSE A UNA VACANTE - CON MODAL PERSONALIZADO
-// --------------------------------------------------------------------------------------------------
 async function postularse(idVacante) {
-    // Obtener la vacante seleccionada
     const vacante = vacantesFiltradas.find(v => v.id_vacante === idVacante);
     const nombreVacante = vacante ? vacante.cargo_solicitado : 'Oportunidad laboral';
     const empresa = vacante ? vacante.organizacion : '';
@@ -316,7 +276,6 @@ async function postularse(idVacante) {
         const data = await response.json();
 
         if (!response.ok) {
-            // Manejar diferentes tipos de errores
             if (response.status === 409) {
                 mostrarModalPostulacion(
                     'warning',
@@ -347,7 +306,6 @@ async function postularse(idVacante) {
             throw new Error(data.error || 'Error al postularse');
         }
 
-        // ✅ ÉXITO - Mostrar modal de éxito
         mostrarModalPostulacion(
             'exito',
             '¡Postulación enviada!',
@@ -359,15 +317,12 @@ async function postularse(idVacante) {
             }
         );
 
-        // Actualizar el estado local
         postulacionesUsuario.add(idVacante);
         
-        // Re-renderizar manteniendo el filtro actual
         const select = document.getElementById('filtro-perfil');
         const perfil = select ? select.value : 'todos';
         aplicarFiltro();
 
-        // Si la vacante seleccionada era la misma, actualizar el detalle
         if (vacanteSeleccionada && vacanteSeleccionada.id_vacante === idVacante) {
             mostrarDetalle(vacanteSeleccionada);
         }
@@ -383,9 +338,6 @@ async function postularse(idVacante) {
     }
 }
 
-// --------------------------------------------------------------------------------------------------
-//  UTILIDAD: FORMATEAR FECHA
-// --------------------------------------------------------------------------------------------------
 function formatearFecha(fechaStr) {
   if (!fechaStr) return 'Fecha no disponible';
   const fecha = new Date(fechaStr);
@@ -398,58 +350,37 @@ function formatearFecha(fechaStr) {
   return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// --------------------------------------------------------------------------------------------------
-//  EVENTO DE CLIC EN TARJETAS (delegación)
-// --------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-  // Delegación de eventos para las tarjetas
   document.getElementById('lista-vacantes').addEventListener('click', (e) => {
     const card = e.target.closest('.tarjeta-vacante');
     if (card) {
       const id = card.dataset.id;
-      // Buscar en vacantesFiltradas (las que están visibles)
       const vacante = vacantesFiltradas.find(v => v.id_vacante === id);
       if (vacante) mostrarDetalle(vacante);
     }
   });
 });
 
-// --------------------------------------------------------------------------------------------------
-// MODAL DE POSTULACIÓN - Funciones
-// --------------------------------------------------------------------------------------------------
-
-/**
- * Muestra un modal personalizado para el resultado de la postulación
- * @param {string} tipo - 'exito', 'error', 'warning'
- * @param {string} titulo - Título del modal
- * @param {string} mensaje - Mensaje principal
- * @param {Object} detalle - Datos adicionales a mostrar (opcional)
- */
 function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
     const modal = document.getElementById('modal-postulacion');
-    const icono = document.getElementById('modal-icono');
     const tituloEl = document.getElementById('modal-titulo');
     const subtituloEl = document.getElementById('modal-subtitulo');
     const mensajeEl = document.getElementById('modal-mensaje');
     const detalleEl = document.getElementById('modal-detalle');
     const btnPrincipal = document.getElementById('modal-btn-principal');
 
-    // Configurar segun el tipo
     const config = {
         exito: {
-            clase: 'exito',
             btnClase: 'exito',
             btnTexto: 'Continuar',
             subtitulo: '¡Postulación registrada!'
         },
         error: {
-            clase: 'error',
             btnClase: 'error',
             btnTexto: 'Intentar de nuevo',
             subtitulo: 'No se pudo completar la postulación'
         },
         warning: {
-            clase: 'warning',
             btnClase: 'warning',
             btnTexto: 'Entendido',
             subtitulo: 'Atención'
@@ -458,20 +389,13 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
 
     const cfg = config[tipo] || config.warning;
 
-    // Asignar icono y estilos
-    icono.textContent = cfg.icono;
-    icono.className = `modal-postulacion-icono ${cfg.clase}`;
-    
-    // Asignar texto
     tituloEl.textContent = titulo;
     subtituloEl.textContent = cfg.subtitulo;
     mensajeEl.textContent = mensaje;
 
-    // Configurar boton
     btnPrincipal.textContent = cfg.btnTexto;
     btnPrincipal.className = `btn-modal-postulacion ${cfg.btnClase}`;
     
-    // Configurar evento del boton segun el tipo
     btnPrincipal.onclick = function() {
         cerrarModalPostulacion();
         if (tipo === 'exito') {
@@ -483,7 +407,6 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
         }
     };
 
-    // Mostrar detalle si existe
     if (detalle) {
         detalleEl.style.display = 'block';
         detalleEl.innerHTML = Object.entries(detalle)
@@ -493,10 +416,8 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
         detalleEl.style.display = 'none';
     }
 
-    // Mostrar modal
     modal.classList.add('abierto');
 
-    // Cerrar con Escape
     document.addEventListener('keydown', function handler(e) {
         if (e.key === 'Escape') {
             cerrarModalPostulacion();
@@ -505,14 +426,11 @@ function mostrarModalPostulacion(tipo, titulo, mensaje, detalle = null) {
     });
 }
 
-//Cierra el modal de postulacion
 function cerrarModalPostulacion() {
     const modal = document.getElementById('modal-postulacion');
     modal.classList.remove('abierto');
 }
 
-
- // Cierra el modal haciendo clic afuera 
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('modal-postulacion');
     if (modal && modal.classList.contains('abierto')) {
